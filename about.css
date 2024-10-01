@@ -1,0 +1,913 @@
+*{
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    white-space: nowrap;
+    overflow-x: clip;
+}
+
+
+nav {
+    display: flex;
+    padding: 2% 6%;
+    justify-content: space-between;
+    align-items: center;
+}
+
+nav img {
+    width: 100px;
+
+}
+
+.nav-links {
+    flex: 1;
+    text-align: right;
+
+}
+
+.nav-links ul li {
+    list-style: none;
+    display: inline-block;
+    padding: 8px 12px;
+    position: relative;
+    margin-top: -15px;
+}
+
+.nav-links ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 13px;
+
+}
+
+.nav-links ul li::after {
+    content: '';
+    width: 0%;
+    font-family: 'Inter', sans-serif;
+    height: 2px;
+    background: #FFDC34;
+    display: block;
+    margin: auto;
+    transition: 0.5s;
+}
+
+.nav-links ul li:hover::after {
+    width: 100%;
+}
+
+.subheader {
+    height: 50vh;
+    width: 100%;
+    font-family: 'Inter', sans-serif;
+    background-image: linear-gradient(rgba(22, 38, 100, 0.67), rgba(16, 38, 124, 0.119)), url(images/about/grad6.jpeg);
+    background-position-y: 75%;
+    background-size: cover;
+    text-align: center;
+    color: #FFDC34;
+    text-shadow: 3px 3px 9px rgba(0, 0, 0, 0.492);
+    
+}
+
+.subheader h1{
+    margin-top: 50px;
+}
+
+#menuIcon,
+#closeIcon {
+    display: none; /* Hide both icons by default */
+}
+/*-------------------------------DO NOT CHANGE-------------------------------------*/
+
+/*-------page 1-------*/
+.page_1 {
+    position: relative;
+    width: 100%;
+    height: auto;
+    padding: 10% 0; 
+}
+.we_help {
+    position: absolute;
+    left:10%;
+    width: auto;
+    height: auto;
+    font-weight: 584;
+    font-family: 'Akshar',sans-serif;
+    font-style: normal;
+    font-size: 3.3vw;
+    line-height: 1.1;
+    color: #000000;
+    text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.KseaStandsFor {
+    width: auto;
+    height: auto;
+    margin-left: 10%;
+    margin-top: 15%;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 3.3vw;
+    line-height: 67px;
+    color: #000000;
+}
+
+.ksea {
+    font-style: normal;
+    font-weight: 800;
+    font-size: 6.67vw;
+    line-height: 1.1;
+    color: #2E3192;
+    text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.45);
+
+}
+
+.kseaiconwithwhite {
+    position: absolute;
+    top: calc(80vh); 
+    left: 52%;
+    top: 28%;
+    width: 38.8%;
+    height: auto;
+    background: url('images/about/kseaicon-1.png');
+    background-size: contain;
+}
+
+.kseaiconwithwhite img {
+    width: 100%;
+}
+
+.hoverimg_0:hover {
+    width: 100%;
+    content: url('images/kseaicon/kseaicon.png');
+}
+
+.hoverimg_0 {
+    width: 100%;
+    height: auto;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.an_academic {
+    font-family: 'Inter', sans-serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 2.5vw;
+    line-height: 44px;
+    margin-top: 10%;
+    margin-left: 13%;
+    color: #000000;
+    font-variation-settings: 'slnt' -10;
+}
+
+/*-------page 2-------*/
+
+.page_2 {
+    display: flex;
+    justify-content: flex-start;
+    position: relative;
+    z-index: -1;
+    width: 100%;
+    background: #3954A6;
+}
+
+.ucdavispng {
+    top: -10%;
+    width: 60.49%;
+    z-index: -1;
+}
+
+.ucdavispng img {
+    width: 100%;
+    height: auto;
+}
+
+.UCDAVISKSEA {
+    position: absolute;
+    width: 54.44%;
+    top: 5%;
+    left: 45%;
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 3.4vw;
+    line-height: 1.5;
+    color: #FFDC34;
+    text-align: center;
+    text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+
+}
+
+.WeareUCDavis {
+    position: absolute;
+    box-sizing: border-box;
+    width: 55.39%;
+    height: auto;
+    top: 28%;
+    left: 42%;
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 2.2vw;
+    line-height: 4.1vw;
+    color: #FFDC34;
+    text-align: right;
+    text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+
+.WeareUCDavis p{
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+
+.Currently {
+    position: absolute;
+    white-space: normal; 
+    width: 48.39%;
+    left: 49%;
+    top: 48%;
+    font-family: 'Inter', sans-serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 1.8vw;
+    line-height: 3vw;
+    text-align: right;
+    color: #FFFFFF;
+}
+
+.Currently p{
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+
+.ucdksealogo {
+    position: absolute;
+    margin-top: -7%;
+    width: 10.61%; /* 196px / 1440px * 100 */
+    height: 0;
+    left: 70%; /* 871px / 1440px * 100 */
+    top: 78%; /* 776px / 1024px * 100 */
+}
+.ucdksealogo img{
+    width:100%;
+}
+
+
+.WeFoster {
+    position: absolute;
+    left: 50%;
+    top: 85%;
+    width: 48.33%; /* 696px / 1440px * 100 */
+    height: 6.25%; /* 64px / 1024px * 100 */
+    font-family: 'Inter', sans-serif;
+    font-style: normal;;
+    font-weight: 400;;
+    font-size: 1.94vw;; /* 28px / 1440px * 100 */
+    line-height: 2.43vw;; /* 35px / 1440px * 100 */
+    text-align: center;;
+    color: #FFFFFF;;
+    backdrop-filter: blur(2px); /* Note: backdrop-filter has minimal browser support */
+}
+
+.WeFoster p{
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+
+
+/*-------page 3-------*/
+.page_3 {
+    position: relative;
+    width: 100%;
+    height:auto;
+    background: #3954A6;
+    padding: 2% 10%;
+    box-sizing: border-box;
+    align-items: flex-end;
+    z-index: -1;
+}
+
+.OurKseaOpportunities h1 {
+    position: relative;
+    margin-top: 10%;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 4.44vw; /* 64px / 1440px * 100 */
+    line-height: 5.35vw; /* 77px / 1440px * 100 */
+    text-align: left;
+    color: #FFFFFF;
+    text-shadow: 0px 0.28vw 0.28vw rgba(0, 0, 0, 0.25);
+    margin-bottom: 2%;
+}
+
+.UCDKSEAAim{
+    width:110%;
+}
+.UCDKSEAAim p {
+    position: relative;
+    overflow-wrap: break-word;
+    white-space: normal;
+    margin-top: 10%;
+    font-family: 'Inter', sans-serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.67vw; /* 24px / 1440px * 100 */
+    line-height: 2vw; /* 28px / 1440px * 100 */
+    color: #dfdcdc;
+    margin-bottom: 2%;
+}
+
+.Networking {
+    position: relative;
+    margin-top: 5%;
+}
+
+.NationalMeetings {
+    position: relative;
+    margin-top: -45%;
+    width:65%;
+    margin-left: auto;
+    margin-right: 0;
+}
+
+.WithMembers {
+    position: relative;
+    margin-top: 3%;
+    width:65%;
+    margin-left: auto;
+    margin-right: 0;
+
+}
+
+.Networking img {
+    position: relative;
+    margin-top: 3%;
+    margin-left:-7%;
+    width: 48.25vw; /* 378px / 1440px * 100 */
+    height: auto;
+    z-index: -1;
+}
+
+.WeRecognize {
+    position: relative;
+    text-align: right;
+    margin-top: -5%;
+}
+
+.WeDo_1 {
+    position: relative;
+    margin-top: 5%;
+    margin-left: 50%;
+}
+
+.MentorMenteeNight {
+    position: relative;
+    margin-top: 3%;
+    margin-left: 55%;
+}
+
+.KseaAlumni {
+    position: relative;
+    margin-top: 0%;
+    margin-left: 55%;
+}
+
+.studymarathon{
+    position: relative;
+    margin-top: 0%;
+    margin-left: 55%;
+}
+
+.DoDream{
+    position: relative;
+    margin-top: 0%;
+    margin-left: 55%;
+}
+
+.UCBKSEA {
+    position: relative;
+    margin-top: 0%;
+    margin-left: 55%;
+}
+
+.scholarships {
+    position: relative;
+    margin-top: 7%;
+}
+
+.UndergraduateScholarship {
+    position: relative;
+    margin-right: 8%;
+    margin-top: 3%; 
+}
+
+.WeFosterInternational {
+    position: relative;
+    text-align: right;
+    margin-top: 4%; 
+}
+
+.gradmentormentee{
+    position: relative;
+    margin-top: 15%;
+}
+
+.gradmentormentee img {
+    position: relative;
+    margin-left: 30%;
+    margin-top: 0%;
+    z-index: -1;
+    width: 58.25vw; /* 378px / 1440px * 100 */
+    height: auto; /* 289px / 1024px * 100 */
+}
+
+.ProfessionalDevelopment {
+    position: relative;
+    margin-top: -39%;
+}
+
+.LeadershipOpportunities {
+    position: relative;
+    margin-left: 0%;
+    margin-top: 4.7%;
+    width: 45%;
+}
+
+.workshops {
+    position: relative;
+    margin-left: 0%;
+    margin-top: 6%;
+}
+
+.resumepng {
+    position: relative;
+    margin-left: -5%;
+    margin-top: 0%;
+    width: 40.0vw;
+}
+
+.resumepng img {
+    width:100%;
+}
+
+.WeDo_2 {
+    position: relative;
+    margin-left: 53%;
+    margin-top: -32%;
+}
+
+.ResumeWorkshop {
+    position: relative;
+    margin-left: 57%;
+    margin-top: 3%;
+
+}
+
+.WeExcel{
+    margin-left:50%;
+    margin-top:5%;
+    margin-bottom:5%;
+}
+
+.Networking h2,
+.scholarships h2,
+.ProfessionalDevelopment h2 {
+    font-family: 'Tauri', sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 3.33vw; /* 48px / 1440px * 100 */
+    line-height: 1.25; /* 60px / 1024px * 100 */
+    color: #e5e5e5;
+}
+
+.NationalMeetings p,
+.WithMembers p,
+.UndergraduateScholarship p,
+.LeadershipOpportunities p,
+.workshops p {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.63vw !important;
+    color: #d5d3d3 !important;
+    line-height: 1.65;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+
+.WeDo_1 p,
+.WeDo_2 p {
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 2.22vw; /* 32px / 1440px * 100 */
+    line-height: 3.71vh; /* 38px / 1024px * 100 */
+    color: #e9e6e6;
+}
+
+.MentorMenteeNight p,
+.KseaAlumni p,
+.UCBKSEA p,
+.studymarathon p, 
+.DoDream p{
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 1.3vw; /* 24px / 1440px * 100 */
+    line-height: 2.25; /* 28px / 1024px * 100 */
+    color: #dcd9d9;
+}
+
+.ResumeWorkshop p{
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 1.67vw; /* 24px / 1440px * 100 */
+    line-height: 2.90; /* 28px / 1024px * 100 */
+    color: #dcd9d9;
+
+}
+
+.WeRecognize p,
+.WeFosterInternational p,
+.WeExcel p {
+    font-family: 'Dynalight', sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 1.67vw;
+    line-height: 2.83vw;
+    color: #84A3FF;
+}
+
+/*-------page 4-------*/
+
+.page_4 {
+    position: relative;
+    width: 100%;
+    height: auto;
+    padding: 10% 0; 
+}
+
+.KSEAPOINT{
+    position: relative;
+    width: 45.73vw;
+    height: auto;
+    margin-left:10%;
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 900;
+    font-size: 5.00vw;
+    line-height: 6.04vw;
+}
+.KSEAPOINT img{
+    width:100%
+}
+
+.accumulatepoints{
+    position: relative;
+    width:80%;
+    margin-top: 5%;
+    margin-left:10%;
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 3.23vw;
+    line-height: 1.5;
+    text-align: center;
+    text-shadow: 0px 0.208vw 0.208vw rgba(0, 0, 0, 0.25);
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+    overflow-wrap: break-word;
+
+}
+
+.accumulatepoints span {
+    display: inline;
+    white-space: normal;
+}
+
+.JoinSocial{
+    position:relative;
+    margin-left:10%;
+    margin-top:7%;
+    width: 18.49vw;
+    height: auto;
+}
+  
+.hoverimg_1:hover {
+    content: url('images/about/50.png');
+}
+
+.JoinAcademic{
+    position:relative;
+    margin-left:31%;
+    margin-top:-19.2%;
+    width: 18.49vw;
+    height: auto;
+}
+
+.hoverimg_2:hover {
+    width: 110%;
+    margin-left:-7%;
+    content: url('images/about/70.png');
+}
+
+.JoinEvent{
+    position:relative;
+    margin-left:51%;
+    margin-top:-19.2%;
+    width: 18.49vw;
+    height: auto;
+}
+.hoverimg_3:hover {
+    width: 113%;
+    margin-left:-7%;
+    content: url('images/about/100.png');
+}
+
+.JoinKSEA{
+    position:relative;
+    margin-right:10%;
+    margin-left: auto; 
+    margin-top:-19.2%;
+    width: 18.49vw;
+    height: auto;
+}
+.hoverimg_4:hover {
+    width: 100%;
+    content: url('images/about/120.png');
+}
+
+.hoverimg_1,
+.hoverimg_2,
+.hoverimg_3,
+.hoverimg_4 {
+    width: 100%;
+    height: auto;
+    transition: opacity 0.5s ease-in-out;
+}
+
+/*-------page 5-------*/
+
+.page_5 {
+    position: relative;
+    width: 100%;
+    height: auto;
+    padding: 10% 0; 
+}
+
+.withus{
+    position: relative;
+    margin-left:10%;
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 900;
+    font-size: 5vw;
+    line-height: 6.04vw;
+    color: #2E3192;
+    text-shadow: 0 0.2083vw 0.2083vw rgba(0, 0, 0, 0.25), 0 0.2083vw 0.2083vw rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(2px);
+
+}
+
+.kseaiconpng{
+    position:relative;
+    margin-top:5%;
+    margin-left:22%;
+    width:11.54vw;
+    height:auto;
+}
+
+.kseaiconpng img{
+    width:100%;
+}
+
+.nationalksea{
+    position:relative;
+    margin-top: -7.5%;
+    margin-left: 36%;
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 1000;
+    font-size: 5.5vw;
+    line-height: 3.02vw;
+    color: #2E3192;
+}
+
+a {
+    text-decoration: none;
+    color: #2E3192;
+}
+
+a:hover {
+    color: #FFDC34;
+  }
+  fb-icon:hover{
+    color:#FFDC34;
+}
+
+.hover-yellow {
+    transition: filter 0.0s;
+}
+
+.hover-yellow:hover {
+    filter:  sepia(100%) saturate(500%);
+}
+
+.kseas{
+    position:relative;
+    width:80vw;
+    height:auto;
+    margin-top:10%;
+    margin-left:10%;
+}
+.kseas img{
+    width:100%;
+}
+
+/*-------------------------------------footer------------------------------*/
+.wrap-footer-info[_ngcontent-xno-c31] {
+    padding: 2em 3vw;
+    line-height: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+}
+.con-info[_ngcontent-xno-c31] {
+    display: flex;
+    justify-content: space-around;
+    column-gap: 2rem;
+}
+.con-info[_ngcontent-xno-c31] > img[_ngcontent-xno-c31] {
+    width: 6rem;
+    align-self: center;
+}
+
+ol, ul {
+    list-style: none;
+}
+
+.con-sns[_ngcontent-xno-c31] ul[_ngcontent-xno-c31] {
+    display: flex;
+    justify-content: space-around;
+    column-gap: 1rem;
+    cursor: pointer;
+}
+
+footer[_ngcontent-xno-c31] {
+    background-color: #3954A6;
+    width: 100%;
+    color: #ffffff;
+    font-size: .87rem;
+}
+footer{
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+    font-family: 'Inter', sans-serif;
+
+}
+
+li {
+    display: list-item;
+    text-align: -webkit-match-parent;
+    unicode-bidi: isolate;
+}
+
+/* -------------------------------------------------- Media -------------------------------------------------------*/
+
+@media (max-width: 700px) {    
+
+    .subheader img{
+        margin-left: 20px;
+        margin-top: 20px;
+        height: 60px;
+        width: 60px;
+    }
+
+    .textbox h5 {
+        font-size: 15px;
+        position: relative;
+        text-align: center;
+        word-break: break-word;
+        overflow-wrap: break-word;
+    }
+
+    nav {
+        padding: 1% 2%;
+        position: relative;
+    }
+
+    .nav-links {
+        position: fixed; /* Use fixed positioning to ensure it stays in view */
+        background: #3954A6;
+        height: 100vh;
+        width: 200px;
+        top: 0;
+        right: -200px; /* Initially hide off-screen */
+        text-align: left;
+        z-index: 2;
+        transition: right 0.3s ease;
+        overflow: auto; /* Ensure content can scroll if needed */
+    }
+
+    #menuIcon,
+    #closeIcon {
+      position: fixed; /* Ensure icons stay in view */
+      right: 20px;
+      top: 40px;
+      color: #FFDC34;
+      font-size: 30px;
+      cursor: pointer;
+      z-index: 3;
+    }
+
+    #closeIcon {
+        display: none;
+    }
+
+    #menuIcon {
+        display: block;
+    }
+
+    .nav-links.open {
+        right: 0; /* Move menu into view */
+    }
+
+    .nav-links.open #menuIcon {
+        display: none; /* Hide menu icon when menu is open */
+    }
+
+    .nav-links.open #closeIcon {
+        display: block; /* Show close icon when menu is open */
+    }
+
+    .nav-links ul {
+        margin-top: 80px;   
+        margin-left: 10px;
+    }
+
+    .nav-links ul li {
+        display: block;    
+        margin-bottom: 30px;
+    }
+
+    .nav-links ul li::after {
+        content: none; /* Remove the ::after pseudo-element */
+    }
+
+    .subheader {
+        height: 30vh;        
+    }
+    
+   .subheader h1{
+        margin-top: 20px;
+    }
+    
+    /* ------------------------ Footer Media ------------------------------- */
+    .wrap-footer-info[_ngcontent-xno-c31] {
+        flex-direction: column; /* Stack items vertically */
+        align-items: center; /* Center items horizontally */
+        padding: 1em; /* Adjust padding for smaller screens */
+    }
+
+    .con-info[_ngcontent-xno-c31] {
+        flex-direction: column; /* Stack items vertically */
+        align-items: center; /* Center items horizontally */
+        text-align: center; /* Center text */
+        margin-bottom: 1em; /* Space between icons and text */
+    }
+
+    .con-info[_ngcontent-xno-c31] > img[_ngcontent-xno-c31] {
+        display: none; /* Hide the KSEA logo on small screens */
+    }
+
+    .con-sns[_ngcontent-xno-c31] {
+        margin-bottom: 1em; /* Space below the icons */
+    }
+
+    .con-sns[_ngcontent-xno-c31] ul[_ngcontent-xno-c31] {
+        display: flex;
+        justify-content: center; /* Center the icons horizontally */
+        align-items: center; /* Center the icons vertically */
+        margin: 0; /* Remove default margins */
+        padding: 0; /* Remove default padding */
+    }
+
+    .con-info[_ngcontent-xno-c31] ul[_ngcontent-xno-c31] li {
+        margin: 10px 0;/* Space between icons */
+        font-size: 88%; /* Adjust font size for smaller screens */
+    }
+
+    #ngcontent1, #ngcontent2 {
+        display: block; /* Ensure these items are shown in the media query */
+    }
+}
+
+
+
+
+
+

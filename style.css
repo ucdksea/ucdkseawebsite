@@ -1,0 +1,921 @@
+*{
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+   
+}
+
+
+/* -------------------------------------------------------- Home Page ------------------------------------------------------------------*/
+.header {
+    min-height: 100vh;
+    width: 100%;
+    background-position: center;
+    background-size: cover;
+    background-attachment: fixed;
+    position: relative;
+    animation: animate 20s linear infinite;
+    box-sizing: border-box;
+}
+
+@keyframes animate {
+    0%, 100% {
+      background-image: linear-gradient(rgba(22, 38, 100, 0.67), rgba(16, 38, 124, 0.119)), url('images/home/main.jpeg');
+    }
+    25% {
+      background-image: linear-gradient(rgba(22, 38, 100, 0.67), rgba(16, 38, 124, 0.119)), url('images/home/sixth.jpeg');
+    }
+    50% {
+      background-image: linear-gradient(rgba(22, 38, 100, 0.67), rgba(16, 38, 124, 0.119)), url('images/home/third1.jpg');
+    }
+    75% {
+      background-image: linear-gradient(rgba(22, 38, 100, 0.67), rgba(16, 38, 124, 0.119)), url('images/home/fourth.jpeg');
+    }
+  }
+  
+  
+
+nav {
+    display: flex;
+    padding: 2% 6%;
+    justify-content: space-between;
+    align-items: center;
+}
+
+nav img {
+    width: 100px;
+
+}
+
+.nav-links {
+    flex: 1;
+    text-align: right;
+
+}
+
+.nav-links ul li {
+    list-style: none;
+    display: inline-block;
+    padding: 8px 12px;
+    position: relative;
+    margin-top: -15px;
+}
+
+.nav-links ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.nav-links ul li::after {
+    content: '';
+    width: 0%;
+    height: 2px;
+    background: #FFDC34;
+    display: block;
+    margin: auto;
+    transition: 0.5s;
+}
+
+.nav-links ul li:hover::after {
+    width: 100%;
+}
+
+.textbox {
+    width: 90%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: left;
+    box-sizing: border-box;
+}
+
+.textbox h1 {
+    font-size: 80px;
+    color: #ffffff;
+    text-shadow: 3px 3px 9px rgba(0, 0, 0, 0.492);
+    margin: 0;
+}
+
+.textbox h5 {
+    font-size: 30px;
+    color: #fff;
+    text-shadow: 2px 2px 7px rgba(0, 0, 0, 0.492);
+    margin: 0px;
+}
+
+#menuIcon,
+#closeIcon {
+    display: none; /* Hide both icons by default */
+}
+
+/*
+.home {
+    height: 100vh;
+}
+
+.video {
+    width: 80%;
+    margin: auto;
+    text-align: center;
+    padding-top: 100px;
+}
+
+.video h1 {
+    color: #2E3192;
+    margin-bottom: 30px;
+}
+
+.video img {
+    width: 500px;
+}
+*/
+/* ------------------------------------------------------- Board Members Page -------------------------------------------------------------*/
+
+
+.subheader2 {
+    height: 50vh;
+    width: 100%;
+    background-image: linear-gradient(rgba(22, 38, 100, 0.67), rgba(16, 38, 124, 0.119)), url(images/event/2024_spring/resume/resume2.jpeg);
+    background-position-y: 46%;
+    background-size: cover;
+}
+
+.subheader2 h1{
+    margin-top: 50px;
+    color: #FFDC34;
+    text-align: center;
+    text-shadow: 3px 3px 9px rgba(0, 0, 0, 0.492);
+}
+
+.board {
+    width: 80%;
+    margin: auto;
+    padding-top: 70px;
+}
+
+.board h1 {
+    text-align: center;
+    margin-bottom: 50px;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.492);
+    color: #2E3192;
+}
+
+.board-members {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Adjust the min width to fit 5 columns */
+    gap: 20px;
+    max-width: 1200px; /* Increase max-width to accommodate 5 columns */
+    margin: 0 auto;
+}
+
+.board-member {
+    text-align: center;
+    margin-bottom: 30px;
+    position: relative;
+    box-sizing: border-box;
+    padding: 10px;
+}
+
+.board-member .image-container {
+    width: 180px; /* Adjust this value to change the size of the pictures */
+    padding-top: 100%; /* This maintains the 1:1 aspect ratio */
+    position: relative;
+    overflow: hidden;
+    border-radius: 50%; /* Make it a circle */
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3); /* Polaroid shadow */
+
+}
+
+.board-member img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensures the image covers the container without distortion */
+    transform: translate(-50%, -50%);
+    background-size: cover;
+    background-position: center;
+    text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+
+}
+
+.board-member h3 {
+    margin-top: 30px; /* Increase this value to increase the margin */
+    color: #000000;
+}
+
+.board-member p {
+    font-size: 15px;
+    color: #000000;
+}
+
+.image-container {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+    -webkit-transition: .5s ease-in-out;
+    transition: .5s ease-in-out;
+}
+
+.image-container:hover {
+    -webkit-transform: scale(1.3);
+    transform: scale(1.3);
+}
+
+
+/* ------------------------------------------------- Event Page -----------------------------------------------------*/
+
+body {
+    overflow-x: hidden;
+}
+
+.subheader3 {
+    height: 50vh;
+    width: 100%;
+    background-image: linear-gradient(rgba(22, 38, 100, 0.67), rgba(16, 38, 124, 0.119)), url(images/event/2024_winter/washere/IMG_9778.jpeg);
+    background-position-y: 49%;
+    background-size: cover;
+}
+
+.subheader3 h1{
+    margin-top: 50px;
+    text-align: center;
+    color: #FFDC34;
+    text-shadow: 3px 3px 9px rgba(0, 0, 0, 0.492);
+}
+
+.event {
+    width: 80%;
+    margin: auto;
+    padding-top: 70px;
+  }
+
+.event h1 {
+    text-align: center;
+    margin-bottom: 60px;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.492);
+    color: #2E3192;
+    font-size: 28px;
+}
+  
+.event-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 30px;
+    column-gap: 30px;
+  }
+
+.event-item {
+    flex: 1 1 300px; /* Allow items to grow and shrink, set the base width */
+    display: flex;
+    justify-content: center; /* Center the polaroid inside the event-item */
+}
+  
+  .polaroid {
+    position: relative;
+    width: 100%;
+    max-width: 352px;
+    max-height: 265px;
+    cursor: pointer;
+    background: #fff; /* White background for the polaroid */
+    padding: 10px 10px 48px; /* Extra padding at the bottom for the polaroid look */
+    box-shadow: 0 0px 15px rgba(0, 0, 0, 0.3); /* Polaroid shadow */
+    border-radius: 5px; /* Slight rounding of corners */
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .polaroid img {
+    display: block;
+    width: 100%;
+    max-height: 270px;
+    border: none; /* Remove any border on the image itself */
+  }
+  
+  .polaroid p {
+    width: 100%;
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: transparent; /* Transparent background for text */
+    padding: 5px 10px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+    text-align: center;
+
+  }
+  
+  .polaroid:hover {
+    transform: scale(1.1); /* Zoom effect on hover */
+  }
+
+  .full-img {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.9);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    overflow: hidden;
+  }
+  
+.carousel {
+    display: flex;
+    align-items: center;
+  }
+
+  .popup-content-wrapper{
+    display: flex;
+    align-items: flex-start;
+    margin-left: 0;
+  }
+
+  .popup-content {
+    margin-left: 170px;
+    max-width: 800px;
+    max-height: 800px;
+  }
+  
+  .popup-text {
+    margin-top: 70px;
+    margin-left: 50px;
+    width: 240px;
+    height: auto;
+    padding: 20px;
+    background-color: white;
+    color: #000;
+    border-radius: 5px; 
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    word-wrap: break-word;
+    white-space: normal;
+
+    
+  }
+
+.close, .prev, .next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #fff;
+  font-size: 40px;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+}
+
+.close {
+  top: 20px;
+  right: 30px;
+  margin-top: 20px;
+}
+
+.prev {
+  left: 20px;
+  margin-left: 20px;
+}
+
+.next {
+  right: 20px;
+  margin-right: 20px;
+}
+  
+
+/*---------------------------------------------------------- FAQ Page ------------------------------------------------------------------*/
+
+.subheader4 {
+    height: 50vh;
+    width: 100%;
+    background-image: linear-gradient(rgba(22, 38, 100, 0.67), rgba(16, 38, 124, 0.119)), url(images/event/2024_spring/ksea4cut/faqcover.JPG);
+    background-position-y: 57%;
+    background-size: cover;
+    text-align: center;
+    color: #FFDC34;
+    text-shadow: 3px 3px 9px rgba(0, 0, 0, 0.492);
+}
+
+.subheader4 h1{
+    white-space: normal; 
+    margin-top: 50px;
+}
+
+.title {
+    width: 90%;
+    position: relative;
+    top: 60%;
+    text-align: left;
+    padding:5%;
+}
+.questions{
+    text-align: center;
+    margin-bottom: 60px;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.492);
+    color: #2E3192;
+    font-size: 28px;
+}
+
+.title h1 {
+    text-align: center;
+    margin-bottom: 60px;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.492);
+    color: #2E3192;
+    font-size: 28px;
+    margin-top: 50px;
+}
+
+.EventParticipation,
+.Membership,
+.Benefits,
+.Workshops_KSEA,
+.ScholarshipsFor,
+.KseaHonors{
+    margin-top: 5%;
+    font-size: 20px;
+    color:#595959;
+}
+
+.faq {
+    list-style: none;
+    padding: 0%;
+}
+.faq > li {
+    padding: box;
+    box-sizing: border-box;
+    padding-top: 0;
+}
+
+.faq > li:nth-child(n+2){
+    border-top: 1px dotted #B3C1D1;
+    margin-top: 0;
+}
+
+.faq label {
+    display: -webkit-box;
+    color: #000000; 
+    font-size: 15px;
+    height: 50px;
+    margin: 10px 10px -10px 10px; 
+    transition: background-color 0.2s ease, color 0.2s ease;
+    cursor: pointer;
+    text-align: left; 
+    white-space: normal; 
+    padding-top: 10px;
+}
+
+.faq label:hover {
+    background-color: #fff;
+    color: #2E3192;
+  }
+
+.faq label::after {
+    content: "v";
+    display:block;
+    position: sticky;
+    margin-left: auto;
+}
+
+.faq input[type="checkbox"] {
+    display: none;
+}
+
+.faq input:checked + label::after {
+    content: "_";
+    display:block; 
+    position: sticky;
+    margin-left:auto;
+}
+.faq div {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease, padding 0.2s ease;
+    color: #2E3192;;
+    font-size: 13px; 
+    padding: 0 5px;
+    box-sizing: border-box;
+}
+
+.faq input:checked + label + div {
+    max-height: 1000px;
+    padding: 10px;
+}
+
+.faq p.spacing01 {
+    white-space: normal; 
+    line-height: 27px;
+    font-size: 13px;
+    text-align: left;
+    margin-left: 5%;
+    width:90%;
+    color: #2E3192;
+}
+
+.faq p.spacing01 a span {
+    color: #2E3192;
+    text-decoration: underline;
+}
+
+.faq p.spacing01 a span:hover {
+    color: #f4d22b;
+    text-decoration: underline;
+}
+
+
+.more h3{
+    white-space: normal; 
+    margin-top: 50px;
+    color: #000000;
+    font-style: italic;
+}
+
+.social-media-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    padding-top: 3%;
+    width: 100%;
+}
+
+.instagram, .linktree {
+    display: flex;
+    align-items: center;
+    margin: 0 20px; 
+}
+
+.instagram img {
+    width: 50px;
+    height: auto;
+    vertical-align: middle;
+    margin-right: 10px; 
+}
+.linktree img{
+    width: 40px;
+    height: auto;
+    vertical-align: middle;
+    margin-right: 10px; 
+}
+
+.instagram a, .linktree a {
+    font-style: italic;
+    margin: 0;
+    text-decoration: none !important;
+    color: #000000 !important;
+}
+
+.instagram a:hover span,
+.linktree a:hover span{
+    color: #2E3192;
+}
+
+
+/*--------------------------------------------------- Join KSEA Page -------------------------------------------------*/
+
+.subheader5 {
+    height: 50vh;
+    width: 100%;
+    background-image: linear-gradient(rgba(22, 38, 100, 0.67), rgba(16, 38, 124, 0.119)), url(images/join/IMG_5580.JPG);
+    background-position-y: 70%;
+    background-size: cover;
+    text-align: center;
+    color: #FFDC34;
+    text-shadow: 3px 3px 9px rgba(0, 0, 0, 0.492);
+}
+
+.subheader5 h1{
+    margin-top: 50px;
+}
+
+.join_ksea{
+    position:relative;
+    padding: 10% 10%; 
+}
+
+.join_ksea img{
+    width:100%;
+    margin-bottom: 30px;
+}
+
+.click_1{
+    position:relative;
+    margin-top: 40px;
+    text-align: center;
+    font-size: 21px;
+}
+
+.join_ksea h1{
+    color: #2E3192;
+    font-size: 28px;
+    text-align: center;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.492);
+    margin-bottom: 50px;
+}
+
+.join_ksea p{
+    white-space: normal; 
+    width:100%;
+    margin-bottom: 2%;
+    margin-top: 5%;
+    font-size: 18px;
+}
+
+.click_2{
+    position:relative;
+    margin-top: 0%;
+    text-align: center;
+    font-size: 25px;
+    margin-bottom: 10%;
+}
+
+.click_1 a,
+.click_2 a {
+    color: #2E3192; 
+}
+
+.click_1 a span,
+.click_2 a span {
+    display: inline; 
+}
+.click_1 a:hover span,
+.click_2 a:hover span{
+    color:#FFDC34;
+    text-decoration: underline;
+}
+
+/*-------------------------------------------------- Footer ------------------------------------------------------*/
+.wrap-footer-info[_ngcontent-xno-c31] {
+    padding: 2em 3vw;
+    line-height: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+}
+.con-info[_ngcontent-xno-c31] {
+    display: flex;
+    justify-content: space-around;
+    column-gap: 2rem;
+}
+
+.con-info[_ngcontent-xno-c31] > img[_ngcontent-xno-c31] {
+    width: 6rem;
+    align-self: center;
+}
+
+
+ol, ul {
+    list-style: none;
+}
+
+.con-sns[_ngcontent-xno-c31] ul[_ngcontent-xno-c31] {
+    display: flex;
+    justify-content: space-around;
+    column-gap: 1rem;
+    cursor: pointer;
+}
+
+footer[_ngcontent-xno-c31] {
+    background-color: #3954A6;
+    width: 100%;
+    color: #fff;
+    font-size: .87rem;
+}
+footer{
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+    margin-top: 50px;
+}
+
+li {
+    display: list-item;
+    text-align: -webkit-match-parent;
+    unicode-bidi: isolate;
+}
+
+
+/* -------------------------------------------------- Media -------------------------------------------------------*/
+
+@media (max-width: 700px) {    
+
+    .header {
+        background-position: center;
+        background-size: cover;
+        background-image: url(images/home/watertower.jpg);
+        animation: none;
+    }
+
+    .textbox h1 {
+        font-size: 50px;
+        text-align: center;
+    }
+
+    .header img {
+        margin-left: 20px;
+        margin-top: 20px;
+        height: 100px;
+        width: 100px;
+    }
+
+    .subheader2 img,
+    .subheader3 img,
+    .subheader4 img,
+    .subheader5 img {
+        margin-left: 20px;
+        margin-top: 20px;
+        height: 60px;
+        width: 60px;
+    }
+
+    .textbox h5 {
+        font-size: 15px;
+        position: relative;
+        text-align: center;
+        word-break: break-word;
+        overflow-wrap: break-word;
+    }
+
+    nav {
+        padding: 1% 2%;
+        position: relative;
+    }
+
+    .nav-links {
+        position: fixed; /* Use fixed positioning to ensure it stays in view */
+        background: #3954A6;
+        height: 100vh;
+        width: 200px;
+        top: 0;
+        right: -200px; /* Initially hide off-screen */
+        text-align: left;
+        z-index: 2;
+        transition: right 0.3s ease;
+        overflow: auto; /* Ensure content can scroll if needed */
+    }
+
+    #menuIcon,
+    #closeIcon {
+      position: fixed; /* Ensure icons stay in view */
+      right: 20px;
+      top: 40px;
+      color: #FFDC34;
+      font-size: 30px;
+      cursor: pointer;
+      z-index: 3;
+    }
+
+    #closeIcon {
+        display: none;
+    }
+
+    #menuIcon {
+        display: block;
+    }
+
+    .nav-links.open {
+        right: 0; /* Move menu into view */
+    }
+
+    .nav-links.open #menuIcon {
+        display: none; /* Hide menu icon when menu is open */
+    }
+
+    .nav-links.open #closeIcon {
+        display: block; /* Show close icon when menu is open */
+    }
+
+    .nav-links ul {
+        margin-top: 80px;   
+        margin-left: 10px;
+    }
+
+    .nav-links ul li {
+        display: block;    
+        margin-bottom: 30px;
+    }
+
+    .nav-links ul li::after {
+        content: none; /* Remove the ::after pseudo-element */
+    }
+
+    /* -------------------  All (Except About) ----------------------------- */
+    .subheader2, .subheader3, .subheader4, .subheader5 {
+        height: 30vh;        
+    }
+    
+   .subheader2 h1, .subheader3 h1, .subheader4 h1, .subheader5 h1{
+        margin-top: 20px;
+    }
+    
+    /* --------------------------- Board Member Media ---------------------------- */
+    
+    .board-members {
+        display: flex;
+        flex-direction: column; /* Stack board members vertically */
+        align-items: center; /* Center items horizontally */
+        gap: 20px;
+    }
+
+    .board-member{
+        width: 100%; /* Full width for each board member */
+        max-width: 300px; /* Optional: set a max-width for the board member */
+        text-align: center; /* Center text */
+    }
+
+    .image-container {
+        margin-left: 45px;
+    }
+
+    /* -------------------------- Event Media ------------------------ */
+    /* Hide carousel arrows */
+    .prev, .next {
+        display: none;
+    }
+    .popup-content {
+        display: none; /* Hide the image */
+    }
+    
+      .popup-text {
+        display: block; /* Ensure the text is visible */
+        max-width: 100%; /* Adjust width for better fit */
+        max-height: none; /* Remove height constraints */
+        justify-content: center;
+        margin-left: 70px;
+        margin-top: 0;
+        padding: 10px;     
+    }
+    /* -------------------------- faq Media ------------------------ */
+
+    .faq label::after {
+        content: "";
+    }
+
+    .faq input:checked + label::after {
+        content: "";
+    }
+
+    .questions {
+        text-align: center;
+        margin: 0 auto 60px auto;
+        text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.492);
+        color: #2E3192;
+        font-size: 28px;
+        width: 80%;
+    }
+    
+    
+    /* ------------------------ Footer Media ------------------------------- */
+    .wrap-footer-info[_ngcontent-xno-c31] {
+        flex-direction: column; /* Stack items vertically */
+        align-items: center; /* Center items horizontally */
+        padding: 1em; /* Adjust padding for smaller screens */
+    }
+
+    .con-info[_ngcontent-xno-c31] {
+        flex-direction: column; /* Stack items vertically */
+        align-items: center; /* Center items horizontally */
+        text-align: center; /* Center text */
+        margin-bottom: 1em; /* Space between icons and text */
+    }
+
+    .con-info[_ngcontent-xno-c31] > img[_ngcontent-xno-c31] {
+        display: none; /* Hide the KSEA logo on small screens */
+    }
+
+    .con-sns[_ngcontent-xno-c31] {
+        margin-bottom: 1em; /* Space below the icons */
+    }
+
+    .con-sns[_ngcontent-xno-c31] ul[_ngcontent-xno-c31] {
+        display: flex;
+        justify-content: center; /* Center the icons horizontally */
+        align-items: center; /* Center the icons vertically */
+        margin: 0; /* Remove default margins */
+        padding: 0; /* Remove default padding */
+    }
+
+    .con-info[_ngcontent-xno-c31] ul[_ngcontent-xno-c31] li {
+        margin: 10px 0;/* Space between icons */
+        font-size: 88%; /* Adjust font size for smaller screens */
+    }
+
+    #ngcontent1, #ngcontent2 {
+        display: block; /* Ensure these items are shown in the media query */
+    }
+}
+
+
+
+
+
+

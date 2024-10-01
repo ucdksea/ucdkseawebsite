@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UC DAVIS KSEA</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="icon"
+      href="images/kseaicon/kseawhiteicon.png"
+      type="image/png"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+  </head>
+  <body>
+    <section class="subheader5">
+      <nav>
+        <a href="index.html"
+          ><img src="images/kseaicon/ksealogo_white.png"
+        /></a>
+        <i class="fa-solid fa-bars" id="menuIcon" onclick="openMenu()"></i>
+        <div class="nav-links" id="navLinks">
+          <i class="fa-solid fa-xmark" id="closeIcon" onclick="closeMenu()"></i>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About UCD KSEA</a></li>
+            <li><a href="board.html">Board Members</a></li>
+            <li><a href="event.html">Events</a></li>
+            <li><a href="faq.html">FAQ</a></li>
+            <li><a href="join.html">Join KSEA</a></li>
+          </ul>
+        </div>
+      </nav>
+      <h1>Join KSEA</h1>
+    </section>
+
+    <div class="join_ksea">
+      <h1>How to Join KSEA</h1>
+      <div class="click_1">
+        <a href="https://www.ksea.org/signUp"
+          ><span>Click here to join KSEA</span></a
+        >
+      </div>
+      <p>1. Create your account</p>
+      <img src="images/join/sign_up_page.png" /><br />
+      <p>2. Sign in to your account</p>
+      <img src="images/join/sign_in_page.png" /><br />
+      <p>3. Go to "My Profile" located in the top right corner</p>
+      <img src="images/join/go_myprofile.png" /><br />
+      <p>4. Scroll down to find the membership options</p>
+      <img src="images/join/myprofile_1.png" /><br />
+      <p>5. Click on "Membership Type: Student"</p>
+      <img src="images/join/click_student.png" /><br />
+      <p>
+        6. Select "Undergraduate" on "School Type", fill in "School Name", and
+        click "Join Free Membership"
+      </p>
+      <img src="images/join/fill_school_name.png" /><br />
+      <p>7. Click on "KSEA Information" and scroll down</p>
+      <img src="images/join/my_profile_2.png" /><br />
+      <p>
+        8. Set "Local Chapter" to Sacramento and fill out "Technical Group" and
+        "Specialty"
+      </p>
+      <img src="images/join/localchapter.png" /><br />
+      <p>
+        9. If your membership card looks like the example below, you're done!
+      </p>
+      <img src="images/join/myprofile_3.png" /><br />
+    </div>
+    <div class="click_2">
+      <a href="https://www.ksea.org/signUp"
+        ><span>Click here to join KSEA</span></a
+      >
+    </div>
+    <section class="footer">
+      <app-footer _ngcontent-xno-c271="" _nghost-xno-c31="">
+        <footer _ngcontent-xno-c31="">
+          <div _ngcontent-xno-c31="" class="wrap-footer-info">
+            <div _ngcontent-xno-c31="" class="con-info">
+              <img
+                _ngcontent-xno-c31=""
+                src="images/kseaicon/ksealogo_white.png"
+                alt="KSEA_logo"
+              />
+              <ul _ngcontent-xno-c31="">
+                <li _ngcontent-xno-c31="" id="ngcontent1">
+                  Korean-American Scientists and Engineers Association (KSEA)
+                </li>
+                <li _ngcontent-xno-c31="" id="ngcontent2">
+                  KSEA Young Generation Group | University of California, Davis
+                </li>
+                <li _ngcontent-xno-c31="">
+                  <span style="color: rgb(223, 223, 223)"
+                    >Email: ucdksea@gmail.com</span
+                  >
+                </li>
+                <li _ngcontent-xno-c31="">
+                  <span style="color: rgb(223, 223, 223)"
+                    >Copyright © 2024 KSEA Sacramento chapter, All Rights
+                    Reserved</span
+                  >
+                </li>
+              </ul>
+            </div>
+            <div _ngcontent-xno-c31="" class="con-sns">
+              <ul _ngcontent-xno-c31="">
+                <li _ngcontent-xno-c31="">
+                  <a
+                    _ngcontent-xno-c31=""
+                    href="https://www.instagram.com/kseadavis/"
+                    target="_blank"
+                    ><img
+                      _ngcontent-xno-c31=""
+                      src="images/instagram.png"
+                      width="50"
+                      height="50"
+                      alt="KSEA instagram"
+                  /></a>
+                </li>
+                <li _ngcontent-xno-c31="">
+                  <a
+                    _ngcontent-xno-c31=""
+                    href="https://linktr.ee/ucdksea"
+                    target="_blank"
+                    ><img
+                      _ngcontent-xno-c31=""
+                      src="images/linktree.png"
+                      width="50"
+                      height="50"
+                      alt="Ksea linktree"
+                  /></a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </footer>
+      </app-footer>
+    </section>
+    <script>
+      var navLinks = document.getElementById("navLinks");
+      var menuIcon = document.getElementById("menuIcon");
+      var closeIcon = document.getElementById("closeIcon");
+
+      function openMenu() {
+        navLinks.style.right = "0";
+        menuIcon.style.display = "none";
+        closeIcon.style.display = "block";
+      }
+
+      function closeMenu() {
+        navLinks.style.right = "-200px";
+        menuIcon.style.display = "block";
+        closeIcon.style.display = "none";
+      }
+    </script>
+  </body>
+</html>
