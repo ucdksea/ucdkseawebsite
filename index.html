@@ -6,19 +6,16 @@
       {
         "@context": "https://schema.org",
         "@type": "WebSite",
-        "name": "UCDAVIS KSEA",
+        "name": "UCDKSEA",
         "alternateName": ["ucdksea", "ucdavis ksea", "UCDKSEA", "KSEA", "ksea"],
         "url": "https://ucdksea.com",
         "potentialAction": {
           "@type": "SearchAction",
-          "target": {
-            "@type": "EntryPoint",
-            "urlTemplate": "https://ucdksea.com/{search_term_string}"
-          },
+          "target": "https://ucdksea.com/search?q={search_term_string}",
           "query-input": "required name=search_term_string"
         }
       }
-      </script>     
+      </script>      
       
     <meta name="google-site-verification" content="DueuXaL9-m_R064iOz7R9-0kQgYKckYP7MTi9bXN9O8" />
     <meta charset="UTF-8" />
@@ -47,7 +44,7 @@
     <section class="header">
       <nav>
         <a href="/"
-          ><img src="images/kseaicon/ksealogo_white.png"
+          ><img src="images/kseaicon/ksealogo_white.png" alt="UC Davis KSEA logo"
         /></a>
         <i class="fa-solid fa-bars" id="menuIcon" onclick="openMenu()"></i>
         <div class="nav-links" id="navLinks">
