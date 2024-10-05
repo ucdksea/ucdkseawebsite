@@ -290,8 +290,9 @@ body {
   .polaroid img {
     display: block;
     width: 100%;
-    padding-top: 75%;
-    overflow: hidden;
+    height:auto;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
     max-height: 270px;
     border: none; /* Remove any border on the image itself */
 
