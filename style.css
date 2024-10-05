@@ -289,9 +289,12 @@ body {
   
   .polaroid img {
     display: block;
-    width: 100%;
+    width: 40%;
+    height: 30%;
+    overflow: hidden;
     max-height: 270px;
     border: none; /* Remove any border on the image itself */
+
   }
   
   .polaroid p {
