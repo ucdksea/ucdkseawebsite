@@ -14,7 +14,7 @@ function initializeGallery() {
 // 포스터 이미지
 function replacePlaceholders(text) {
   const replacements = {
-    '<img-placeholder_왔다감_2024fall/>': '<br><span style="display: inline-block; width: auto; height: auto; box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);"><img src="/Users/stephanie/Desktop/ucdksea-website/images/event/2024_fall/came/왔다감_poster.png" alt="Additional Image" style="width: 100%; height: auto;" /></span>',
+    '<img-placeholder_왔다감_2024fall/>': '<br><span style="display: inline-block; width: auto; height: auto; box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);"><img src="images/event/2024_fall/came/왔다감_poster.png" alt="Additional Image" style="width: 100%; height: auto;" /></span>',
     '<img-placeholder_멘토멘티_2024/>': '<br><span style="display: inline-block; width: auto; height: auto; box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);"><img src="images/event/2024_fall/mentormentee/mentormenteeposter.png" alt="Additional Image" style="width: 100%; height: auto;" /></span>',
     '<img-placeholder_개강총회_2024/>': '<br><span style="display: inline-block; width: auto; height: auto; box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);"><img src="images/event/2024_fall/gaegang/gaegangposter.png" alt="Additional Image" style="width: 100%; height: auto;" /></span>',
     '<img-placeholder_coffeechat/>': '<br><span style="display: inline-block; width: auto; height: auto; box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);"><img src="images/event/2024_fall/coffeechat/coffeechatposter.png" alt="Additional Image" style="width: 100%; height: auto;" /></span>',
