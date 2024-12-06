@@ -255,20 +255,20 @@
             <div class="dynamic-content" style="display: none"></div>
           </div>
         </div>
-
-        <!-- Add more images as needed -->
       </div>
     </div>
 
     <div id="imagePopup" class="full-img" style="display: none">
-      <span class="close" onclick="closeImage()">&times;</span>
+      <span class="close" onclick="closeImage()" style="position: absolute; top: 10px; right: 20px; font-size: 30px; color: white; cursor: pointer;">&times;</span>
       <div class="carousel">
-        <span class="prev" onclick="changeSlide(-1)">&#10094;</span>
-        <div class="popup-content-wrapper">
-          <img class="popup-content" id="popupImage" />
-          <div class="popup-text" id="popupText"></div>
+        <span class="prev" onclick="changeSlide(-1)" style="cursor: pointer; font-size: 40px; color: white; margin-right: 10px;">&#10094;</span>
+        <div class="popup-content-wrapper" style="display: flex; justify-content: center; align-items: center;">
+          <div style="aspect-ratio: 4 / 3; width: auto; overflow: hidden; display: flex; justify-content: center; align-items: center;">
+            <img class="popup-content" id="popupImage" style="width: 100%; height: auto;" />
+          </div>
+          <div class="popup-text" id="popupText" style="color: black; text-align: center; margin-top: 10px;"></div>
         </div>
-        <span class="next" onclick="changeSlide(1)">&#10095;</span>
+        <span class="next" onclick="changeSlide(1)" style="cursor: pointer; font-size: 40px; color: white; margin-left: 10px;">&#10095;</span>
       </div>
     </div>
     <script src="event.js"></script>
