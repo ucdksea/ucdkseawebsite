@@ -1,9 +1,15 @@
 *{
     margin: 0;
     padding: 0;
-    font-family: 'Inter', sans-serif;
+    font-family: 'CustomFont', sans-serif
    
 }
+
+@font-face {
+    font-family: 'CustomFont'; /* The name you will use in CSS */
+    src: url('./fonts/edosz.ttf') format('truetype'); /* Path to the .ttf file */
+  }
+  
 
 
 /* -------------------------------------------------------- Home Page ------------------------------------------------------------------*/
