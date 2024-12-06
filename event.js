@@ -12,7 +12,7 @@ function initializeGallery() {
 }
 function createImagePlaceholder(src, alt) {
   return `<br><span style="display: inline-block; width: auto; height: auto; box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);">
-              <img src="${src}" alt="${alt}" style=" width: auto%; height: auto />
+              <img src="${src}" alt="${alt}" style=" width: auto; height: auto />
           </span>`;
 }
 // 포스터 이미지
