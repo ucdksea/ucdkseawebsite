@@ -11,8 +11,8 @@ function initializeGallery() {
   });
 }
 function createImagePlaceholder(src, alt) {
-  return `<br><span style="display: inline-block; width: auto; height: auto; box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);">
-              <img src="${src}" alt="${alt}" style="width: 100%; height: auto />
+  return `<br><span style="display: aspect-ratio: 4 / 3; inline-block; width: auto; height: auto; box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);">
+              <img src="${src}" alt="${alt}" style="aspect-ratio: 4 / 3; width: 100%; height: auto />
           </span>`;
 }
 // 포스터 이미지
