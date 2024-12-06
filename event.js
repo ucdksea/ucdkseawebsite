@@ -18,26 +18,26 @@ function createImagePlaceholder(src, alt) {
 // 포스터 이미지
 function replacePlaceholders(text) {
   const replacements = {
-    //'<img-placeholder_studymarathon_2024fall/>': '<br><img src="images/event/2024_fall/studymarathon/studymarathon_poster.png" alt="Additional Image" /></span>',
-    '<img-placeholder_resume_2024fall/>': '<br><img src="images/event/2024_fall/resume/resume_poster.png" alt="Additional Image" /></span>',
-    '<img-placeholder_dodream_2/>': '<br><img src="images/event/2024_fall/job/job_poster.PNG" alt="Additional Image" /></span>',
-    '<img-placeholder_왔다감_2024fall/>': '<br><img src="images/event/2024_fall/came/왔다감_poster.png" alt="Additional Image" /></span>',
-    '<img-placeholder_멘토멘티_2024/>': '<br><img src="images/event/2024_fall/mentormentee/mentormenteeposter.png" alt="Additional Image" /></span>',
-    '<img-placeholder_개강총회_2024/>': '<br><img src="images/event/2024_fall/gaegang/gaegangposter.png" alt="Additional Image" /></span>',
-    '<img-placeholder_coffeechat/>': '<br><img src="images/event/2024_fall/coffeechat/coffeechatposter.png" alt="Additional Image" /></span>',
-    '<img-placeholder_요맘때/>': '<br><img src="images/event/2024_spring/yomam/yomamposter.png" alt="Additional Image" /></span>',
-    '<img-placeholder_resume_2024spring/>': '<br><img src="images/event/2024_spring/resume/resumeworkshopposter_2024.png" alt="Additional Image" /></span>',
-    '<img-placeholder_dodream_1/>': '<br><img src="images/event/2024_spring/dodream/dodreamposter_1.png" alt="Additional Image" /></span>',
-    '<img-placeholder_ksea4cuts_2024sping/>': '<br><img src="images/event/2024_spring/ksea4cut/ksea4cutspicnicdayposter_2024.png" alt="Additional Image" /></span>',
-    '<img-placeholder_studymarathon_winter2024/>': '<br><img src="images/event/2024_winter/studymarathon/studymarathonwinterposter_2024.png" alt="Additional Image" /></span>',
-    '<img-placeholder_왔다감2024winter/>': '<br><img src="images/event/2024_winter/washere/washereposter.png" alt="Additional Image" /></span>',
-    '<img-placeholder_ksea4cuts_2023winter/>': '<br><img src="images/event/2024_winter/ksea4cut/ksea4cutswinterposer_2024.png" alt="Additional Image" /></span>',
-    '<img-placeholder_얼죽삼_2024/>': '<br><img src="images/event/2024_winter/samgyeopsal/samgyeopsalposter.png" alt="Additional Image" /></span>',
-    '<img-placeholder_studymarathon_2023/>': '<br><img src="images/event/2023_fall/studymarathon/studymarathon2023fall.png" alt="Additional Image" /></span>',
-    '<img-placeholder_멘토멘티_2023/>': '<br><img src="images/event/2023_fall/mentor/mentormenteeposter_2023.png" alt="Additional Image" /></span>',
-    '<img-placeholder_개강총회_2023/>': '<br><img src="images/event/2023_fall/gaegang/gaegang_poster.png" alt="Additional Image" /></span>',
-    '<img-placeholder_gradschool_2023/>': '<br><img src="images/event/2023_spring/graduatementor/gradschoolmentormentreeposter_2023.png" alt="Additional Image" /></span>',
-    '<img-placeholder_뇌지컬/>': '<br><img src="images/event/2023_winter/brain/brainposter.png" alt="Additional Image" /></span>'
+    //'<img-placeholder_studymarathon_2024fall/>': '<br><img src="images/event/2024_fall/studymarathon/studymarathon_poster.png" alt="Additional Image" />',
+    '<img-placeholder_resume_2024fall/>': createImagePlaceholder('<br><img src="images/event/2024_fall/resume/resume_poster.png" alt="Additional Image" />'),
+    '<img-placeholder_dodream_2/>': createImagePlaceholder('<br><img src="images/event/2024_fall/job/job_poster.PNG" alt="Additional Image" />'),
+    '<img-placeholder_왔다감_2024fall/>': createImagePlaceholder('<br><img src="images/event/2024_fall/came/왔다감_poster.png" alt="Additional Image" />'),
+    '<img-placeholder_멘토멘티_2024/>': createImagePlaceholder('<br><img src="images/event/2024_fall/mentormentee/mentormenteeposter.png" alt="Additional Image" />'),
+    '<img-placeholder_개강총회_2024/>': createImagePlaceholder('<br><img src="images/event/2024_fall/gaegang/gaegangposter.png" alt="Additional Image" />'),
+    '<img-placeholder_coffeechat/>': createImagePlaceholder('<br><img src="images/event/2024_fall/coffeechat/coffeechatposter.png" alt="Additional Image" />'),
+    '<img-placeholder_요맘때/>': createImagePlaceholder('<br><img src="images/event/2024_spring/yomam/yomamposter.png" alt="Additional Image" />'),
+    '<img-placeholder_resume_2024spring/>': createImagePlaceholder('<br><img src="images/event/2024_spring/resume/resumeworkshopposter_2024.png" alt="Additional Image" />'),
+    '<img-placeholder_dodream_1/>': createImagePlaceholder('<br><img src="images/event/2024_spring/dodream/dodreamposter_1.png" alt="Additional Image" />'),
+    '<img-placeholder_ksea4cuts_2024sping/>': createImagePlaceholder('<br><img src="images/event/2024_spring/ksea4cut/ksea4cutspicnicdayposter_2024.png" alt="Additional Image" />'),
+    '<img-placeholder_studymarathon_winter2024/>': createImagePlaceholder('<br><img src="images/event/2024_winter/studymarathon/studymarathonwinterposter_2024.png" alt="Additional Image" />'),
+    '<img-placeholder_왔다감2024winter/>': createImagePlaceholder('<br><img src="images/event/2024_winter/washere/washereposter.png" alt="Additional Image" />',
+    '<img-placeholder_ksea4cuts_2023winter/>': createImagePlaceholder('<br><img src="images/event/2024_winter/ksea4cut/ksea4cutswinterposer_2024.png" alt="Additional Image" />'),
+    '<img-placeholder_얼죽삼_2024/>': createImagePlaceholder('<br><img src="images/event/2024_winter/samgyeopsal/samgyeopsalposter.png" alt="Additional Image" />'),
+    '<img-placeholder_studymarathon_2023/>': createImagePlaceholder('<br><img src="images/event/2023_fall/studymarathon/studymarathon2023fall.png" alt="Additional Image" />'),
+    '<img-placeholder_멘토멘티_2023/>': createImagePlaceholder('<br><img src="images/event/2023_fall/mentor/mentormenteeposter_2023.png" alt="Additional Image" />'),
+    '<img-placeholder_개강총회_2023/>': createImagePlaceholder('<br><img src="images/event/2023_fall/gaegang/gaegang_poster.png" alt="Additional Image" />',
+    '<img-placeholder_gradschool_2023/>': createImagePlaceholder('<br><img src="images/event/2023_spring/graduatementor/gradschoolmentormentreeposter_2023.png" alt="Additional Image" />'),
+    '<img-placeholder_뇌지컬/>': createImagePlaceholder('<br><img src="images/event/2023_winter/brain/brainposter.png" alt="Additional Image" />')
   };
 
   for (const placeholder in replacements) {
