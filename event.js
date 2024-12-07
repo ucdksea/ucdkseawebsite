@@ -18,7 +18,10 @@ function createImagePlaceholder(src, alt) {
 // 포스터 이미지
 function replacePlaceholders(text) {
   const replacements = {
-    '<img-placeholder_resume_2024fall/>': createImagePlaceholder(
+    '<img-placeholder_studymarathon_2024fall/>': createImagePlaceholder(
+      "images/event/2024_fall/studymarathon/studymarathon_poster.png",
+      "Resume Workshop 2024 Fall"
+    ),'<img-placeholder_resume_2024fall/>': createImagePlaceholder(
       "images/event/2024_fall/resume/resume_poster.png",
       "Resume Workshop 2024 Fall"
     ),
