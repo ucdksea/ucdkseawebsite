@@ -808,7 +808,7 @@ li {
 
     .nav-links {
         position: fixed; /* Use fixed positioning to ensure it stays in view */
-        background: #3954A6;
+        background: rgba(255, 0, 0, 0.4);
         height: 100vh;
         width: 200px;
         top: 0;
