@@ -18,7 +18,7 @@ function createImagePlaceholder(src, alt) {
 // 포스터 이미지
 function replacePlaceholders(text) {
   const replacements = {
-    '<img-placeholder_studymarathon_2024fall/>': createImagePlaceholder(
+    '<img-placeholder_얼죽삼_2025/>': createImagePlaceholder(
       "/Users/stephanie/Desktop/ucdksea-website/images/event/2025_winter/얼죽삼.jpeg",
       "얼죽삼 2025 Winter"
     ),'<img-placeholder_studymarathon_2024fall/>': createImagePlaceholder(
