@@ -19,8 +19,11 @@ function createImagePlaceholder(src, alt) {
 function replacePlaceholders(text) {
   const replacements = {
     '<img-placeholder_studymarathon_2024fall/>': createImagePlaceholder(
+      "/Users/stephanie/Desktop/ucdksea-website/images/event/2025_winter/얼죽삼.jpeg",
+      "얼죽삼 2025 Winter"
+    ),'<img-placeholder_studymarathon_2024fall/>': createImagePlaceholder(
       "images/event/2024_fall/studymarathon/studymarathon_poster.png",
-      "Resume Workshop 2024 Fall"
+      "Study Marathon 2024 Fall"
     ),'<img-placeholder_resume_2024fall/>': createImagePlaceholder(
       "images/event/2024_fall/resume/resume_poster.png",
       "Resume Workshop 2024 Fall"
