@@ -21,7 +21,7 @@ function replacePlaceholders(text) {
     '<img-placeholder_얼죽삼_2025/>': createImagePlaceholder(
       "/Users/stephanie/Desktop/ucdksea-website/images/event/2025_winter/얼죽삼.jpeg",
       "얼죽삼 2025 Winter"
-    ),'<img-placeholder_studymarathon_2024fall/>': createImagePlaceholder(
+    ),'<img-placeholder_studymarathon_fall2024/>': createImagePlaceholder(
       "images/event/2024_fall/studymarathon/studymarathon_poster.png",
       "Study Marathon 2024 Fall"
     ),'<img-placeholder_resume_2024fall/>': createImagePlaceholder(
