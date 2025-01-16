@@ -56,7 +56,7 @@
 
           <ul>
             <li><a href="/">Home</a></li>
-            <li><a href="#about" onclick="hidePopup(); closeMenu();">About UCD KSEA</a></li>
+            <li><a href="/#about" onclick="hidePopup(); closeMenu();">About UCD KSEA</a></li>
             <li><a href="/officer">Officers</a></li>
             <li><a href="/event">Events</a></li>
             <li><a href="/faq">FAQ</a></li>
@@ -329,60 +329,67 @@
       </section>-->
 
     <script>
-      var navLinks = document.getElementById("navLinks");
-      var menuIcon = document.getElementById("menuIcon");
-      var closeIcon = document.getElementById("closeIcon");
-
-      function openMenu() {
-        navLinks.style.right = "0";
-        menuIcon.style.display = "none";
-        closeIcon.style.display = "block";
-      }
-
-      function closeMenu() {
-        navLinks.style.right = "-200px";
-        menuIcon.style.display = "block";
-        closeIcon.style.display = "none";
-      }
-
-      // pop-up 코드
-      document.addEventListener("DOMContentLoaded", () => {
+      document.addEventListener("DOMContentLoaded", function () {
         const popup = document.getElementById("popup");
         const closePopup = document.getElementById("closePopup");
+        const navLinks = document.getElementById("navLinks");
+        const menuIcon = document.getElementById("menuIcon");
+        const closeIcon = document.getElementById("closeIcon");
     
-        // 닫기 버튼 클릭 이벤트
-        closePopup.addEventListener("click", () => {
-            popup.style.display = "none"; // 팝업 숨기기
-            console.log("Popup closed");
-        });
-
+        if (closePopup) {
+            closePopup.addEventListener("click", function () {
+                if (popup) {
+                    popup.style.display = "none";
+                    console.log("Popup closed");
+                }
+            });
+        }
+    
         function hidePopup() {
-          const popup = document.getElementById("popup");
-          if (popup) {
-            popup.style.display = "none"; // 팝업 숨기기
-          }
-        }        
-        
+            if (popup) {
+                popup.style.display = "none";
+                console.log("팝업 숨김 완료!");
+            }
+        }
     
-        // 팝업 기본 상태를 항상 확인
-        console.log("Popup initial display:", window.getComputedStyle(popup).display);
-        document.addEventListener("DOMContentLoaded", function () {
-          // 현재 URL 확인
-          if (window.location.hash) {
-              const target = document.querySelector(window.location.hash);
-              if (target) {
-                  setTimeout(() => {
-                      target.scrollIntoView({ behavior: "smooth" });
-                  }, 500); // 페이지 로딩 후 0.5초 뒤에 실행
-              }
-          }
-      });
-      
+        function openMenu() {
+            if (navLinks && menuIcon && closeIcon) {
+                navLinks.style.right = "0";
+                menuIcon.style.display = "none";
+                closeIcon.style.display = "block";
+            }
+        }
+    
+        function closeMenu() {
+            if (navLinks && menuIcon && closeIcon) {
+                navLinks.style.right = "-200px";
+                menuIcon.style.display = "block";
+                closeIcon.style.display = "none";
+            }
+        }
+    
+        const aboutLink = document.querySelector("a[href='/#about']");
+        if (aboutLink) {
+            aboutLink.addEventListener("click", function () {
+                hidePopup();
+                closeMenu();
+            });
+        }
+    
+        if (window.location.hash === "#about") {
+            hidePopup();
+            closeMenu();
+        }
+    
+        if (window.location.hash) {
+            const target = document.querySelector(window.location.hash);
+            if (target) {
+                setTimeout(() => {
+                    target.scrollIntoView({ behavior: "smooth" });
+                }, 500); 
+            }
+        }
     });
-    
-    
-    
-    
-    </script>
+        </script>
   </body>
 </html>
