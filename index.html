@@ -358,6 +358,18 @@
     
         // 팝업 기본 상태를 항상 확인
         console.log("Popup initial display:", window.getComputedStyle(popup).display);
+        document.addEventListener("DOMContentLoaded", function () {
+          // 현재 URL 확인
+          if (window.location.hash) {
+              const target = document.querySelector(window.location.hash);
+              if (target) {
+                  setTimeout(() => {
+                      target.scrollIntoView({ behavior: "smooth" });
+                  }, 500); // 페이지 로딩 후 0.5초 뒤에 실행
+              }
+          }
+      });
+      
     });
     
     
