@@ -58,6 +58,11 @@ nav img {
 .nav-links ul li:hover::after {
     width: 100%;
 }
+
+html {
+    scroll-behavior: smooth;
+  }
+  
   
 /*-------------------------------------------------- Footer ------------------------------------------------------*/
 .wrap-footer-info[_ngcontent-xno-c31] {
