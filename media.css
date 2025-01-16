@@ -1,8 +1,9 @@
 @media (max-width: 700px) {    
 
     .header {
-        background-position: center;
-        background-size: cover;
+        background-position: contain;
+        background-size: cover top;
+        background-attachment: scroll;
         background-image: url(images/home/watertower.jpg);
         animation: none;
     }
