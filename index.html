@@ -106,15 +106,20 @@
 
       // pop-up 코드
       document.addEventListener("DOMContentLoaded", () => {
-        const popupContent = document.querySelector('.popup-content');
-        popupContent.style.display = "flex";
-        popupContent.style.justifyContent = "center";
-        popupContent.style.alignItems = "center";
-        popupContent.style.color = "#000000"; // 텍스트 색상
-        popupContent.style.fontSize = "20px";
+        const popup = document.getElementById("popup");
+        const closePopup = document.getElementById("closePopup");
     
-        console.log("Popup content height:", popupContent.offsetHeight);
+        // 닫기 버튼 클릭 이벤트
+        closePopup.addEventListener("click", () => {
+            popup.style.display = "none"; // 팝업 숨기기
+            console.log("Popup closed");
+        });
+    
+        // 팝업 기본 상태를 항상 확인
+        console.log("Popup initial display:", window.getComputedStyle(popup).display);
     });
+    
+    
     
     
     </script>
