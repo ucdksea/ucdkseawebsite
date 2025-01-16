@@ -336,38 +336,37 @@
         const menuIcon = document.getElementById("menuIcon");
         const closeIcon = document.getElementById("closeIcon");
     
-        if (closePopup) {
-            closePopup.addEventListener("click", function () {
-                if (popup) {
-                    popup.style.display = "none";
-                    console.log("Popup closed");
-                }
-            });
-        }
-    
-        function hidePopup() {
-            if (popup) {
-                popup.style.display = "none";
-                console.log("팝업 숨김 완료!");
-            }
-        }
-    
+        // 메뉴 열기 함수 (햄버거 아이콘 클릭 시 메뉴 열기)
         function openMenu() {
             if (navLinks && menuIcon && closeIcon) {
-                navLinks.style.right = "0";
-                menuIcon.style.display = "none";
-                closeIcon.style.display = "block";
+                navLinks.style.right = "0"; // 메뉴 나타나기
+                menuIcon.style.display = "none"; // 햄버거 아이콘 숨김
+                closeIcon.style.display = "block"; // 닫기 아이콘 표시
+                console.log("메뉴 열림");
             }
         }
     
+        // 메뉴 닫기 함수 (닫기 아이콘 클릭 시 메뉴 닫기)
         function closeMenu() {
             if (navLinks && menuIcon && closeIcon) {
-                navLinks.style.right = "-200px";
-                menuIcon.style.display = "block";
-                closeIcon.style.display = "none";
+                navLinks.style.right = "-200px"; // 메뉴 숨기기
+                menuIcon.style.display = "block"; // 햄버거 아이콘 표시
+                closeIcon.style.display = "none"; // 닫기 아이콘 숨기기
+                console.log("메뉴 닫힘");
             }
         }
     
+        // 햄버거 아이콘 클릭 시 메뉴 열기
+        if (menuIcon) {
+            menuIcon.addEventListener("click", openMenu);
+        }
+    
+        // 닫기 아이콘 클릭 시 메뉴 닫기
+        if (closeIcon) {
+            closeIcon.addEventListener("click", closeMenu);
+        }
+    
+        // "About UCD KSEA" 클릭 시 팝업 숨기고 메뉴 닫기
         const aboutLink = document.querySelector("a[href='/#about']");
         if (aboutLink) {
             aboutLink.addEventListener("click", function () {
@@ -376,20 +375,22 @@
             });
         }
     
+        // URL이 #about이면 팝업 숨김 + 네비게이션 메뉴 닫기
         if (window.location.hash === "#about") {
             hidePopup();
             closeMenu();
         }
     
+        // 페이지 로드 시 부드러운 스크롤 적용
         if (window.location.hash) {
             const target = document.querySelector(window.location.hash);
             if (target) {
                 setTimeout(() => {
                     target.scrollIntoView({ behavior: "smooth" });
-                }, 500); 
+                }, 500);
             }
         }
     });
-        </script>
+            </script>
   </body>
 </html>
