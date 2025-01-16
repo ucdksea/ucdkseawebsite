@@ -4,13 +4,8 @@
     font-family: 'CustomFont', Arial, Helvetica, sans-serif;
     white-space: nowrap;
     overflow-x: clip;
-}
-
-@font-face {
-    font-family: 'CustomFont'; /* The name you will use in CSS */
-    src: url('./fonts/edosz.ttf') format('truetype'); /* Path to the .ttf file */
-  }
-  
+    scroll-behavior: smooth;
+}  
 
 
 nav {
@@ -49,7 +44,6 @@ nav img {
 .nav-links ul li::after {
     content: '';
     width: 0%;
-    font-family: 'Inter', sans-serif;
     height: 2px;
     background: #FFDC34;
     display: block;
@@ -64,7 +58,6 @@ nav img {
 .subheader {
     height: 50vh;
     width: 100%;
-    font-family: 'Inter', sans-serif;
     background-image: linear-gradient(rgba(22, 38, 100, 0.67), rgba(16, 38, 124, 0.119)), url(images/about/grad6.jpeg);
     background-position-y: 75%;
     background-size: cover;
@@ -110,7 +103,6 @@ nav img {
     height: auto;
     margin-left: 10%;
     margin-top: 15%;
-    font-style: normal;
     font-weight: 500;
     font-size: 3.3vw;
     line-height: 67px;
@@ -118,7 +110,6 @@ nav img {
 }
 
 .ksea {
-    font-style: normal;
     font-weight: 800;
     font-size: 6.67vw;
     line-height: 1.1;
@@ -154,7 +145,6 @@ nav img {
 }
 
 .an_academic {
-    font-family: 'Inter', sans-serif;
     font-style: italic;
     font-weight: 500;
     font-size: 2.5vw;
@@ -192,8 +182,6 @@ nav img {
     width: 54.44%;
     top: 5%;
     left: 45%;
-    font-family: 'Inter', sans-serif;
-    font-style: normal;
     font-weight: 600;
     font-size: 3.4vw;
     line-height: 1.5;
@@ -210,7 +198,6 @@ nav img {
     height: auto;
     top: 28%;
     left: 42%;
-    font-family: 'Inter', sans-serif;
     font-style: normal;
     font-weight: 400;
     font-size: 2.2vw;
@@ -232,7 +219,6 @@ nav img {
     width: 48.39%;
     left: 49%;
     top: 48%;
-    font-family: 'Inter', sans-serif;
     font-style: italic;
     font-weight: 500;
     font-size: 1.8vw;
@@ -265,7 +251,6 @@ nav img {
     top: 85%;
     width: 48.33%; /* 696px / 1440px * 100 */
     height: 6.25%; /* 64px / 1024px * 100 */
-    font-family: 'Inter', sans-serif;
     font-style: normal;;
     font-weight: 400;;
     font-size: 1.94vw;; /* 28px / 1440px * 100 */
@@ -296,7 +281,6 @@ nav img {
 .OurKseaOpportunities h1 {
     position: relative;
     margin-top: 10%;
-    font-family: 'Inter', sans-serif;
     font-weight: 700;
     font-size: 4.44vw; /* 64px / 1440px * 100 */
     line-height: 5.35vw; /* 77px / 1440px * 100 */
@@ -314,7 +298,6 @@ nav img {
     overflow-wrap: break-word;
     white-space: normal;
     margin-top: 10%;
-    font-family: 'Inter', sans-serif;
     font-style: italic;
     font-weight: 400;
     font-size: 1.67vw; /* 24px / 1440px * 100 */
@@ -491,7 +474,6 @@ nav img {
 .UndergraduateScholarship p,
 .LeadershipOpportunities p,
 .workshops p {
-    font-family: 'Inter', sans-serif;
     font-size: 1.63vw !important;
     color: #d5d3d3 !important;
     line-height: 1.65;
@@ -501,7 +483,6 @@ nav img {
 
 .WeDo_1 p,
 .WeDo_2 p {
-    font-family: 'Inter', sans-serif;
     font-style: normal;
     font-weight: 400;
     font-size: 2.22vw; /* 32px / 1440px * 100 */
@@ -514,7 +495,6 @@ nav img {
 .UCBKSEA p,
 .studymarathon p, 
 .DoDream p{
-    font-family: 'Inter', sans-serif;
     font-style: normal;
     font-weight: 400;
     font-size: 1.3vw; /* 24px / 1440px * 100 */
@@ -523,7 +503,6 @@ nav img {
 }
 
 .ResumeWorkshop p{
-    font-family: 'Inter', sans-serif;
     font-style: normal;
     font-weight: 400;
     font-size: 1.67vw; /* 24px / 1440px * 100 */
@@ -572,7 +551,6 @@ nav img {
     width:80%;
     margin-top: 5%;
     margin-left:10%;
-    font-family: 'Inter', sans-serif;
     font-style: normal;
     font-weight: 400;
     font-size: 3.23vw;
@@ -772,7 +750,6 @@ footer{
     border: 0;
     font-size: 100%;
     vertical-align: baseline;
-    font-family: 'Inter', sans-serif;
 
 }
 

@@ -1,0 +1,183 @@
+.subheader4 {
+    height: 50vh;
+    width: 100%;
+    background-image: linear-gradient(rgba(22, 38, 100, 0.67), rgba(16, 38, 124, 0.119)), url(images/event/2024_spring/ksea4cut/faqcover.JPG);
+    background-position-y: 57%;
+    background-size: cover;
+    text-align: center;
+    color: #FFDC34;
+    text-shadow: 3px 3px 9px rgba(0, 0, 0, 0.492);
+}
+
+.subheader4 h1{
+    white-space: normal; 
+    margin-top: 50px;
+}
+
+.title {
+    width: 90%;
+    position: relative;
+    top: 60%;
+    text-align: left;
+    padding:5%;
+}
+.questions{
+    text-align: center;
+    margin-bottom: 60px;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.492);
+    color: #2E3192;
+    font-size: 28px;
+}
+
+.title h1 {
+    text-align: center;
+    margin-bottom: 60px;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.492);
+    color: #2E3192;
+    font-size: 28px;
+    margin-top: 50px;
+}
+
+.EventParticipation,
+.Membership,
+.Benefits,
+.Workshops_KSEA,
+.ScholarshipsFor,
+.KseaHonors{
+    margin-top: 5%;
+    font-size: 20px;
+    color:#595959;
+}
+
+.faq {
+    list-style: none;
+    padding: 0%;
+}
+.faq > li {
+    padding: box;
+    box-sizing: border-box;
+    padding-top: 0;
+}
+
+.faq > li:nth-child(n+2){
+    border-top: 1px dotted #B3C1D1;
+    margin-top: 0;
+}
+
+.faq label {
+    display: -webkit-box;
+    color: #000000; 
+    font-size: 15px;
+    height: 50px;
+    margin: 10px 10px -10px 10px; 
+    transition: background-color 0.2s ease, color 0.2s ease;
+    cursor: pointer;
+    text-align: left; 
+    white-space: normal; 
+    padding-top: 10px;
+}
+
+.faq label:hover {
+    background-color: #fff;
+    color: #2E3192;
+  }
+
+.faq label::after {
+    content: "v";
+    display:block;
+    position: sticky;
+    margin-left: auto;
+}
+
+.faq input[type="checkbox"] {
+    display: none;
+}
+
+.faq input:checked + label::after {
+    content: "_";
+    display:block; 
+    position: sticky;
+    margin-left:auto;
+}
+.faq div {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease, padding 0.2s ease;
+    color: #2E3192;;
+    font-size: 13px; 
+    padding: 0 5px;
+    box-sizing: border-box;
+}
+
+.faq input:checked + label + div {
+    max-height: 1000px;
+    padding: 10px;
+}
+
+.faq p.spacing01 {
+    white-space: normal; 
+    line-height: 27px;
+    font-size: 13px;
+    text-align: left;
+    margin-left: 5%;
+    width:90%;
+    color: #2E3192;
+}
+
+.faq p.spacing01 a span {
+    color: #2E3192;
+    text-decoration: underline;
+}
+
+.faq p.spacing01 a span:hover {
+    color: #f4d22b;
+    text-decoration: underline;
+}
+
+
+.more h3{
+    white-space: normal; 
+    margin-top: 50px;
+    color: #000000;
+    font-style: italic;
+}
+
+.social-media-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    padding-top: 3%;
+    width: 100%;
+}
+
+.instagram, .linktree {
+    display: flex;
+    align-items: center;
+    margin: 0 20px; 
+}
+
+.instagram img {
+    width: 50px;
+    height: auto;
+    vertical-align: middle;
+    margin-right: 10px; 
+}
+.linktree img{
+    width: 40px;
+    height: auto;
+    vertical-align: middle;
+    margin-right: 10px; 
+}
+
+.instagram a, .linktree a {
+    font-style: italic;
+    margin: 0;
+    text-decoration: none !important;
+    color: #000000 !important;
+}
+
+.instagram a:hover span,
+.linktree a:hover span{
+    color: #2E3192;
+}

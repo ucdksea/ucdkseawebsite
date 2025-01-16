@@ -1,0 +1,254 @@
+@media (max-width: 700px) {    
+
+    .header {
+        background-position: center;
+        background-size: cover;
+        background-image: url(images/home/watertower.jpg);
+        animation: none;
+    }
+
+    .textbox h1 {
+        font-size: 50px;
+        text-align: center;
+    }
+
+    .header img {
+        margin-left: 20px;
+        margin-top: 20px;
+        height: 100px;
+        width: 100px;
+    }
+
+    .subheader2 img,
+    .subheader3 img,
+    .subheader4 img,
+    .subheader5 img {
+        margin-left: 20px;
+        margin-top: 20px;
+        height: 60px;
+        width: 60px;
+    }
+
+    .textbox h5 {
+        font-size: 15px;
+        position: relative;
+        text-align: center;
+        word-break: break-word;
+        overflow-wrap: break-word;
+    }
+
+    nav {
+        padding: 1% 2%;
+        position: relative;
+    }
+
+    .nav-links {
+        position: fixed; /* Use fixed positioning to ensure it stays in view */
+        background: rgba(57, 84, 166, 0.5); 
+        height: 100vh;
+        width: 200px;
+        top: 0;
+        right: -200px; /* Initially hide off-screen */
+        text-align: left;
+        z-index: 2;
+        transition: right 0.3s ease;
+        overflow: auto; /* Ensure content can scroll if needed */
+    }
+
+    #menuIcon,
+    #closeIcon {
+      position: fixed; /* Ensure icons stay in view */
+      right: 20px;
+      top: 40px;
+      color: #FFDC34;
+      font-size: 30px;
+      cursor: pointer;
+      z-index: 3;
+    }
+
+    #closeIcon {
+        display: none;
+    }
+
+    #menuIcon {
+        display: block;
+    }
+
+    .nav-links.open {
+        right: 0; /* Move menu into view */
+    }
+
+    .nav-links.open #menuIcon {
+        display: none; /* Hide menu icon when menu is open */
+    }
+
+    .nav-links.open #closeIcon {
+        display: block; /* Show close icon when menu is open */
+    }
+
+    .nav-links ul {
+        margin-top: 80px;   
+        margin-left: 10px;
+    }
+
+    .nav-links ul li {
+        display: block;    
+        margin-bottom: 30px;
+    }
+
+    .nav-links ul li::after {
+        content: none; /* Remove the ::after pseudo-element */
+    }
+
+    /* pop-up media*/
+    .index_popup {
+        display: flex;
+        position: fixed;
+        width: 80%;
+        height: auto;
+        top: 2%;
+        left: 0%;
+        z-index: 100000 !important;
+        overflow: visible;
+    }
+    
+    .index_popup .popup-content {
+        display: flex;
+        width: 100%;
+        background-color: #ffffff !important; 
+        display: flex;
+        justify-content: center !important;
+        align-items: center !important;
+        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5);
+    }
+
+    
+    .index_popup .popup-image {
+        display: block;
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+    }
+    
+    .index_popup .close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 25px;
+        font-weight: bold;
+        cursor: pointer;
+        color: #000000;
+    }    
+    /* -------------------  All (Except About) ----------------------------- */
+    .subheader2, .subheader3, .subheader4, .subheader5 {
+        height: 30vh;        
+    }
+    
+   .subheader2 h1, .subheader3 h1, .subheader4 h1, .subheader5 h1{
+        margin-top: 20px;
+    }
+    
+    /* --------------------------- Board Member Media ---------------------------- */
+    
+    .board-members {
+        display: flex;
+        flex-direction: column; /* Stack board members vertically */
+        align-items: center; /* Center items horizontally */
+        gap: 20px;
+    }
+
+    .board-member{
+        width: 100%; /* Full width for each board member */
+        max-width: 300px; /* Optional: set a max-width for the board member */
+        text-align: center; /* Center text */
+    }
+
+    .image-container {
+        margin-left: 45px;
+    }
+
+    /* -------------------------- Event Media ------------------------ */
+    /* Hide carousel arrows */
+    .prev, .next {
+        display: none;
+    }
+    .popup-content {
+        display: none; /* Hide the image */
+    }
+    
+      .popup-text {
+        display: block; /* Ensure the text is visible */
+        max-width: 100%; /* Adjust width for better fit */
+        max-height: none; /* Remove height constraints */
+        justify-content: center;
+        margin-left: 70px;
+        margin-top: 0;
+        padding: 10px;     
+    }
+    /* -------------------------- faq Media ------------------------ */
+
+    .faq label::after {
+        content: "";
+    }
+
+    .faq input:checked + label::after {
+        content: "";
+    }
+
+    .questions {
+        text-align: center;
+        margin: 0 auto 60px auto;
+        text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.492);
+        color: #2E3192;
+        font-size: 28px;
+        width: 80%;
+    }
+    
+    
+    /* ------------------------ Footer Media ------------------------------- */
+    .wrap-footer-info[_ngcontent-xno-c31] {
+        flex-direction: column; /* Stack items vertically */
+        align-items: center; /* Center items horizontally */
+        padding: 1em; /* Adjust padding for smaller screens */
+    }
+
+    .con-info[_ngcontent-xno-c31] {
+        flex-direction: column; /* Stack items vertically */
+        align-items: center; /* Center items horizontally */
+        text-align: center; /* Center text */
+        margin-bottom: 1em; /* Space between icons and text */
+    }
+
+    .con-info[_ngcontent-xno-c31] > img[_ngcontent-xno-c31] {
+        display: none; /* Hide the KSEA logo on small screens */
+    }
+
+    .con-sns[_ngcontent-xno-c31] {
+        margin-bottom: 1em; /* Space below the icons */
+    }
+
+    .con-sns[_ngcontent-xno-c31] ul[_ngcontent-xno-c31] {
+        display: flex;
+        justify-content: center; /* Center the icons horizontally */
+        align-items: center; /* Center the icons vertically */
+        margin: 0; /* Remove default margins */
+        padding: 0; /* Remove default padding */
+    }
+
+    .con-info[_ngcontent-xno-c31] ul[_ngcontent-xno-c31] li {
+        margin: 10px 0;/* Space between icons */
+        font-size: 88%; /* Adjust font size for smaller screens */
+    }
+
+    #ngcontent1, #ngcontent2 {
+        display: block; /* Ensure these items are shown in the media query */
+    }
+}
+
+
+
+
+
+
