@@ -115,7 +115,44 @@ nav img {
 #closeIcon {
     display: none; /* Hide both icons by default */
 }
+/*pop-up*/
+.index_popup {
+    display: flex;
+    position: fixed;
+    top: 3%; 
+    left: -10%;
+    justify-content: center; 
+    align-items: center; 
+    z-index: 1000; 
+    width: 60%;
+    height: auto;
+    background-color: transparent; 
+}
 
+.index_popup .popup-content {
+    position: relative;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    background-color:white;
+    box-shadow: 0 5px 15px rgb(137, 137, 137);
+}
+
+.index_popup .popup-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+}
+
+.index_popup .close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 50px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #000000;
+}
 /*
 .home {
     height: 100vh;
@@ -818,6 +855,48 @@ li {
         content: none; /* Remove the ::after pseudo-element */
     }
 
+    /* pop-up media*/
+    .index_popup {
+        display: flex !important;
+        position: fixed;
+        width: 100%;
+        height: auto;
+        top: 2%;
+        left: -30%;
+        z-index: 100000 !important;
+        overflow: visible;
+    }
+    
+    .index_popup .popup-content {
+        display: flex;
+        width: 100%;
+        background-color: #ffffff !important; 
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5);
+
+    }
+    
+    
+    .index_popup .popup-image {
+        display: block;
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+    }
+    
+    .index_popup .close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 25px;
+        font-weight: bold;
+        cursor: pointer;
+        color: #000000;
+    }    
     /* -------------------  All (Except About) ----------------------------- */
     .subheader2, .subheader3, .subheader4, .subheader5 {
         height: 30vh;        

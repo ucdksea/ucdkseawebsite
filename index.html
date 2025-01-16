@@ -67,6 +67,20 @@
       </div>
     </section>
 
+    <!--pop-up-->
+    <div id="popup" class="index_popup">
+      <div class="popup-content">
+          <span id="closePopup" class="close">X</span>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSeXV4-SqfzCtLfocvm_T4vDRzhDmTaehDze2N4IF7yMd3f3RQ/viewform" target="_blank">
+            <img 
+              src="images/event/2025_winter/GM 모집.png" 
+              alt="Event Image" 
+              class="popup-image">
+          </a>
+      </div>
+    </div>
+
+
     <!--<section class="home">
       <section class="video">
         <h1>UCD KSEA Video</h1>
@@ -89,6 +103,20 @@
         menuIcon.style.display = "block";
         closeIcon.style.display = "none";
       }
+
+      // pop-up 코드
+      document.addEventListener("DOMContentLoaded", () => {
+        const popupContent = document.querySelector('.popup-content');
+        popupContent.style.display = "flex";
+        popupContent.style.justifyContent = "center";
+        popupContent.style.alignItems = "center";
+        popupContent.style.color = "#000000"; // 텍스트 색상
+        popupContent.style.fontSize = "20px";
+    
+        console.log("Popup content height:", popupContent.offsetHeight);
+    });
+    
+    
     </script>
   </body>
 </html>
