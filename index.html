@@ -398,13 +398,13 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   }
 
-  // URL이 #about이면 팝업 숨김 + 네비게이션 메뉴 닫기
+  // after clicking about, hide pop-up and menu
   if (window.location.hash === "#about") {
       hidePopup();
       closeMenu();
   }
 
-  // 페이지 로드 시 부드러운 스크롤 적용
+  // smooth control
   if (window.location.hash) {
       const target = document.querySelector(window.location.hash);
       if (target) {
