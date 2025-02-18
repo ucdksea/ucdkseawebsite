@@ -18,12 +18,19 @@ function createImagePlaceholder(src, alt) {
 // 포스터 이미지
 function replacePlaceholders(text) {
   const replacements = {
+    '<img-placeholder_발렌타인_2025/>': createImagePlaceholder(
+      "images/event/2025_winter/발렌타인_펀드레이징.png",
+      "발렌타인 2025 Winter"
+      ),
+
     '<img-placeholder_얼죽삼_2025/>': createImagePlaceholder(
       "images/event/2025_winter/얼죽삼.jpeg",
       "얼죽삼 2025 Winter"
+
     ),'<img-placeholder_studymarathon_fall2024/>': createImagePlaceholder(
       "images/event/2024_fall/studymarathon/studymarathon_poster.png",
       "Study Marathon 2024 Fall"
+
     ),'<img-placeholder_resume_2024fall/>': createImagePlaceholder(
       "images/event/2024_fall/resume/resume_poster.png",
       "Resume Workshop 2024 Fall"
