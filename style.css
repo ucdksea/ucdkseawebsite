@@ -65,9 +65,9 @@ nav img {
 
 html {
     scroll-behavior: smooth;
-  }
-  
-  #menuIcon,
+}
+
+#menuIcon,
 #closeIcon {
     display: none; /* Hide both icons by default */
 }
