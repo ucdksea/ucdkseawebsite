@@ -285,19 +285,23 @@
     var navLinks = document.getElementById("navLinks");
     var menuIcon = document.getElementById("menuIcon");
     var closeIcon = document.getElementById("closeIcon");
-
+    
+    console.log("Script is running in about.html");
+    
     function openMenu() {
-      navLinks.style.right = "0";
-      menuIcon.style.display = "none";
-      closeIcon.style.display = "block";
+        console.log("openMenu function called"); // Debugging
+        navLinks.style.right = "0";
+        menuIcon.style.display = "none";
+        closeIcon.style.display = "block";
     }
-
+    
     function closeMenu() {
-      navLinks.style.right = "-200px";
-      menuIcon.style.display = "block";
-      closeIcon.style.display = "none";
+        console.log("closeMenu function called"); // Debugging
+        navLinks.style.right = "-200px";
+        menuIcon.style.display = "block";
+        closeIcon.style.display = "none";
     }
-  </script>
+</script>
 </body>
 
 </html>
