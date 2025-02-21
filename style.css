@@ -67,7 +67,11 @@ html {
     scroll-behavior: smooth;
   }
   
-  
+  #menuIcon,
+#closeIcon {
+    display: none; /* Hide both icons by default */
+}
+
 /*-------------------------------------------------- Footer ------------------------------------------------------*/
 .wrap-footer-info[_ngcontent-xno-c31] {
     padding: 2em 3vw;
