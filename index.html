@@ -338,22 +338,24 @@ function hidePopup() {
   }
 }
 
-// 네비게이션 메뉴 닫기 함수
-function closeMenu() {
-  const navLinks = document.getElementById("navLinks");
-  const menuIcon = document.getElementById("menuIcon");
-  const closeIcon = document.getElementById("closeIcon");
+var navLinks = document.getElementById("navLinks");
+var menuIcon = document.getElementById("menuIcon");
+var closeIcon = document.getElementById("closeIcon");
 
-  if (navLinks) {
-      navLinks.style.right = "-200px"; // 메뉴 숨기기
-  }
-  if (menuIcon) {
-      menuIcon.style.display = "block"; // 햄버거 아이콘 표시
-  }
-  if (closeIcon) {
-      closeIcon.style.display = "none"; // 닫기 아이콘 숨기기
-  }
-  console.log("네비게이션 메뉴 숨김 완료!");
+console.log("Script is running in about.html");
+
+function openMenu() {
+    console.log("openMenu function called"); // Debugging
+    navLinks.style.right = "0";
+    menuIcon.style.display = "none";
+    closeIcon.style.display = "block";
+}
+
+function closeMenu() {
+    console.log("closeMenu function called"); // Debugging
+    navLinks.style.right = "-200px";
+    menuIcon.style.display = "block";
+    closeIcon.style.display = "none";
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -362,16 +364,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const menuIcon = document.getElementById("menuIcon");
   const closeIcon = document.getElementById("closeIcon");
   const navLinks = document.getElementById("navLinks");
-
-  // 네비게이션 메뉴 열기 (햄버거 아이콘 클릭 시)
-  function openMenu() {
-      if (navLinks && menuIcon && closeIcon) {
-          navLinks.style.right = "0"; // 메뉴 나타나기
-          menuIcon.style.display = "none"; // 햄버거 아이콘 숨김
-          closeIcon.style.display = "block"; // 닫기 아이콘 표시
-          console.log("메뉴 열림");
-      }
-  }
 
   // 닫기 아이콘 클릭 시 메뉴 닫기
   if (menuIcon) {
