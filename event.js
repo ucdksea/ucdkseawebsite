@@ -18,6 +18,11 @@ function createImagePlaceholder(src, alt) {
 // 포스터 이미지
 function replacePlaceholders(text) {
   const replacements = {
+    '<img-placeholder_OPT_2025/>': createImagePlaceholder(
+      "images/event/2025_winter/opt_2025.png",
+      "OPT 2025 Winter"
+      ),
+      
     '<img-placeholder_발렌타인_2025/>': createImagePlaceholder(
       "images/event/2025_winter/발렌타인_펀드레이징.png",
       "발렌타인 2025 Winter"
