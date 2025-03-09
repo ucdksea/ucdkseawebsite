@@ -11,6 +11,8 @@
     .textbox h1 {
         font-size: 50px;
         text-align: center;
+        overflow-wrap: break-word;
+        white-space: normal;
     }
 
     .header img {
@@ -36,6 +38,7 @@
         text-align: center;
         word-break: break-word;
         overflow-wrap: break-word;
+        white-space: normal;
     }
 
     nav {
