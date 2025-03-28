@@ -16,8 +16,19 @@ function createImagePlaceholder(src, alt) {
           </span>`;
 }
 // 포스터 이미지
+
 function replacePlaceholders(text) {
   const replacements = {
+    '<img-placeholder_studymarathon_2025_winter/>': createImagePlaceholder(
+      "images/event/2025_winter/studymarathon.PNG",
+      "studymarathon 2025 Winter"
+      ),
+
+    '<img-placeholder_1stgm/>': createImagePlaceholder(
+      "images/event/2025_winter/GM 모집 _2.png",
+      "1st GM 2025 Winter"
+      ),
+
     '<img-placeholder_OPT_2025/>': createImagePlaceholder(
       "images/event/2025_winter/opt_2025.png",
       "OPT 2025 Winter"
