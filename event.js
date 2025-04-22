@@ -19,6 +19,10 @@ function createImagePlaceholder(src, alt) {
 
 function replacePlaceholders(text) {
   const replacements = {
+    '<img-placeholder_2ndpicnicday/>': createImagePlaceholder(
+      "images/event/2025_spring/kseafourcuts.png",
+      "kseafourcuts 2025 Spring"
+      ),
     '<img-placeholder_studymarathon_2025_winter/>': createImagePlaceholder(
       "images/event/2025_winter/studymarathon.PNG",
       "studymarathon 2025 Winter"
