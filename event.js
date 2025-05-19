@@ -20,7 +20,7 @@ function createImagePlaceholder(src, alt) {
 function replacePlaceholders(text) {
   const replacements = {
     '<img-placeholder_요맘때_2/>': createImagePlaceholder(
-      "images/event/2025_spring/요맘때_poster.PNG",
+      "images/event/2025_spring/yomam_poster.PNG",
       "요맘때 2025 Spring"
       ),
     '<img-placeholder_alex/>': createImagePlaceholder(
