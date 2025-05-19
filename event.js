@@ -24,11 +24,11 @@ function replacePlaceholders(text) {
       "요맘때 2025 Spring"
       ),
     '<img-placeholder_alex/>': createImagePlaceholder(
-      "images/event/2025_spring/안상현.png",
+      "images/event/2025_spring/insta_poster.png",
       "Industry Talk 2025 Spring_2"
       ),
     '<img-placeholder_jihyeong/>': createImagePlaceholder(
-      "images/event/2025_spring/유지형.png",
+      "images/event/2025_spring/samsung.png",
       "Industry Talk 2025 Spring"
       ),
     '<img-placeholder_2ndpicnicday/>': createImagePlaceholder(
