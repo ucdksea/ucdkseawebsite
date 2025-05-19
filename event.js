@@ -20,8 +20,8 @@ function createImagePlaceholder(src, alt) {
 function replacePlaceholders(text) {
   const replacements = {
     '<img-placeholder_jihyeong/>': createImagePlaceholder(
-      "images/event/2025_winter/유지형.png",
-      "kseafourcuts 2025 Spring"
+      "/Users/stephanie/Desktop/ucdksea-website/images/event/2025_spring/유지형.png",
+      "Industry Talk 2025 Spring"
       ),
     '<img-placeholder_2ndpicnicday/>': createImagePlaceholder(
       "images/event/2025_spring/kseafourcuts.png",
