@@ -19,12 +19,16 @@ function createImagePlaceholder(src, alt) {
 
 function replacePlaceholders(text) {
   const replacements = {
+    '<img-placeholder_요맘때/>': createImagePlaceholder(
+      "images/event/2025_spring/요맘때_poster.PNG",
+      "요맘때 2025 Spring"
+      ),
     '<img-placeholder_alex/>': createImagePlaceholder(
       "images/event/2025_spring/안상현.png",
-      "Industry Talk 2025 Spring"
+      "Industry Talk 2025 Spring_2"
       ),
     '<img-placeholder_jihyeong/>': createImagePlaceholder(
-      "/Users/stephanie/Desktop/ucdksea-website/images/event/2025_spring/유지형.png",
+      "images/event/2025_spring/유지형.png",
       "Industry Talk 2025 Spring"
       ),
     '<img-placeholder_2ndpicnicday/>': createImagePlaceholder(
