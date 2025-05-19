@@ -21,7 +21,7 @@ function replacePlaceholders(text) {
   const replacements = {
     '<img-placeholder_요맘때_2/>': createImagePlaceholder(
       "images/event/2025_spring/yomam_poster.PNG",
-      "요맘때 2025 Spring"
+      "요맘때 2025 Spring_2"
       ),
     '<img-placeholder_alex/>': createImagePlaceholder(
       "images/event/2025_spring/insta_poster.png",
