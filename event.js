@@ -19,10 +19,12 @@ function createImagePlaceholder(src, alt) {
 
 function replacePlaceholders(text) {
   const replacements = {
+    // 여기부터
     '<img-placeholder_요맘때_2/>': createImagePlaceholder(
       "images/event/2025_spring/yomam_poster.PNG",
       "요맘때 2025 Spring_2"
       ),
+      // 여기까지 복붙
     '<img-placeholder_alex/>': createImagePlaceholder(
       "images/event/2025_spring/insta_poster.png",
       "Industry Talk 2025 Spring_2"

@@ -45,6 +45,7 @@
 
       <h1>Events</h1>
     </section>
+  <!-- 이거는 팝업인데 새로운 이벤트 할 때 마다 h3랑 이미지(인스타 포스트랑 같은걸로), <br> 다음으로는 우리 포스트 글(원하면) <br>은 줄 바꿈이야-->
     <!-- <div class = "upcoming_event">
         <h2>Upcoming Event</h2>
         <h3>National Mathematics Science Competition</h3>
@@ -59,12 +60,19 @@
     <div class="event">
       <h1>Event Gallery</h1>
       <div class="event-container">
-        <!-- Add more images as needed -->
+        <!-- 여기부터-->
         <div class="event-item">
           <div class="polaroid" onclick="expandImage(this)">
+            <!-- src = 여기는 활동 이미지 1개 
+            alt= 이미지 이름이니까 그 행사로 하면 될듯
+          data-text = 이벤트 이름 $<span style> 쿼터 연도 | 날짜 <span style = 'color: #ececec;'>_______________________________________$
+            <br> 이벤트 한글 설명
+            <br> 영어 설명 <a href= 해당 이벤트 인스타 링크><img-placeholder_이벤트 이름인데 다른 이벤트랑 이름 겹치면 안되고 js 파일이랑 같아야하는거 명심하기
+              /> -->
+
             <img
               src="images/event/2025_spring/yomam.jpg"
-              alt="요맘때"
+              alt="요맘때2"
               data-text="요맘때 2$<span style = 'color: gray;'>Spring 2025 | 2025.05.17$<span style = 'color: #ececec;'>_______________________________________$
                 <br>요맘때2로 다시 돌아온 요맘때! 팀게임과 맛있는 부대찌개가 함께한 소셜이벤트$
                 <br>Fun-filled KSEA social event with team$ games, delicious food, and drinks!><a href='https://www.instagram.com/p/DJkhr9Xh9lQ/'><img-placeholder_요맘때_2/></a>"
@@ -72,6 +80,7 @@
             <p>2025 Spring Quarter 요맘때2</p>
           </div>
         </div>
+        <!-- 여기까지 매 이벤트마다 복붙 -->
 
         <div class="event-item">
           <div class="polaroid" onclick="expandImage(this)">
