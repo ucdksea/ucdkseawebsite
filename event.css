@@ -40,9 +40,9 @@ body {
   }
 
 .event-item {
-    flex: 1 1 300px; /* Allow items to grow and shrink, set the base width */
+    flex: 1 1 300px; 
     display: flex;
-    justify-content: center; /* Center the polaroid inside the event-item */
+    justify-content: center; 
 }
   
   .polaroid {
@@ -51,10 +51,10 @@ body {
     max-width: 352px;
     max-height: 265px;
     cursor: pointer;
-    background: #fff; /* White background for the polaroid */
-    padding: 10px 10px 48px; /* Extra padding at the bottom for the polaroid look */
-    box-shadow: 0 0px 15px rgba(0, 0, 0, 0.3); /* Polaroid shadow */
-    border-radius: 5px; /* Slight rounding of corners */
+    background: #fff; 
+    padding: 10px 10px 48px; 
+    box-shadow: 0 0px 15px rgba(0, 0, 0, 0.3); 
+    border-radius: 5px; 
     transition: transform 0.3s ease-in-out;
   }
   
@@ -65,7 +65,7 @@ body {
     aspect-ratio: 4 / 3;
     object-fit: cover;
     max-height: 270px;
-    border: none; /* Remove any border on the image itself */
+    border: none;
 
   }
   
@@ -75,7 +75,7 @@ body {
     bottom: 10px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: transparent; /* Transparent background for text */
+    background-color: transparent;
     padding: 5px 10px;
     font-size: 14px;
     font-weight: bold;
@@ -86,7 +86,7 @@ body {
   }
   
   .polaroid:hover {
-    transform: scale(1.1); /* Zoom effect on hover */
+    transform: scale(1.1); 
   }
 
   .full-img {
@@ -180,22 +180,32 @@ body {
   text-align: center;
   margin-bottom: 3%;
 }
+.upcoming_event_posters{
+  /* use commented code if there are more than 1 poster for the event */
+  /* display: flex;
+  gap: 5%; 
+  margin-left: 10%;
+  transition: transform 0.3s ease-in-out;
+*/
+  margin-left: auto;
+  margin-right: auto;
+  width: 25vw;
+  height: auto;
+  transition: transform 0.3s ease-in-out;
+}
+
+.upcoming_event_posters:hover{
+  transform: scale(1.1); 
+}
+
+.upcoming_event_posters img{
+  width: 100%;
+  cursor: pointer;
+}
+
 .upcoming_event p{
   margin-top:1%;
   gap: 2%;
-  font-size:18px;
-}
-.upcoming_event_posters{
-  display: flex;
-  gap: 5%;
-  margin-left: 10%;
-}
-.NMSC_poster{
-  width: 40%;
-  height : auto;
-}
-
-.NMSC_map{
-  margin-left: 30%;
-  width: 40%;
+  font-size:15px;
+  text-align: center;
 }

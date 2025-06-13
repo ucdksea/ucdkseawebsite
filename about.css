@@ -285,7 +285,7 @@ Association */
     display: block;
     width: 100%;
     height: 4px;
-    margin: 1rem auto 0;
+    margin: 0.8rem auto 0;
     background: #FFDC34;
     border-radius: 2px;
     transition: width 2s ease-out;
@@ -309,7 +309,7 @@ Association */
     margin-right: 15%;
 }
 
-ul {
+.page_3 ul {
     list-style: disc !important;
     padding-left: 1.5rem;
 }
@@ -372,7 +372,6 @@ ul {
     color: #e5e5e5;
 }
 
-/* networking img */
 .img-block {
     flex: 1;
 }
@@ -397,7 +396,7 @@ ul {
 }
 
 .text-block p,
-li {
+.text-block li {
     font-size: clamp(1rem, 1.6vw, 1.1rem);
     line-height: 1.7;
     margin-bottom: 0.5rem;
@@ -617,57 +616,6 @@ a:hover {
 }
 .kseas img{
     width:100%;
-}
-
-/*-------------------------------------footer------------------------------*/
-.wrap-footer-info[_ngcontent-xno-c31] {
-    padding: 2em 3vw;
-    line-height: 2;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    text-align: left;
-}
-.con-info[_ngcontent-xno-c31] {
-    display: flex;
-    justify-content: space-around;
-    column-gap: 2rem;
-}
-.con-info[_ngcontent-xno-c31] > img[_ngcontent-xno-c31] {
-    width: 6rem;
-    align-self: center;
-}
-
-ol, ul {
-    list-style: none;
-}
-
-.con-sns[_ngcontent-xno-c31] ul[_ngcontent-xno-c31] {
-    display: flex;
-    justify-content: space-around;
-    column-gap: 1rem;
-    cursor: pointer;
-}
-
-footer[_ngcontent-xno-c31] {
-    background-color: #3954A6;
-    width: 100%;
-    color: #ffffff;
-    font-size: .87rem;
-}
-footer{
-    margin: 0;
-    padding: 0;
-    border: 0;
-    font-size: 100%;
-    vertical-align: baseline;
-
-}
-
-li {
-    display: list-item;
-    text-align: -webkit-match-parent;
-    unicode-bidi: isolate;
 }
 
 /* -------------------------------------------------- Media -------------------------------------------------------*/

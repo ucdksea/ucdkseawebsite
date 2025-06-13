@@ -47,27 +47,27 @@
     }
 
     .nav-links {
-        position: fixed; /* Use fixed positioning to ensure it stays in view */
+        position: fixed; 
         background: rgba(57, 84, 166, 0.5); 
         height: 100vh;
         width: 200px;
         top: 0;
-        right: -200px; /* Initially hide off-screen */
+        right: -200px; 
         text-align: left;
         z-index: 2;
         transition: right 0.3s ease;
-        overflow: auto; /* Ensure content can scroll if needed */
+        overflow: auto; 
     }
 
     #menuIcon,
     #closeIcon {
-      position: fixed; /* Ensure icons stay in view */
-      right: 20px;
-      top: 40px;
-      color: #FFDC34;
-      font-size: 30px;
-      cursor: pointer;
-      z-index: 3;
+        position: fixed;
+        right: 20px;
+        top: 40px;
+        color: #FFDC34;
+        font-size: 30px;
+        cursor: pointer;
+        z-index: 3;
     }
 
     #closeIcon {
@@ -79,15 +79,15 @@
     }
 
     .nav-links.open {
-        right: 0; /* Move menu into view */
+        right: 0;
     }
 
     .nav-links.open #menuIcon {
-        display: none; /* Hide menu icon when menu is open */
+        display: none;
     }
 
     .nav-links.open #closeIcon {
-        display: block; /* Show close icon when menu is open */
+        display: block;
     }
 
     .nav-links ul {
@@ -101,10 +101,9 @@
     }
 
     .nav-links ul li::after {
-        content: none; /* Remove the ::after pseudo-element */
+        content: none; 
     }
 
-    /* pop-up media*/
     .index_popup {
         display: flex;
         position: fixed;
@@ -154,19 +153,19 @@
         margin-top: 20px;
     }
     
-    /* --------------------------- Board Member Media ---------------------------- */
+    /* --------------------------- Board Member ---------------------------- */
     
     .board-members {
         display: flex;
-        flex-direction: column; /* Stack board members vertically */
-        align-items: center; /* Center items horizontally */
+        flex-direction: column; 
+        align-items: center; 
         gap: 20px;
     }
 
     .board-member{
-        width: 100%; /* Full width for each board member */
-        max-width: 300px; /* Optional: set a max-width for the board member */
-        text-align: center; /* Center text */
+        width: 100%; 
+        max-width: 300px; 
+        text-align: center;
     }
 
     .image-container {
@@ -174,18 +173,17 @@
     }
 
     /* -------------------------- Event Media ------------------------ */
-    /* Hide carousel arrows */
     .prev, .next {
         display: none;
     }
     .popup-content {
-        display: none; /* Hide the image */
+        display: none; 
     }
     
       .popup-text {
-        display: block; /* Ensure the text is visible */
-        max-width: 100%; /* Adjust width for better fit */
-        max-height: none; /* Remove height constraints */
+        display: block; 
+        max-width: 100%; 
+        max-height: none; 
         justify-content: center;
         margin-left: 70px;
         margin-top: 0;
@@ -213,41 +211,41 @@
     
     /* ------------------------ Footer Media ------------------------------- */
     .wrap-footer-info[_ngcontent-xno-c31] {
-        flex-direction: column; /* Stack items vertically */
-        align-items: center; /* Center items horizontally */
-        padding: 1em; /* Adjust padding for smaller screens */
+        flex-direction: column; 
+        align-items: center; 
+        padding: 1em; 
     }
 
     .con-info[_ngcontent-xno-c31] {
-        flex-direction: column; /* Stack items vertically */
-        align-items: center; /* Center items horizontally */
-        text-align: center; /* Center text */
-        margin-bottom: 1em; /* Space between icons and text */
+        flex-direction: column; 
+        align-items: center; 
+        text-align: center; 
+        margin-bottom: 1em; 
     }
 
     .con-info[_ngcontent-xno-c31] > img[_ngcontent-xno-c31] {
-        display: none; /* Hide the KSEA logo on small screens */
+        display: none; 
     }
 
     .con-sns[_ngcontent-xno-c31] {
-        margin-bottom: 1em; /* Space below the icons */
+        margin-bottom: 1em; 
     }
 
     .con-sns[_ngcontent-xno-c31] ul[_ngcontent-xno-c31] {
         display: flex;
-        justify-content: center; /* Center the icons horizontally */
-        align-items: center; /* Center the icons vertically */
-        margin: 0; /* Remove default margins */
-        padding: 0; /* Remove default padding */
+        justify-content: center; 
+        align-items: center; 
+        margin: 0; 
+        padding: 0; 
     }
 
     .con-info[_ngcontent-xno-c31] ul[_ngcontent-xno-c31] li {
-        margin: 10px 0;/* Space between icons */
-        font-size: 88%; /* Adjust font size for smaller screens */
+        margin: 10px 0;
+        font-size: 88%; 
     }
 
     #ngcontent1, #ngcontent2 {
-        display: block; /* Ensure these items are shown in the media query */
+        display: block; 
     }
 }
 

@@ -28,9 +28,9 @@
 
 .board-members {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Adjust the min width to fit 5 columns */
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); 
     gap: 20px;
-    max-width: 1200px; /* Increase max-width to accommodate 5 columns */
+    max-width: 1200px; 
     margin: 0 auto;
 }
 
@@ -43,13 +43,12 @@
 }
 
 .board-member .image-container {
-    width: 180px; /* Adjust this value to change the size of the pictures */
-    padding-top: 100%; /* This maintains the 1:1 aspect ratio */
+    width: 180px; 
+    padding-top: 100%; 
     position: relative;
     overflow: hidden;
-    border-radius: 50%; /* Make it a circle */
-    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3); /* Polaroid shadow */
-
+    border-radius: 50%; 
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3); 
 }
 
 .board-member img {
@@ -58,7 +57,7 @@
     left: 50%;
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Ensures the image covers the container without distortion */
+    object-fit: cover; 
     transform: translate(-50%, -50%);
     background-size: cover;
     background-position: center;
@@ -67,7 +66,7 @@
 }
 
 .board-member h3 {
-    margin-top: 30px; /* Increase this value to increase the margin */
+    margin-top: 30px; 
     color: #000000;
 }
 

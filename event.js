@@ -15,16 +15,19 @@ function createImagePlaceholder(src, alt) {
               <img src="${src}" alt="${alt}" style="width: 100%; height: auto;" />
           </span>`;
 }
-// 포스터 이미지
 
 function replacePlaceholders(text) {
   const replacements = {
-    // 여기부터
+    /* 
+    '<img-placeholder_요맘때_2/>': createImagePlaceholder(
+      "images/event/2025_spring/yomam_poster.PNG",
+      "요맘때 2025 Spring_2"
+    ),
+    */ 
     '<img-placeholder_요맘때_2/>': createImagePlaceholder(
       "images/event/2025_spring/yomam_poster.PNG",
       "요맘때 2025 Spring_2"
       ),
-      // 여기까지 복붙
     '<img-placeholder_alex/>': createImagePlaceholder(
       "images/event/2025_spring/insta_poster.png",
       "Industry Talk 2025 Spring_2"
@@ -179,7 +182,6 @@ function expandImage(element) {
   currentSlideIndex = slides.indexOf(imageUrl);
 }
 
-// 슬라이드
 function changeSlide(direction) {
   currentSlideIndex += direction;
 
@@ -189,17 +191,15 @@ function changeSlide(direction) {
     currentSlideIndex = slides.length - 1;
   }
 
-  // 팝업 이미지 텍스트 업데이트
   var popupImage = document.getElementById("popupImage");
   var popupText = document.getElementById("popupText");
   popupImage.src = slides[currentSlideIndex];
 
-  // '$' 으로 텍스트 나눔
+  // split text by $
   var text = slideTexts[currentSlideIndex];
   text = replacePlaceholders(text);
   var lines = text.split("$");
 
-  // 팝업텍스트 폰트 
   var formattedText = "";
   lines.forEach(function(line, index) {
     if (index === 0) {
@@ -211,13 +211,11 @@ function changeSlide(direction) {
   popupText.innerHTML = formattedText;
 }
 
-// 팝업 닫기
 function closeImage() {
   var popup = document.getElementById("imagePopup");
   popup.style.display = "none";
 }
 
-// Initialize gallery 
 document.addEventListener("DOMContentLoaded", function () {
   initializeGallery();
 });
