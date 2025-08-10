@@ -11,6 +11,8 @@ body {
 }
 
 .subheader3 h1{
+  font-weight: bold;
+    font-size: 23px;
     margin-top: 50px;
     text-align: center;
     color: #FFDC34;
@@ -48,6 +50,7 @@ body {
   .polaroid {
     position: relative;
     width: 100%;
+    height: auto;
     max-width: 352px;
     max-height: 265px;
     cursor: pointer;
@@ -62,9 +65,9 @@ body {
     display: block;
     width: 100%;
     height:auto;
+    max-height: 210px;
     aspect-ratio: 4 / 3;
     object-fit: cover;
-    max-height: 270px;
     border: none;
 
   }
@@ -190,6 +193,7 @@ body {
   margin-left: auto;
   margin-right: auto;
   width: 25vw;
+  min-width: 200px;
   height: auto;
   transition: transform 0.3s ease-in-out;
 }
