@@ -188,7 +188,7 @@ Association */
 .UCDAVISKSEA {
     margin-top: 20%;
     font-weight: 600;
-    font-size: 2.9vw;
+    font-size: max(20px, 2.9vw);
     color: #FFDC34;
     text-align: right;
     text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
@@ -201,7 +201,7 @@ Association */
     height: auto;
     font-style: normal;
     font-weight: 400;
-    font-size: 1.6vw;
+    font-size: max(10px, 1.6vw);
     line-height: 4.1vw;
     color: #FFDC34;
     text-align: right;
@@ -222,7 +222,7 @@ Association */
     font-style: italic;
     width: 100%;
     font-weight: 500;
-    font-size: 1.2vw;
+    font-size: max(8px, 1.2vw);
     line-height: 3vw;
     text-align: right;
     color: #FFFFFF;
@@ -235,9 +235,8 @@ Association */
 }
 
 .ucdksealogo {
-    margin-top: -7%;
     width: 25%;
-    margin-top: 12%;
+    margin-top: 10%;
     margin-left: 40%;
 }
 
@@ -251,7 +250,7 @@ Association */
     margin-top: 10%;
     font-style:italic;
     font-weight: 400;
-    font-size: 1.44vw;
+    font-size: max(9px, 1.44vw);
     line-height: 2.43vw;
     text-align: center;
     color: #FFFFFF;

@@ -173,6 +173,16 @@
     .image-container {
         margin-left: 45px;
     }
+    /* -------------------------- About Media ------------------------ */
+    .page1_2 {
+        gap: 2rem;
+    }
+    .ucdksealogo{
+        width: 0%;
+    }
+    .WeFoster {
+        margin-top: 0%;
+    }
 
     /* -------------------------- Event Media ------------------------ */
     .prev, .next {
