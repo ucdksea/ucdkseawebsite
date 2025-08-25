@@ -195,10 +195,14 @@ General members should use the <a href="/join" class=" underline hover:text-[var
           body: JSON.stringify({ username, password, remember: document.getElementById("remember").checked })
         });
 
-        if(!res.ok){
-          // Try to read error message from server
+        if (!res.ok) {
+          if (res.status === 403) {
+            showError("Your account is pending approval. Please check your email or contact the admin.");
+            return;
+          }
+        
           let info = "";
-          try{ const data = await res.json(); info = data?.detail || data?.message || "" }catch{}
+          try { const data = await res.json(); info = data?.detail || data?.message || "" } catch {}
           throw new Error(info || `Login failed (${res.status}).`);
         }
 

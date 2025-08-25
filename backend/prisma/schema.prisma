@@ -1,0 +1,35 @@
+// prisma/schema.prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  username     String   @unique // ★ 아이디 고유
+  passwordHash String
+  isApproved   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  // 관계
+  quotes Quote[]
+}
+
+model Quote {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  amount      Float
+  currency    String   @default("KRW")
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
