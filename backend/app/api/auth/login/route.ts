@@ -8,7 +8,7 @@ import { signToken, setAuthCookie } from "@/lib/auth";
 import { z } from "zod";
 
 const loginSchema = z.object({
-  username: z.string().min(2).max(32),   // ✅ 아이디 로그인
+  identifier: z.string().min(2), // email 또는 username
   password: z.string().min(8),
 });
 
@@ -19,11 +19,15 @@ export async function POST(req: Request) {
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
-    const { username, password } = parsed.data;
+    const { identifier, password } = parsed.data;
 
-    const user = await prisma.user.findUnique({ where: { username } });
+    const isEmail = identifier.includes("@");
+    const user = await prisma.user.findFirst({
+      where: isEmail
+        ? { email: identifier.trim().toLowerCase() }
+        : { username: identifier.trim() },
+    });
     if (!user) return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-
     if (!user.isApproved) {
       return NextResponse.json({ error: "관리자 승인 대기 중입니다." }, { status: 403 });
     }
@@ -36,11 +40,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       ok: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-      },
+      user: { id: user.id, email: user.email, username: user.username },
     });
   } catch (e) {
     console.error(e);

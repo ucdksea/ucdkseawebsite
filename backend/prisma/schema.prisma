@@ -23,6 +23,7 @@ model User {
 model Quote {
   id          String   @id @default(cuid())
   title       String
+  name         String
   description String?
   amount      Float
   currency    String   @default("KRW")

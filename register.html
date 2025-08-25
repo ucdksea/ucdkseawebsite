@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/tailwind.css?v=20250825">
   <style>
     :root{
       --ksea-blue:#3954A6;
@@ -35,7 +35,6 @@
 
   <main class="relative isolate">
     <div aria-hidden class="pointer-events-none absolute inset-0 bg-grid opacity-40"></div>
-    <div aria-hidden class="absolute -top-10 left-1/2 -z-10 h-64 w-[36rem] -translate-x-1/2 rounded-full bg-[var(--ksea-blue)]/30 blur-3xl"></div>
 
     <section class="mx-auto max-w-6xl px-4 pt-20 pb-12 md:pt-28 md:pb-16 grid md:grid-cols-2 gap-10 items-start">
       <div class="space-y-5 self-start">
@@ -63,34 +62,35 @@
                      class="w-full rounded-xl bg-white/10 px-3 py-2 focus-ring placeholder:text-white/50"
                      placeholder="GilDong Hong" />
             </div>
-
+            
             <div>
-              <div>
-                <label for="username" class="block text-sm mb-1">Officer ID (Username)</label>
-                <input id="username" name="username" type="text" required
-                      class="w-full rounded-xl bg-white/10 px-3 py-2 focus-ring placeholder:text-white/50"
-                      placeholder="username@ucdavis.edu" />
+              <label for="email" class="block text-sm mb-1">Officer Email</label>
+              <input id="email" name="email" type="email" required
+                     class="w-full rounded-xl bg-white/10 px-3 py-2 focus-ring placeholder:text-white/50"
+                     placeholder="username@ucdavis.edu" />
             </div>
-
+            
             <div class="flex items-center justify-between mb-1">
               <label for="password" class="text-sm">Password</label>
-              <button type="button" id="togglePw" class="text-xs text-white/80 hover:text-white underline underline-offset-2"></button>
+              <button type="button" id="togglePw"
+                      class="text-xs text-white/80 hover:text-white underline underline-offset-2">Show</button>
             </div>
             <div class="relative">
-              <input id="password" name="password" type="password" required minlength="6"
+              <input id="password" name="password" type="password" required minlength="8"
                      class="w-full rounded-xl bg-white/10 px-3 py-2 pr-10 focus-ring placeholder:text-white/50"
                      placeholder="••••••••" />
               <span id="pwIcon" class="absolute inset-y-0 right-3 inline-flex items-center cursor-pointer text-white/50">
                 <i class="fa-solid fa-lock"></i>
               </span>
             </div>
+            
             <div>
               <label for="confirm" class="block text-sm mb-1">Confirm Password</label>
-              <input id="confirm" name="confirm" type="password" required minlength="6"
-              class="w-full rounded-xl bg-white/10 px-3 py-2 pr-10 focus-ring placeholder:text-white/50"
-              placeholder="••••••••" />
-              </span>        
-            </div>            
+              <input id="confirm" name="confirm" type="password" required minlength="8"
+                     class="w-full rounded-xl bg-white/10 px-3 py-2 pr-10 focus-ring placeholder:text-white/50"
+                     placeholder="••••••••" />
+            </div>
+            
             <button type="submit" id="submitBtn"
               class="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--ksea-blue)] px-4 py-2.5 font-semibold text-white shadow-lg transition-colors duration-200 hover:bg-white/60 hover:text-[var(--ksea-blue)] disabled:opacity-60 disabled:cursor-not-allowed">
               <span>Register</span>
@@ -99,8 +99,8 @@
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
               </svg>
             </button>
-
-            <p class="text-xs text-white/60">Already registered? <a href="/login" class="underline hover:text-[var(--ksea-gold)]">Sign in here</a>.</p>
+            
+            <p class="text-xs text-white/60">Already registered? <a href="/login" class="underline hover:text-[var(--ksea-gold)]">Sign in here</a>.</p>            
           </form>
         </div>
 
@@ -115,59 +115,64 @@
   </footer>
 
   <script>
-    const REGISTER_ENDPOINT = "/api/auth/register";
-
+    // Next.js dev 서버로 보내기
+    const DEV = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
+    const API_BASE = DEV ? 'http://127.0.0.1:3000' : '';
+    const REGISTER_ENDPOINT = `${API_BASE}/api/auth/register`;
+  
     const form = document.getElementById("registerForm");
     const errorBanner = document.getElementById("errorBanner");
     const submitBtn = document.getElementById("submitBtn");
     const spinner = document.getElementById("spinner");
-
-    function showError(msg){
-      errorBanner.textContent = msg;
-      errorBanner.classList.remove("hidden");
-    }
-    function hideError(){
-      errorBanner.classList.add("hidden");
-      errorBanner.textContent = "";
-    }
-    function setLoading(loading){
-      submitBtn.disabled = loading;
-      spinner.classList.toggle("hidden", !loading);
-    }
-
+    const ALLOWED_DOMAINS = ['ucdavis.edu']; // 필요 없으면 비워도 됨
+  
+    function showError(msg){ errorBanner.textContent = msg; errorBanner.classList.remove("hidden"); }
+    function hideError(){ errorBanner.classList.add("hidden"); errorBanner.textContent = ""; }
+    function setLoading(loading){ submitBtn.disabled = loading; spinner.classList.toggle("hidden", !loading); }
+  
     form?.addEventListener("submit", async (e) => {
       e.preventDefault();
       hideError();
-
+  
       const name = document.getElementById("name").value.trim();
       const email = document.getElementById("email").value.trim();
-      const username = document.getElementById("username").value.trim();
       const pw = document.getElementById("password").value;
       const confirm = document.getElementById("confirm").value;
-
-      if(!name || !email || !username || !pw || !confirm){
+  
+      if(!name || !email || !pw || !confirm){
         showError("All fields are required.");
         return;
       }
-      if(pw !== confirm){
+      const domain = (email.split('@')[1] || '').toLowerCase();
+      if (ALLOWED_DOMAINS.length && !ALLOWED_DOMAINS.includes(domain)) {
+        showError("Please use your @ucdavis.edu email.");
+        return;
+      }
+      if (pw !== confirm) {
         showError("Passwords do not match.");
         return;
       }
-
+  
       setLoading(true);
       try{
         const res = await fetch(REGISTER_ENDPOINT, {
           method: "POST",
           headers: {"Content-Type":"application/json"},
-          body: JSON.stringify({ name, email, username, password: pw })
+          body: JSON.stringify({ email, password: pw, name })
         });
-
+  
         if(!res.ok){
-          let info = "";
-          try{ const data = await res.json(); info = data?.detail || data?.message || "" }catch{}
-          throw new Error(info || `Registration failed (${res.status}).`);
+          let msg = `Registration failed (${res.status}).`;
+          try{
+            const data = await res.json();
+            if (data?.issues) msg = "Invalid input.";
+            if (data?.error) msg = data.error;
+            if (data?.message) msg = data.message;
+            if (data?.detail) msg = data.detail;
+          }catch{}
+          throw new Error(msg);
         }
-
+  
         alert("Registration submitted. Await admin approval.");
         window.location.href = "/login";
       }catch(err){
@@ -176,17 +181,15 @@
         setLoading(false);
       }
     });
-    // === Password show/hide ===
+  
+    // 비번 보기 토글
     const pwInput  = document.getElementById("password");
     const pwIcon   = document.getElementById("pwIcon");
     const togglePw = document.getElementById("togglePw");
-
     function togglePassword() {
       if (!pwInput) return;
       const isPwd = pwInput.type === "password";
       pwInput.type = isPwd ? "text" : "password";
-
-      // 아이콘 토글 (Font Awesome 6)
       if (pwIcon) {
         const ico = pwIcon.querySelector("i");
         if (ico) {
@@ -194,12 +197,10 @@
           ico.classList.toggle("fa-lock-open", isPwd);
         }
       }
-    }
-
+      if (togglePw) togglePw.textContent = isPwd ? "Hide" : "Show"; // ← 추가
+    }    
     pwIcon?.addEventListener("click", togglePassword);
     togglePw?.addEventListener("click", togglePassword);
-
-  </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js" defer></script>
+  </script>  
 </body>
 </html>

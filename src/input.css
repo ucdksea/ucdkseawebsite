@@ -1,0 +1,6 @@
+/* /Users/stephanie/Desktop/ucdksea-website/src/input.css */
+@config "../tailwind.config.cjs";
+@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
