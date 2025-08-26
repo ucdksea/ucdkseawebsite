@@ -1,0 +1,31 @@
+// prisma/schema.prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../prisma-generated/client"
+}
+
+model User {
+  id           String   @id @default(cuid()) // ← String PK
+  email        String   @unique
+  name         String
+  passwordHash String
+  isApproved   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  quotes       Quote[]
+}
+
+model Quote {
+  id        String   @id @default(cuid())
+  content   String
+  title     String? // ← optional
+  amount    Int? // ← optional
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}

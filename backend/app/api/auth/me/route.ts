@@ -16,8 +16,8 @@ export async function GET() {
     select: {
       id: true,
       email: true,
-      username: true,
-      isApproved: true, // 승인 여부만 노출
+      name: true,
+      isApproved: true, 
     },
   });
 

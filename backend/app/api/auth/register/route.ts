@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { prisma } from "@/lib/prisma";
 import { registerSchema, type RegisterPayload } from "@/lib/validations";
+import { sendAdminNewRegistration } from "@/lib/mail";
 
 export const runtime = "nodejs";
 
@@ -21,7 +22,6 @@ export async function OPTIONS() {
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as unknown;
-
     const parsed = registerSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
@@ -30,7 +30,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // parsed.data는 RegisterPayload 타입 (email, password, name 포함)
     const { email, password, name }: RegisterPayload = parsed.data;
 
     const exists = await prisma.user.findUnique({
@@ -50,6 +49,17 @@ export async function POST(req: Request) {
       data: { email, name, passwordHash, isApproved: false },
       select: { id: true, email: true, name: true, isApproved: true },
     });
+
+    try {
+      const admins = process.env.ADMIN_EMAILS || "";
+      await sendAdminNewRegistration(admins, {
+        id: user.id,
+        name: user.name!,
+        email: user.email,
+      });
+    } catch (e) {
+      console.error("mail error(admin notify):", e);
+    }
 
     return NextResponse.json({ user }, { status: 201, headers: CORS_HEADERS });
   } catch (err) {

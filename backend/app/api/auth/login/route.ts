@@ -1,49 +1,70 @@
 // app/api/auth/login/route.ts
-export const runtime = "nodejs";
-
 import { NextResponse } from "next/server";
-import bcrypt from "bcrypt";
 import { prisma } from "@/lib/prisma";
-import { signToken, setAuthCookie } from "@/lib/auth";
-import { z } from "zod";
+import bcrypt from "bcrypt";
+import { cookies } from "next/headers";
 
-const loginSchema = z.object({
-  identifier: z.string().min(2), // email 또는 username
-  password: z.string().min(8),
-});
+/** 여러 오리진 허용 (localhost/127.0.0.1 둘 다) */
+const ALLOWED = (process.env.ALLOWED_ORIGINS ??
+  "http://127.0.0.1:5501,http://localhost:5501")
+  .split(",")
+  .map(s => s.trim())
+  .filter(Boolean);
+
+function corsHeaders(origin: string | null) {
+  const h: Record<string, string> = {
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Vary": "Origin",
+  };
+  if (origin && ALLOWED.includes(origin)) {
+    h["Access-Control-Allow-Origin"] = origin;
+    // 쿠키를 쓸 거면 Credentials 허용 필요
+    h["Access-Control-Allow-Credentials"] = "true";
+  }
+  return h;
+}
+
+export async function OPTIONS(req: Request) {
+  // 프리플라이트 응답
+  const origin = req.headers.get("origin");
+  return new NextResponse(null, { status: 204, headers: corsHeaders(origin) });
+}
 
 export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const parsed = loginSchema.safeParse(body);
-    if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid input" }, { status: 400 });
-    }
-    const { identifier, password } = parsed.data;
+  const origin = req.headers.get("origin");
+  const headers = corsHeaders(origin);
 
-    const isEmail = identifier.includes("@");
-    const user = await prisma.user.findFirst({
-      where: isEmail
-        ? { email: identifier.trim().toLowerCase() }
-        : { username: identifier.trim() },
-    });
-    if (!user) return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-    if (!user.isApproved) {
-      return NextResponse.json({ error: "관리자 승인 대기 중입니다." }, { status: 403 });
+  try {
+    const { email, password } = await req.json();
+    if (!email || !password) {
+      return NextResponse.json({ error: "Missing credentials" }, { status: 400, headers });
     }
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) return NextResponse.json({ error: "Invalid login" }, { status: 401, headers });
 
     const ok = await bcrypt.compare(password, user.passwordHash);
-    if (!ok) return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+    if (!ok) return NextResponse.json({ error: "Invalid login" }, { status: 401, headers });
 
-    const token = signToken({ uid: user.id, email: user.email });
-    await setAuthCookie(token);
+    if (!user.isApproved) {
+      return NextResponse.json({ error: "Not approved yet" }, { status: 403, headers });
+    }
 
-    return NextResponse.json({
-      ok: true,
-      user: { id: user.id, email: user.email, username: user.username },
+    cookies().set("uid", user.id, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: false,
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
     });
+
+    return NextResponse.json(
+      { ok: true, user: { id: user.id, email: user.email, name: user.name } },
+      { status: 200, headers },
+    );
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500, headers });
   }
 }

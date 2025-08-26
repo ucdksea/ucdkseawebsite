@@ -6,31 +6,27 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../prisma-generated/client" 
 }
 
+
 model User {
-  id           String   @id @default(cuid())
+  id           String   @id @default(cuid()) // ← String PK
   email        String   @unique
-  username     String   @unique // ★ 아이디 고유
+  name         String
   passwordHash String
   isApproved   Boolean  @default(false)
   createdAt    DateTime @default(now())
-
-  // 관계
-  quotes Quote[]
+  updatedAt    DateTime @updatedAt
+  quotes       Quote[]
 }
 
 model Quote {
-  id          String   @id @default(cuid())
-  title       String
-  name         String
-  description String?
-  amount      Float
-  currency    String   @default("KRW")
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([userId])
+  id        String   @id @default(cuid())
+  content   String
+  title     String? // ← optional
+  amount    Int? // ← optional
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
 }

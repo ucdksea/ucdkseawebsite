@@ -19,21 +19,27 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const auth = await getAuthFromCookie(); // ✅ await
-  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const body = await req.json();
-  const parsed = quoteCreateSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+    const auth = await getAuthFromCookie();
+    if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  
+    const body = await req.json();
+    const parsed = quoteCreateSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+    }
+  
+    const userId = auth.uid;
+    if (!userId) {
+      return NextResponse.json({ error: "Bad user id" }, { status: 400 });
+    }
+  
+    const q = await prisma.quote.create({
+      data: {
+        content: parsed.data.content,
+        userId, 
+      },
+    });
+  
+    return NextResponse.json({ ok: true, quote: q });
   }
-
-  const q = await prisma.quote.create({          // ✅ prisma.quote
-    data: {
-      ...parsed.data,
-      userId: auth.uid,
-    },
-  });
-
-  return NextResponse.json({ ok: true, quote: q });
-}
+  
