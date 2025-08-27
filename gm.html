@@ -1,3 +1,4 @@
+<!-- /Users/stephanie/Desktop/ucdksea-website/gm.html -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -210,4 +211,18 @@
         once: true
       });
     </script>
+    <script>
+      (async()=>{
+        const API = location.hostname.includes("localhost")||location.hostname==="127.0.0.1" ? "http://localhost:3000" : "";
+        const r = await fetch(`${API}/api/admin/posts?type=GM&active=1`);
+        const { posts } = await r.json();
+        const box = document.getElementById("gmGallery"); 
+        box.innerHTML = posts.map(p => `
+          <div class="flex flex-col items-center text-center">
+            <img src="${p.imageUrl}" alt="${p.title||''}" class="rounded-xl shadow-md w-[280px] h-[200px] object-cover">
+            <p class="mt-3 text-gray-600 text-sm">${p.title||""}</p>
+          </div>`).join("");
+      })();
+      </script>
+      
   </body>

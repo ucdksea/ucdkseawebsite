@@ -1,3 +1,4 @@
+<!-- /Users/stephanie/Desktop/ucdksea-website/event.html -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -547,5 +548,55 @@
         closeIcon.style.display = "none";
       }
     </script>
+    <script>
+      function createImagePlaceholder(url, alt){ return `<img src="${url}" alt="${alt}" style="width:100%;border-radius:8px">`; }
+      
+      (async()=>{
+        const API = location.hostname.includes("localhost")||location.hostname==="127.0.0.1" ? "http://localhost:3000" : "";
+        const r = await fetch(`${API}/api/admin/posts?type=EVENT_POLAROID&active=1`);
+        const { posts } = await r.json();
+        const wrap = document.getElementById("polaroidGrid");
+      
+        wrap.innerHTML = posts.map(p=>{
+          const m = p.meta || {};
+          const posterHtml = m.posterUrl ? createImagePlaceholder(m.posterUrl, `${p.title}_poster`) : "";
+          const instaLink  = m.instagramUrl ? `<a href='${m.instagramUrl}' target="_blank'>${posterHtml||"View"}</a>` : posterHtml;
+      
+          const semesterYear = [m.semester, m.year].filter(Boolean).join(" ");
+          const dateStr = p.date ? new Date(p.date).toISOString().slice(0,10) : "";
+      
+          const dataText = [
+            `${p.title}$<span style='color: gray;'>${semesterYear}${dateStr ? " | "+dateStr : ""}$<span style='color:#ececec;'>_____________________$`,
+            p.descKo ? `<br>${p.descKo}$` : "",
+            p.descEn ? `<br>${p.descEn}<br>` : "",
+            instaLink || ""
+          ].join("");
+      
+          return `
+            <div class="event-item">
+              <div class="polaroid" onclick="expandImage(this)">
+                <img src="${p.imageUrl}" alt="${p.title||''}" data-text="${dataText.replace(/"/g,'&quot;')}" />
+                <p>${semesterYear} ${p.title||''}</p>
+              </div>
+            </div>`;
+        }).join("");
+      })();
+      </script>
+
+      <script>
+        (async()=>{
+          const API = location.hostname.includes("localhost")||location.hostname==="127.0.0.1" ? "http://localhost:3000" : "";
+          const r = await fetch(`${API}/api/admin/posts?type=EVENT_UPCOMING&active=1`);
+          const { posts } = await r.json();
+          const box = document.getElementById("upcomingBox");
+          if(!posts.length){ box.style.display="none"; return; }
+          const p = posts[0];
+          box.querySelector("a").href = p.linkUrl || "#";
+          box.querySelector("img").src = p.imageUrl || "";
+          const desc = p.descKo || p.descEn || "";
+          box.querySelector(".upcomingDesc").innerHTML = desc;
+        })();
+        </script>
+        
   </body>
 </html>

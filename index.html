@@ -1,3 +1,4 @@
+<!-- /Users/stephanie/Desktop/ucdksea-website/index.html -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -414,6 +415,49 @@
       
       document.querySelectorAll('.observe').forEach(el => observer.observe(el));
       </script>
+      <script>
+        const DEV = location.hostname === "127.0.0.1" || location.hostname === "localhost";
+        const API = DEV ? "http://localhost:3000" : "";
+        
+        async function showPopup(){
+          try{
+            const r = await fetch(`${API}/api/admin/posts?type=POPUP&active=1`);
+            const j = await r.json();
+            const p = j.posts?.[0];
+            if(!p) return;
+        
+            const wrap = document.createElement("div");
+            wrap.innerHTML = `
+              <div class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+                <div class="bg-white text-slate-800 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+                  <img src="${p.imageUrl}" class="w-full h-64 object-cover">
+                  <div class="p-4">
+                    ${p.title ? `<h3 class="font-bold mb-2">${p.title}</h3>` : ""}
+                    <button id="popupClose" class="mt-1 px-4 py-2 rounded-xl bg-slate-900 text-white w-full">Close</button>
+                  </div>
+                </div>
+              </div>`;
+            document.body.appendChild(wrap);
+            document.getElementById("popupClose").addEventListener("click", ()=> wrap.remove());
+          }catch(_){}
+        }
+        document.addEventListener("DOMContentLoaded", showPopup);
+        </script>
+        <script>
+          (async()=>{
+            const API = location.hostname.includes("localhost")||location.hostname==="127.0.0.1" ? "http://localhost:3000" : "";
+            const r = await fetch(`${API}/api/admin/posts?type=POPUP&active=1`);
+            const { posts } = await r.json();
+            const p = posts?.[0]; if(!p) return; 
+            const img = document.querySelector('#popup .popup-image');
+            const a   = document.querySelector('#popup a');
+            img.src = p.imageUrl;
+            a.href  = p.linkUrl || "#";
+            document.getElementById('popup').style.display = 'block';
+          })();
+          </script>
+          
+        
       
   </body>
 </html>

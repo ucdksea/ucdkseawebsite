@@ -1,3 +1,4 @@
+<!-- /Users/stephanie/Desktop/ucdksea-website/officer.html -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -300,5 +301,26 @@
           closeIcon.style.display = "none";
       }
     </script>
+    <script>
+      (async()=>{
+        const API = location.hostname.includes("localhost")||location.hostname==="127.0.0.1" ? "http://localhost:3000" : "";
+        const r = await fetch(`${API}/api/admin/posts?type=OFFICER&active=1`);
+        const { posts } = await r.json();
+        const grid = document.querySelector(".board-members");
+        grid.innerHTML = posts.map(p=>{
+          const m = p.meta || {};
+          const linkOpen = m.linkedin ? `<a href="${m.linkedin}" target="_blank">` : `<a href="#">`;
+          return `
+            <div class="board-member">
+              <div class="image-container">
+                ${linkOpen}<img src="${p.imageUrl}" alt="${m.koName||m.enName||'Officer'}"/></a>
+              </div>
+              <h3>${m.enName||''} | ${m.koName||''}</h3>
+              <p>${m.role||''}</p>
+            </div>`;
+        }).join("");
+      })();
+      </script>
+      
   </body>
 </html>

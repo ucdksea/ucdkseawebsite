@@ -13,10 +13,7 @@
       "isolatedModules": true,
       "jsx": "preserve",
       "baseUrl": ".",
-      "paths": {
-        "@/*": ["./*"],
-        "@prisma/client": ["./prisma-generated/client"]  
-      },
+      "paths": { "@/*": ["./*"] },
       "incremental": true,
       "plugins": [{ "name": "next" }]
     },

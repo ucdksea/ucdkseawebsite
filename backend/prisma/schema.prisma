@@ -1,4 +1,4 @@
-// prisma/schema.prisma
+// backend/prisma/schema.prisma
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -6,9 +6,7 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../prisma-generated/client" 
 }
-
 
 model User {
   id           String   @id @default(cuid()) // ← String PK
@@ -29,4 +27,26 @@ model Quote {
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
+}
+
+enum PostType {
+  POPUP
+  EVENT_POLAROID
+  GM
+  EVENT_UPCOMING
+  OFFICER
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  type      PostType
+  title     String?
+  date      DateTime?
+  descKo    String?
+  descEn    String?
+  imageUrl  String
+  linkUrl   String?   // popup/upcoming용
+  meta      Json?     // polaroid/officer 부가정보 저장
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
 }

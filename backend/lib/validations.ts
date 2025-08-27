@@ -39,3 +39,14 @@ export type QuoteCreatePayload = z.infer<typeof quoteCreateSchema>;
 // PATCH/PUT용 (필요 시 사용)
 export const quoteUpdateSchema = quoteCreateSchema.partial();
 export type QuoteUpdatePayload = z.infer<typeof quoteUpdateSchema>;
+
+export const postCreateSchema = z.object({
+  type: z.enum(["POPUP", "EVENT_POLAROID", "GM", "EVENT_UPCOMING", "OFFICER"]),
+  title: z.string().trim().min(1).optional(),
+  date: z.string().trim().optional(),        // "2025-09-01" 같은 문자열 -> 서버에서 Date로 변환
+  descKo: z.string().trim().optional(),
+  descEn: z.string().trim().optional(),
+  imageUrl: z.string().url(),
+});
+
+export type PostCreateInput = z.infer<typeof postCreateSchema>;
