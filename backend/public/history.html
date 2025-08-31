@@ -11,6 +11,13 @@
   .focus-ring:focus{outline:3px solid rgba(57,84,166,.45); outline-offset:2px}
 </style>
 </head>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<style>
+    [data-id] { user-select: none; -webkit-user-select: none; }
+    [data-id] { cursor: grab; }
+    body.dragging, [data-id]:active { cursor: grabbing; }
+  </style>
+
 
 <body class="bg-slate-900 text-white min-h-dvh">
   <!-- 헤더 -->
@@ -119,137 +126,244 @@
     </footer>
     </main>
 
-<!-- ✅ 완전 통합: 리스트 렌더 + 삭제(업서트 서버 대응, 스코프/오타/괄호 수정) -->
-<script>
-    (function(){
-      // ===== 공통 상수 =====
-      const AUTO_BASE =
-        (location.hostname === "localhost" || location.hostname === "127.0.0.1")
-          ? (location.port === "3000" ? "" : "http://localhost:3000")
-          : "";
-      const API = (window.KSEA_API_BASE ?? AUTO_BASE).replace(/\/+$/, "");
-      const extra = window.extraAuthHeaders || {};
-    
-      // ===== 카드 생성/렌더/조회 (기존 그대로 사용) =====
-      function cardEl(p, type){
-        const title   = (p.title || '').trim();
-        const dateTxt = p.date ? new Date(p.date).toLocaleDateString() : '';
-        const desc    = p.descKo || '';
-        const image   = p.imageUrl || '';
-        const isOfficer = type === 'OFFICER';
-        const nameLine  = [p.enName, p.koName].filter(Boolean).join(' | ') || '(no name)';
-        const roleLine  = p.role || '';
-    
-        const html = `
-          <div class="rounded-xl bg-white/5 border border-white/10 p-3"
-               data-id="${p.id}" data-type="${type}" data-image-url="${image}"
-               data-title="${title.replace(/"/g,'&quot;')}"
-               data-year="${p.year || ''}" data-quarter="${p.quarter || ''}"
-               data-link-url="${p.linkUrl || ''}">
-            <img src="${image}" loading="lazy" class="w-full h-36 object-cover rounded-lg mb-2">
-            ${
-              isOfficer
-              ? `<div class="text-sm font-semibold">${nameLine}</div>
-                 <div class="text-xs text-white/60">${roleLine}</div>`
-              : `<div class="text-sm font-semibold">${title || "(no title)"}</div>
-                 <div class="text-xs text-white/60">${dateTxt}</div>
-                 <div class="text-xs text-white/70 line-clamp-3">${desc}</div>`
-            }
-            <div class="mt-2">
-              <button class="btn-del px-3 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-sm">Delete</button>
-            </div>
-          </div>`;
-        const wrap = document.createElement('div');
-        wrap.innerHTML = html;
-        return wrap.firstElementChild;
-      }
-    
-      function renderList(el, type, list){
-        if (!el) return;
-        const seen = new Set();
-        const frag = document.createDocumentFragment();
-        for (const p of list) {
-          if (!p || !p.id || seen.has(p.id)) continue;
-          seen.add(p.id);
-          frag.appendChild(cardEl(p, type));
-        }
-        el.replaceChildren(frag);
-      }
-    
-      async function fetchList(type){
-        const url = new URL(`${API}/api/admin/posts`, location.origin);
-        url.searchParams.set('type', type);
-        url.searchParams.set('active', '1');            // 활성만
-        url.searchParams.set('_t', Date.now().toString());
-        const r = await fetch(url.toString(), {
-          credentials: 'include',
-          cache: 'no-store',
-          headers: { 'Accept': 'application/json', ...extra }
-        });
-        const j = await r.json().catch(()=> ({}));
-        const arr = Array.isArray(j.posts) ? j.posts : [];
-        const m = new Map(); for (const p of arr) if (p && p.id) m.set(p.id, p);
-        return Array.from(m.values());
-      }
-    
-      // ===== 여기만 핵심 수정: DELETE /api/admin/posts/:id 호출 =====
-      function delUrl(id, hard){
-        const u = new URL(`${API}/api/admin/posts/${encodeURIComponent(id)}`, location.origin);
-        if (hard) u.searchParams.set('hard', '1');      // Shift+Delete → 하드 삭제
-        u.searchParams.set('_t', Date.now().toString());
-        return u.toString();
-      }
-    
-      async function deleteOne(id, hard){
-        const r = await fetch(delUrl(id, hard), {
-          method: 'DELETE',
-          credentials: 'include',                      // ← 쿠키 인증 필요
-          headers: { 'Accept': 'application/json' }
-        });
-        const j = await r.json().catch(()=> ({}));
-        if (!r.ok) throw new Error(j?.error || `HTTP ${r.status}`);
-        return j; // 서버는 before/after/ok 등을 반환함
-      }
-    
-      async function attachAndRefresh(type){
-        const el = document.getElementById(`list_${type}`);
-        if (!el) return;
-    
-        // 최초 렌더
-        renderList(el, type, await fetchList(type));
-    
-        if (el._bound) return;
-        el.addEventListener('click', async (e) => {
-          const btn  = e.target.closest('.btn-del');
-          if (!btn) return;
-          const card = btn.closest('[data-id]');
-          if (!card) return;
-    
-          const id   = card.dataset.id;
-          const hard = e.shiftKey;
-          if (!confirm(hard ? 'Hard delete this post?' : 'Delete (deactivate) this post?')) return;
-    
-          btn.disabled = true;
-          try {
-            await deleteOne(id, hard);                 // ← 진짜 삭제 호출
-            card.remove();                              // 낙관적 제거
-            renderList(el, type, await fetchList(type)); // 서버 상태로 재동기화
-          } catch (err) {
-            alert(`삭제 실패: ${err?.message || err}`);
-          } finally {
-            btn.disabled = false;
+    <script>
+        (function(){
+          const AUTO_BASE =
+            (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+              ? (location.port === "3000" ? "" : "http://localhost:3000")
+              : "";
+          const API   = (window.KSEA_API_BASE ?? AUTO_BASE).replace(/\/+$/, "");
+          const extra = window.extraAuthHeaders || {};
+          const TYPES = ['POPUP','EVENT_UPCOMING','EVENT_POLAROID','OFFICER','GM'];
+        
+          const $ = (id) => document.getElementById(id);
+          const activeParam = () => ($('toggleActive')?.checked ? '1' : '0');
+        
+          function cardEl(p, type){
+            const title =
+            (p.title ?? '').trim() ||
+            (p.quarter && p.year ? `${p.quarter} ${p.year}` : '') ||
+            '(no title)';
+            const dateTxt = p.date ? new Date(p.date).toLocaleDateString() : '';
+            const desc    = p.descKo || '';
+            const image   = p.imageUrl || '';
+        
+            const isOfficer = type === 'OFFICER';
+            const nameLine  = [p.enName, p.koName].filter(Boolean).join(' | ') || '(no name)';
+            const roleLine  = p.role || '';
+        
+            const wrap = document.createElement('div');
+            wrap.innerHTML = `
+              <div class="rounded-xl bg-white/5 border border-white/10 p-3"
+                   data-id="${p.id}" data-type="${type}"
+                   data-image-url="${image}"
+                   data-title="${title.replace(/"/g,'&quot;')}"
+                   data-year="${p.year || ''}" data-quarter="${p.quarter || ''}"
+                   data-link-url="${p.linkUrl || ''}">
+                <img src="${image}" loading="lazy" draggable="false"
+                     class="w-full h-36 object-cover rounded-lg mb-2">
+                ${
+                  isOfficer
+                  ? `<div class="text-sm font-semibold">${nameLine}</div>
+                     <div class="text-xs text-white/60">${roleLine}</div>`
+                  : `<div class="text-sm font-semibold">${title || "(no title)"}</div>
+                     <div class="text-xs text-white/60">${dateTxt}</div>
+                     <div class="text-xs text-white/70 line-clamp-3">${desc}</div>`
+                }
+                <div class="mt-2 flex items-center gap-2">
+                  <button class="btn-del px-3 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-sm">Delete</button>
+                </div>
+              </div>`;
+            return wrap.firstElementChild;
           }
-        }, { passive: true });
-        el._bound = true;
-      }
-    
-      function refreshAll(){
-        ['POPUP','EVENT_UPCOMING','EVENT_POLAROID','OFFICER','GM'].forEach(attachAndRefresh);
-      }
-    
-      document.addEventListener('DOMContentLoaded', refreshAll);
-    })();
-    </script>
+        
+          function renderList(el, type, list){
+            const frag = document.createDocumentFragment();
+            const seen = new Set();
+            for (const p of list) {
+              if (!p || !p.id || seen.has(p.id)) continue;
+              seen.add(p.id);
+              frag.appendChild(cardEl(p, type));
+            }
+            el.replaceChildren(frag);
+          }
+          window.renderList = renderList;
+        
+          async function fetchList(type){
+            const url = new URL(`${API}/api/admin/posts`, location.origin);
+            url.searchParams.set('type', type);
+            url.searchParams.set('active', activeParam());
+            url.searchParams.set('_t', Date.now().toString());
+            const r = await fetch(url.toString(), {
+              credentials: 'include',
+              cache: 'no-store',
+              headers: { 'Accept': 'application/json', ...extra }
+            });
+            const j = await r.json().catch(()=> ({}));
+            return Array.isArray(j.posts) ? j.posts : [];
+          }
+        
+          async function refetchAndRender(type){
+            const el = $(`list_${type}`);
+            if (!el) return;
+            const list = await fetchList(type);
+            renderList(el, type, list);
+          }
+        
+          function delUrl(id, hard){
+            const u = new URL(`${API}/api/admin/posts/${encodeURIComponent(id)}`, location.origin);
+            if (hard) u.searchParams.set('hard','1');
+            u.searchParams.set('_t', Date.now().toString());
+            return u.toString();
+          }
+          async function deleteOne(id, hard){
+            const r = await fetch(delUrl(id, hard), {
+              method: 'DELETE',
+              credentials: 'include',
+              headers: { 'Accept': 'application/json' }
+            });
+            const j = await r.json().catch(()=> ({}));
+            if (!r.ok) throw new Error(j?.error || `HTTP ${r.status}`);
+            return j;
+          }
+        
+          function childrenIds(container){
+            return Array.from(container.children)
+              .map(el => el.getAttribute('data-id'))
+              .filter(Boolean);
+          }
+          async function saveOrder(type, ids){
+            if (!ids || ids.length <= 1) return { ok:true, skipped:true };
+            const r = await fetch(`${API}/api/admin/posts`, {
+              method: 'POST',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json', ...extra },
+              body: JSON.stringify({ action: 'REORDER', type, order: ids }),
+            });
+            const j = await r.json().catch(()=> ({}));
+            if (!r.ok || j.ok === false) throw new Error(j.error || `REORDER failed (${r.status})`);
+            return j;
+          }
+        
+          function ensureSortable(type){
+            const el = $(`list_${type}`);
+            if (!el || !window.Sortable) return;
+            if (el.__sortable) return; 
+        
+            el.__sortable = Sortable.create(el, {
+              draggable: '[data-id]',
+              filter: '.btn-del, a, img', 
+              preventOnFilter: true,
+              forceFallback: true,
+              fallbackOnBody: true,
+              animation: 150,
+              ghostClass: 'opacity-50',
+              delayOnTouchOnly: true,
+              touchStartThreshold: 3,
+              onStart(){ document.body.classList.add('dragging'); },
+              onEnd: async () => {
+                document.body.classList.remove('dragging');
+                try {
+                  const ids = childrenIds(el);
+                  await saveOrder(type, ids);
+                  await refetchAndRender(type);
+                } catch (e) {
+                  console.error('[REORDER ERROR]', e);
+                  alert(e?.message || '순서 저장 실패');
+                }
+              }
+            });
+          }
+        
+          function bindDelete(container, type){
+            if (container.__delBound) return;
+            container.addEventListener('click', async (e) => {
+              const btn = e.target.closest('.btn-del');
+              if (!btn) return;
+              const card = btn.closest('[data-id]');
+              if (!card) return;
+              const id = card.dataset.id;
+              const hard = e.shiftKey; 
+              if (!confirm(hard ? 'Hard delete this post?' : 'Delete (deactivate) this post?')) return;
+        
+              btn.disabled = true;
+              try {
+                await deleteOne(id, hard);
+                card.remove();
+                await refetchAndRender(type);
+              } catch (err) {
+                alert(`삭제 실패: ${err?.message || err}`);
+              } finally {
+                btn.disabled = false;
+              }
+            }, { passive: true });
+            container.__delBound = true;
+          }
+        
+          async function bootstrap(){
+            for (const t of TYPES) {
+              await refetchAndRender(t);
+            }
+            for (const t of TYPES) {
+              const el = $(`list_${t}`);
+              if (!el) continue;
+              ensureSortable(t);
+              bindDelete(el, t);
+            }
+            const toggle = $('toggleActive');
+            if (toggle) {
+              toggle.addEventListener('change', async () => {
+                for (const t of TYPES) await refetchAndRender(t);
+              });
+            }
+          }
+        
+          document.addEventListener('DOMContentLoaded', bootstrap);
+        })();
+        </script>
+
+        <script>
+            (function(){
+              const TYPES = ['POPUP','EVENT_UPCOMING','EVENT_POLAROID','OFFICER','GM'];
+            
+              function applyTypeFilter() {
+                const sel = document.getElementById('filterType');
+                const selected = sel ? sel.value : '';
+            
+                TYPES.forEach((t) => {
+                  const section = document.querySelector(`section[data-type="${t}"]`);
+                  if (!section) return;
+                  const show = !selected || selected === t; // ""면 전체 보이기
+                  section.classList.toggle('hidden', !show);
+                });
+              }
+            
+              async function refetchVisible() {
+                const visibleTypes = TYPES.filter((t) => {
+                  const s = document.querySelector(`section[data-type="${t}"]`);
+                  return s && !s.classList.contains('hidden');
+                });
+                if (typeof window.refetchAndRender === 'function') {
+                  for (const t of visibleTypes) await window.refetchAndRender(t);
+                }
+              }
+            
+              document.addEventListener('DOMContentLoaded', () => {
+                applyTypeFilter();
+            
+                const sel = document.getElementById('filterType');
+                if (sel) sel.addEventListener('change', () => {
+                  applyTypeFilter();
+                  refetchVisible(); 
+                });
+            
+                const toggle = document.getElementById('toggleActive');
+                if (toggle) toggle.addEventListener('change', refetchVisible);
+              });
+            })();
+            </script>
+            
+        
     
 </body>
 </html>

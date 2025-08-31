@@ -54,7 +54,10 @@ export async function GET(req: Request) {
 
   const rows = await prisma.post.findMany({
     where: { ...(typeEnum ? { type: typeEnum } : {}), active: onlyActive },
-    orderBy: { createdAt: "desc" },
+    orderBy: [
+      { sortOrder: 'asc' },   
+      { createdAt: 'desc' },
+    ],
     select: {
       id: true, type: true, active: true, createdAt: true,
       imageUrl: true, linkUrl: true, title: true, date: true, descKo: true, descEn: true,
@@ -78,6 +81,50 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const headers = cors(req.headers.get("origin"));
+
+  let body: any = {};
+  try { body = await req.json(); } catch {}
+
+  if (body?.action === "REORDER") {
+    const typeEnum = parsePostType(body?.type ?? null);
+    const rawOrder = body?.order;
+    const order: string[] | null =
+      Array.isArray(rawOrder) && rawOrder.every((x: unknown) => typeof x === "string")
+        ? (rawOrder as string[])
+        : null;
+
+    if (!typeEnum) {
+      return NextResponse.json({ error: "type required for REORDER" }, { status: 400, headers });
+    }
+    if (!order || order.length === 0) {
+      return NextResponse.json({ error: "order (string[]) required" }, { status: 400, headers });
+    }
+
+    const existing = await prisma.post.findMany({
+      where: { id: { in: order }, type: typeEnum },
+      select: { id: true },
+    });
+    const existingIds = new Set(existing.map(x => x.id));
+    const invalid = order.filter(id => !existingIds.has(id));
+    if (invalid.length) {
+      return NextResponse.json({ error: "Invalid ids for REORDER", invalid }, { status: 400, headers });
+    }
+
+    await prisma.$transaction(
+      order.map((id: string, idx: number) =>
+        prisma.post.update({
+          where: { id },
+          data:  { sortOrder: idx },
+        })
+      )
+    );
+
+    console.log("[REORDER] type=%s ids=%o", typeEnum, order);
+
+    return NextResponse.json({ ok: true, type: typeEnum, order }, { headers });
+  }
+
   console.log("[HIT /api/admin/posts] NEW ROUTE", Date.now());
   
   const seasonAliases: Record<string, string> = {
@@ -92,10 +139,8 @@ export async function POST(req: Request) {
     const key = s.toLowerCase().replace(/\s+/g, "");
     return seasonAliases[key] ?? "";
   }
-  const headers = cors(req.headers.get("origin"));
   headers["x-posts-route-fp"] = "posts2-V7-THIS-IS-NEW";
   headers["x-posts-route-hit"] = String(Date.now());
-  let body: any = {};
   try { body = await req.json(); } catch {}
 
   const typeEnum = parsePostType(body?.type ?? null);
@@ -106,7 +151,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "imageUrl required" }, { status: 400, headers });
   }
 
-  // 🔧 year/quarter를 관대하게 받아서 정규화
+
   const yRaw =
     body.year ??
     body.gmYear ??
@@ -133,7 +178,6 @@ export async function POST(req: Request) {
   const normQuarterNum = Number(normQuarterStr);
   const normQuarter = normalizeQuarter(qRaw);
 
-  // ✅ 타입별 필수값
   if ((typeEnum === "POPUP" || typeEnum === "EVENT_UPCOMING") && !body.linkUrl) {
     return NextResponse.json({ error: "linkUrl required for POPUP/EVENT_UPCOMING" }, { status: 400, headers });
   }
@@ -141,7 +185,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "title required for EVENT_POLAROID" }, { status: 400, headers });
   }
 
-  // ✅ GM & EVENT_POLAROID 모두 year/quarter 필수
   if (typeEnum === "GM" || typeEnum === "EVENT_POLAROID") {
     if (!normYear) {
       return NextResponse.json(
@@ -163,7 +206,6 @@ export async function POST(req: Request) {
     }
   }
 
-  // 저장 데이터 구성
   const data: any = {
     type: typeEnum,
     imageUrl: body.imageUrl,     
@@ -179,7 +221,6 @@ export async function POST(req: Request) {
   const posterUrlIn = body.posterUrl ?? body?.meta?.posterUrl ?? "";
   const effectivePosterUrl = posterUrlIn || data.imageUrl;
 
-    // 🔽 추가: posterUrl/formUrl/instagramUrl을 meta에 담아 저장
     const meta: any = {};
     if (effectivePosterUrl) meta.posterUrl = effectivePosterUrl;
     if (body.formUrl ?? body?.meta?.formUrl) meta.formUrl = body.formUrl ?? body?.meta?.formUrl;
@@ -201,14 +242,14 @@ export async function POST(req: Request) {
     data.descKo  = body.descKo ?? null;
     data.descEn  = body.descEn ?? null;
     data.linkUrl = body.linkUrl ?? null;
-    data.year    = normYear;            // ← 문자열로 저장 (schema: String?)
+    data.year    = normYear;           
     data.quarter = String(normQuarterNum);
     data.quarter = normQuarter;
   } else if (typeEnum === "EVENT_POLAROID") {
     data.title   = body.title ?? null;
     data.descKo  = body.descKo ?? null;
     data.descEn  = body.descEn ?? null;
-    data.linkUrl = body.linkUrl ?? null;   // 예비 링크
+    data.linkUrl = body.linkUrl ?? null;  
     data.date    = body.date ? new Date(body.date) : null;
     data.year    = normYear;
     data.quarter = normQuarter;

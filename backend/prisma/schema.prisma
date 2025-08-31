@@ -54,8 +54,9 @@ model Post {
   role     String?
   linkedin String?
   meta      Json?
+  sortOrder  Int      @default(0)
 
   createdAt DateTime @default(now())
 
-  @@index([type, active])
+  @@index([type, active, sortOrder], name: "Post_type_sortOrder_idx")
 }
