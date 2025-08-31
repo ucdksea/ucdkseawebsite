@@ -1,0 +1,754 @@
+*{
+    margin: 0;
+    padding: 0;
+    font-family: 'CustomFont', Arial, Helvetica, sans-serif;
+}
+
+nav {
+    display: flex;
+    padding: 2% 6%;
+    justify-content: space-between;
+    align-items: center;
+}
+
+nav img {
+    width: 100px;
+
+}
+
+.nav-links {
+    flex: 1;
+    text-align: right;
+
+}
+
+.nav-links ul li {
+    list-style: none;
+    display: inline-block;
+    padding: 8px 12px;
+    position: relative;
+    margin-top: -15px;
+}
+
+.nav-links ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 13px;
+
+}
+
+.nav-links ul li::after {
+    content: '';
+    width: 0%;
+    height: 2px;
+    background: #FFDC34;
+    display: block;
+    margin: auto;
+    transition: 0.5s;
+}
+
+.nav-links ul li:hover::after {
+    width: 100%;
+}
+
+.subheader {
+    height: 50vh;
+    width: 100%;
+    background-image: linear-gradient(rgba(22, 38, 100, 0.67), rgba(16, 38, 124, 0.119)), url(/images/about/grad6.jpeg);
+    background-position-y: 75%;
+    background-size: cover;
+    text-align: center;
+    color: #FFDC34;
+    text-shadow: 3px 3px 9px rgba(0, 0, 0, 0.492);
+    
+}
+
+.subheader h1{
+    margin-top: 50px;
+}
+
+#menuIcon,
+#closeIcon {
+    display: none; /* Hide both icons by default */
+}
+/*-------------------------------DO NOT CHANGE-------------------------------------*/
+/*-----------------------page 1---------------------*/
+.page_1 {
+    display: grid;
+    place-items: center;
+    padding-top: 10%;
+    width: 90%;
+    margin: auto;
+}
+
+
+/* “We help Korean-American scientists and engineers
+develop their full career potential” - National KSEA */
+.we_help { 
+    font-weight: 584;
+    font-family: 'Akshar',sans-serif;
+    font-style: normal;
+    font-size: clamp(1rem, 2.8vw, 2rem);
+    line-height: 1.1;
+    color: #000000;
+    text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    width: 80%;
+}
+/* Korean - American
+Scientists and
+Engineers
+Association */
+.page1_2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+    width: 70%;
+    margin-top: 5%;
+}
+
+/* korean-american science and enginnering association */
+.KseaStandsFor {
+    width: auto;
+    height: auto;
+    margin-top: 5%;
+    font-weight: 500;
+    font-size: clamp(1rem, 2.8vw, 2rem);
+    line-height: 67px;
+    color: #000000;
+}
+
+/* KSEA */
+.ksea {
+    font-weight: 800;
+    font-size: clamp(1rem, 3.8vw, 4rem);
+    line-height: 1.1;
+    color: #2E3192;
+    text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.45);
+}
+/* blurred national ksea logo */
+.kseaiconwithwhite {
+    width: 70%;
+    height: auto;
+    background-size: contain;
+    margin-top: 10%;
+    margin-left: 20%;
+}
+
+.hoverimg_0:hover {
+    width: 100%;
+    content: url('/images/kseaicon/kseaicon.png');
+}
+
+.hoverimg_0 {
+    width: 100%;
+    height: auto;
+    transition: opacity 0.5s ease-in-out;
+}
+/* An academic community comprising Korean students & professionals from across the country */
+.an_academic {
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(1rem, 1.8vw, 3rem);
+    margin-top: 5%;
+    padding-bottom: 5%;
+    font-variation-settings: 'slnt' -10;
+    justify-items: center;
+    text-shadow: 0px 2px 2px rgba(0, 0, 0, 0.35);
+}
+
+/*------------------------------page 2--------------------------*/
+
+.page_2 {
+    display: flex;
+    justify-content: flex-start;
+    position: relative;
+    z-index: -1;
+    width: 100%;
+    background: #3954A6;    
+}
+
+.ucdavispng {
+    top: -10%;
+    width: 200vw;
+    height: auto;
+    z-index: -1;
+}
+
+.ucdavispng img {
+    width: 100%;
+    height: auto;
+}
+
+/* right hand side */
+.page2_1{
+    margin-right: 10%;
+}
+
+.UCDAVISKSEA {
+    margin-top: 20%;
+    font-weight: 600;
+    font-size: max(20px, 2.9vw);
+    color: #FFDC34;
+    text-align: right;
+    text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    white-space: nowrap;
+}
+
+/* “We are UC Davis Young Generation (YG) group within the KSEA chapter in Sacramento” */
+.WeareUCDavis {
+    box-sizing: border-box;
+    height: auto;
+    font-style: normal;
+    font-weight: 400;
+    font-size: max(10px, 1.6vw);
+    line-height: 4.1vw;
+    color: #FFDC34;
+    text-align: right;
+    margin-top: 5%;
+    text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+
+.WeareUCDavis p{
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+
+/* Currently, there are over 20 YG groups and more than 70 chapters operating within the state. UC Davis KSEA strives to collaborate with other YG groups to foster an active and vibrant KSEA community. */
+.Currently {
+    margin-top: 10%;
+    white-space: normal; 
+    font-style: italic;
+    width: 100%;
+    font-weight: 500;
+    font-size: max(8px, 1.2vw);
+    line-height: 3vw;
+    text-align: right;
+    color: #FFFFFF;
+    margin-right: -50%;
+}
+
+.Currently p{
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+
+.ucdksealogo {
+    width: 25%;
+    margin-top: 10%;
+    margin-left: 40%;
+}
+
+.ucdksealogo img{
+    width:100%;
+}
+
+/* We foster international cooperation especially between the U.S. and Korea */
+.WeFoster {
+    margin-left: 0%;
+    margin-top: 10%;
+    font-style:italic;
+    font-weight: 400;
+    font-size: max(9px, 1.44vw);
+    line-height: 2.43vw;
+    text-align: center;
+    color: #FFFFFF;
+    backdrop-filter: blur(2px); 
+    text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.WeFoster p{
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+
+
+/*----------------------page 3--------------------------*/
+.page_3 {
+    background: #3954A6;
+    padding: 6% 5%;
+}
+
+.OurKseaOpportunities h1 {
+    text-align: center;
+    color: #ffffff;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    margin-bottom: 4rem;
+    letter-spacing: 1px;
+    position: relative;
+}
+
+.OurKseaOpportunities h1::after {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 4px;
+    margin: 0.8rem auto 0;
+    background: #FFDC34;
+    border-radius: 2px;
+    transition: width 2s ease-out;
+    width: 100px;
+    }
+
+.OurKseaOpportunities.observe.visible h1::after {
+    width: 50vw;
+}
+
+/* sections */
+.networking,
+.scholarship,
+.professional,
+.membership {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: all 0.8s ease-out;
+    margin-bottom: 5rem;
+    margin-left: 15%;
+    margin-right: 15%;
+}
+
+.page_3 ul {
+    list-style: disc !important;
+    padding-left: 1.5rem;
+}
+
+.networking {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-bottom: 0rem !important;
+}
+
+.intro {
+    font-size: 1.05rem;
+    margin-bottom: 1.2rem;
+    line-height: 1.7;
+}
+
+.highlight-box {
+    background-color: rgba(255, 255, 255, 0.03);
+    border-left: 4px solid #FFDC34;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    border-radius: 12px;
+}
+
+.highlight-box h3 {
+    font-size: 1.1rem;
+    color: #FFDC34;
+    margin-bottom: 0.5rem;
+}
+
+.professional {
+    flex-direction: row-reverse;
+}
+
+.scholarship {
+    text-align: center;
+    margin-top: 5rem;
+}
+
+.scholarship img {
+    width: 60%;
+    max-width: 600px;
+    margin: 0 auto 2rem;
+    display: block;
+    border-radius: 16px;
+}
+
+.membership {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    align-items: center;
+    gap: 3rem;
+}
+
+.text-block {
+    flex: 1;
+    color: #e5e5e5;
+}
+
+.img-block {
+    flex: 1;
+}
+
+.img-block img{
+    width: 100%;
+    max-width: 30vw;
+    min-width: 200px;
+    transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
+    flex: 1;
+}
+
+.img-block img:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+}
+
+.text-block h2{
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    color: #ffe86c;
+    margin-bottom: 1rem;
+}
+
+.text-block p,
+.text-block li {
+    font-size: clamp(1rem, 1.6vw, 1.1rem);
+    line-height: 1.7;
+    margin-bottom: 0.5rem;
+}
+
+/* Learn more */
+.learn {
+    color: #ffffff;
+    font-weight: bold;
+    transition: color 0.3s ease;
+    text-decoration: none;
+}
+
+.learn:hover {
+    color: #FFDC34;
+}
+
+/* Observer animation when visible */
+.observe.visible {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+}
+
+/* Animations */
+@keyframes fade-up {
+to {
+    opacity: 1;
+    transform: translateY(0);
+}
+}
+
+@keyframes slide-in {
+from {
+    opacity: 0;
+    transform: translateY(-30px);
+}
+to {
+    opacity: 1;
+    transform: translateY(0);
+}
+}
+/*-------page 4-------*/
+
+.page_4 {
+    position: relative;
+    width: 100%;
+    height: auto;
+    padding: 10% 0; 
+}
+
+.KSEAPOINT{
+    position: relative;
+    width: 45.73vw;
+    height: auto;
+    margin-left:10%;
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 900;
+    font-size: 5.00vw;
+    line-height: 6.04vw;
+}
+.KSEAPOINT img{
+    width:100%
+}
+
+.accumulatepoints{
+    position: relative;
+    width:80%;
+    margin-top: 5%;
+    margin-left:10%;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 3.23vw;
+    line-height: 1.5;
+    text-align: center;
+    text-shadow: 0px 0.208vw 0.208vw rgba(0, 0, 0, 0.25);
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+    overflow-wrap: break-word;
+
+}
+
+.accumulatepoints span {
+    display: inline;
+    white-space: normal;
+}
+
+.JoinSocial{
+    position:relative;
+    margin-left:10%;
+    margin-top:7%;
+    width: 18.49vw;
+    height: auto;
+}
+
+.hoverimg_1:hover {
+    content: url('/images/about/50.png');
+}
+
+.JoinAcademic{
+    position:relative;
+    margin-left:31%;
+    margin-top:-19.2%;
+    width: 18.49vw;
+    height: auto;
+}
+
+.hoverimg_2:hover {
+    width: 110%;
+    margin-left:-7%;
+    content: url('/images/about/70.png');
+}
+
+.JoinEvent{
+    position:relative;
+    margin-left:51%;
+    margin-top:-19.2%;
+    width: 18.49vw;
+    height: auto;
+}
+.hoverimg_3:hover {
+    width: 113%;
+    margin-left:-7%;
+    content: url('/images/about/100.png');
+}
+
+.JoinKSEA{
+    position:relative;
+    margin-right:10%;
+    margin-left: auto; 
+    margin-top:-19.2%;
+    width: 18.49vw;
+    height: auto;
+}
+.hoverimg_4:hover {
+    width: 100%;
+    content: url('/images/about/120.png');
+}
+
+.hoverimg_1,
+.hoverimg_2,
+.hoverimg_3,
+.hoverimg_4 {
+    width: 100%;
+    height: auto;
+    transition: opacity 0.5s ease-in-out;
+}
+
+/*-------page 5-------*/
+
+.page_5 {
+    position: relative;
+    width: 100%;
+    height: auto;
+}
+
+.nationalksea{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+}
+
+.kseaiconpng{
+    position:relative;
+    margin-top:5%;
+    width:9.54vw;
+    height:auto;
+}
+
+.kseaiconpng img{
+    width:100%;
+}
+
+.nationalksea a {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 1000;
+    font-size: 3.5vw;
+    text-decoration: none;
+    color: #2E3192;
+    padding-top: 3.5rem;
+}
+
+a:hover {
+    color: #FFDC34;
+}
+
+.hover-yellow {
+    transition: filter 0.0s;
+}
+
+.hover-yellow:hover {
+    filter:  sepia(100%) saturate(500%);
+}
+
+/* KSEA YG Groups With Us: */
+.withus{
+    margin-left:10%;
+    margin-bottom: 3%;
+    margin-top: 3%;
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 900;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    line-height: 6.04vw;
+    color: #2E3192;
+    text-shadow: 0 0.2083vw 0.2083vw rgba(0, 0, 0, 0.25), 0 0.2083vw 0.2083vw rgba(0, 0, 0, 0.25);
+}
+
+.kseas{
+    width:80vw;
+    height:auto;
+    margin-left:10%;
+    margin-bottom: 10%;
+}
+.kseas img{
+    width:100%;
+}
+
+/* -------------------------------------------------- Media -------------------------------------------------------*/
+
+@media (max-width: 700px) {    
+
+    .subheader img{
+        margin-left: 20px;
+        margin-top: 20px;
+        height: 60px;
+        width: 60px;
+    }
+
+    .textbox h5 {
+        font-size: 15px;
+        position: relative;
+        text-align: center;
+        word-break: break-word;
+        overflow-wrap: break-word;
+    }
+
+    nav {
+        padding: 1% 2%;
+        position: relative;
+    }
+
+    .nav-links {
+        position: fixed; /* Use fixed positioning to ensure it stays in view */
+        background: rgba(57, 84, 166, 0.5); 
+        height: 100vh;
+        width: 200px;
+        top: 0;
+        right: -200px; /* Initially hide off-screen */
+        text-align: left;
+        z-index: 2;
+        transition: right 0.3s ease;
+        overflow: auto; /* Ensure content can scroll if needed */
+    }
+
+    #menuIcon,
+    #closeIcon {
+        position: fixed; /* Ensure icons stay in view */
+        right: 20px;
+        top: 40px;
+        color: #FFDC34;
+        font-size: 30px;
+        cursor: pointer;
+        z-index: 3;
+    }
+
+    #closeIcon {
+        display: none;
+    }
+
+    #menuIcon {
+        display: block;
+    }
+
+    .nav-links.open {
+        right: 0; /* Move menu into view */
+    }
+
+    .nav-links.open #menuIcon {
+        display: none; /* Hide menu icon when menu is open */
+    }
+
+    .nav-links.open #closeIcon {
+        display: block; /* Show close icon when menu is open */
+    }
+
+    .nav-links ul {
+        margin-top: 80px;   
+        margin-left: 10px;
+    }
+
+    .nav-links ul li {
+        display: block;    
+        margin-bottom: 30px;
+    }
+
+    .nav-links ul li::after {
+        content: none; /* Remove the ::after pseudo-element */
+    }
+
+    .subheader {
+        height: 30vh;        
+    }
+    
+   .subheader h1{
+        margin-top: 20px;
+    }
+    
+    /* ------------------------ Footer Media ------------------------------- */
+    .wrap-footer-info[_ngcontent-xno-c31] {
+        flex-direction: column; /* Stack items vertically */
+        align-items: center; /* Center items horizontally */
+        padding: 1em; /* Adjust padding for smaller screens */
+    }
+
+    .con-info[_ngcontent-xno-c31] {
+        flex-direction: column; /* Stack items vertically */
+        align-items: center; /* Center items horizontally */
+        text-align: center; /* Center text */
+        margin-bottom: 1em; /* Space between icons and text */
+    }
+
+    .con-info[_ngcontent-xno-c31] > img[_ngcontent-xno-c31] {
+        display: none; /* Hide the KSEA logo on small screens */
+    }
+
+    .con-sns[_ngcontent-xno-c31] {
+        margin-bottom: 1em; /* Space below the icons */
+    }
+
+    .con-sns[_ngcontent-xno-c31] ul[_ngcontent-xno-c31] {
+        display: flex;
+        justify-content: center; /* Center the icons horizontally */
+        align-items: center; /* Center the icons vertically */
+        margin: 0; /* Remove default margins */
+        padding: 0; /* Remove default padding */
+    }
+
+    .con-info[_ngcontent-xno-c31] ul[_ngcontent-xno-c31] li {
+        margin: 10px 0;/* Space between icons */
+        font-size: 88%; /* Adjust font size for smaller screens */
+    }
+
+    #ngcontent1, #ngcontent2 {
+        display: block; /* Ensure these items are shown in the media query */
+    }
+}
+
+
+
+
+
+

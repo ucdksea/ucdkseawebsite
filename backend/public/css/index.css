@@ -1,0 +1,114 @@
+.header {
+    min-height: 100vh;
+    width: 100%;
+    background-position: center;
+    background-size: cover;
+    background-attachment: fixed;
+    position: relative;
+    animation: animate 20s linear infinite;
+    box-sizing: border-box;
+}  
+  
+@keyframes animate {
+    0%, 100% {
+      background-image: linear-gradient(rgba(22, 38, 100, 0.67), rgba(16, 38, 124, 0.119)), url('/images/home/main.jpeg');
+    }
+    25% {
+      background-image: linear-gradient(rgba(22, 38, 100, 0.67), rgba(16, 38, 124, 0.119)), url('/images/home/sixth.jpeg');
+    }
+    50% {
+      background-image: linear-gradient(rgba(22, 38, 100, 0.67), rgba(16, 38, 124, 0.119)), url('/images/home/third1.jpg');
+    }
+    75% {
+      background-image: linear-gradient(rgba(22, 38, 100, 0.67), rgba(16, 38, 124, 0.119)), url('/images/home/fourth.jpeg');
+    }
+  }
+
+  .textbox {
+    width: 90%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: left;
+    box-sizing: border-box;
+}
+
+.textbox h1 {
+    font-size: 80px;
+    color: #ffffff;
+    text-shadow: 3px 3px 9px rgba(0, 0, 0, 0.492);
+    margin: 0;
+}
+
+.textbox h5 {
+    font-size: 30px;
+    color: #fff;
+    text-shadow: 2px 2px 7px rgba(0, 0, 0, 0.492);
+    margin: 0px;
+}
+
+#menuIcon,
+#closeIcon {
+    display: none; /* Hide both icons by default */
+}
+/*pop-up*/
+.index_popup {
+    display: flex;
+    position: fixed;
+    top: 3%; 
+    left: 3%;
+    justify-content: center; 
+    align-items: center; 
+    z-index: 1000; 
+    width: 40%;
+    height: auto;
+    background-color: transparent; 
+}
+
+.index_popup .popup-content {
+    position: relative;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    background-color:white;
+    box-shadow: 0 5px 15px rgb(137, 137, 137);
+}
+
+.index_popup .popup-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+}
+
+.index_popup .close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 50px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #000000;
+}
+/*
+.home {
+    height: 100vh;
+}
+
+.video {
+    width: 80%;
+    margin: auto;
+    text-align: center;
+    padding-top: 100px;
+}
+
+.video h1 {
+    color: #2E3192;
+    margin-bottom: 30px;
+}
+
+.video img {
+    width: 500px;
+}
+*/
+

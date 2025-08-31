@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>KSEA Admin — History</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  .focus-ring:focus{outline:3px solid rgba(57,84,166,.45); outline-offset:2px}
+</style>
+</head>
+
+<body class="bg-slate-900 text-white min-h-dvh">
+  <!-- 헤더 -->
+  <header class="top-1 z-10 bg-[#0F172A]/60 backdrop-blur supports-[backdrop-filter]:bg-[#0F172A]/40">
+    <div class="mx-auto max-w-6xl px-4 py-6 flex items-center justify-between">
+      <a href="/" class="inline-flex items-center gap-2 hover:opacity-90" aria-label="Go to home">
+        <img src="/images/kseaicon/ksealogo_white.png" alt="KSEA logo" class="h-7 w-auto"/>
+        <span class="hidden sm:inline font-semibold tracking-wide">UC DAVIS KSEA</span>
+      </a>
+      <nav class="hidden md:flex gap-6 text-sm font-medium">
+        <a href="/post" class="hover:text-blue-400 transition">Post</a>
+        <a href="/history" class="text-blue-400">History</a>
+        <a href="/log" class="hover:text-blue-400 transition">Log</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- 상단 타이틀 & 필터 -->
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <div class="rounded-2xl bg-slate-800/60 border border-white/10 backdrop-blur p-5">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight">History — Posts</h1>
+          <p class="text-sm text-white/60">타입별 게시 기록을 조회하고 삭제할 수 있습니다.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 text-sm">
+          <label class="inline-flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2 border border-white/10">
+            <input id="toggleActive" type="checkbox" class="h-4 w-4 accent-[#3954A6]" checked>
+            <span class="text-white/90">Active only</span>
+          </label>
+          <select id="filterType" class="rounded-xl bg-white/5 px-3 py-2 border border-white/10 focus:ring-2 focus:ring-[#3954A6]">
+            <option value="">All types</option>
+            <option value="POPUP">POPUP</option>
+            <option value="EVENT_UPCOMING">EVENT_UPCOMING</option>
+            <option value="EVENT_POLAROID">EVENT_POLAROID</option>
+            <option value="OFFICER">OFFICER</option>
+            <option value="GM">GM</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- 리스트 섹션들 -->
+    <section id="historyLists" class="mt-6 space-y-8">
+
+      <!-- POPUP -->
+      <section data-type="POPUP" class="rounded-2xl border border-white/10 bg-slate-900/40 p-6 shadow-[0_0_0_1px_rgba(255,255,255,.03)]">
+        <header class="mb-5 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="inline-flex h-6 items-center rounded-md bg-emerald-500/15 px-2 text-emerald-300 text-xs font-semibold ring-1 ring-inset ring-emerald-500/25">POPUP</span>
+            <h3 class="text-lg font-semibold">Index — Popup</h3>
+          </div>
+        </header>
+        <div id="list_POPUP" class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"></div>
+      </section>
+
+      <!-- OFFICER -->
+      <section data-type="OFFICER" class="rounded-2xl border border-white/10 bg-slate-900/40 p-6 shadow-[0_0_0_1px_rgba(255,255,255,.03)]">
+        <header class="mb-5 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="inline-flex h-6 items-center rounded-md bg-sky-500/15 px-2 text-sky-300 text-xs font-semibold ring-1 ring-inset ring-sky-500/25">OFFICER</span>
+            <h3 class="text-lg font-semibold">Officers — Card</h3>
+          </div>
+        </header>
+        <div id="list_OFFICER" class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"></div>
+      </section>
+
+      <!-- EVENT_UPCOMING -->
+      <section data-type="EVENT_UPCOMING" class="rounded-2xl border border-white/10 bg-slate-900/40 p-6 shadow-[0_0_0_1px_rgba(255,255,255,.03)]">
+        <header class="mb-5 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="inline-flex h-6 items-center rounded-md bg-fuchsia-500/15 px-2 text-fuchsia-300 text-xs font-semibold ring-1 ring-inset ring-fuchsia-500/25">UPCOMING</span>
+            <h3 class="text-lg font-semibold">Events — Upcoming</h3>
+          </div>
+        </header>
+        <div id="list_EVENT_UPCOMING" class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"></div>
+      </section>
+
+      <!-- EVENT_POLAROID -->
+      <section data-type="EVENT_POLAROID" class="rounded-2xl border border-white/10 bg-slate-900/40 p-6 shadow-[0_0_0_1px_rgba(255,255,255,.03)]">
+        <header class="mb-5 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="inline-flex h-6 items-center rounded-md bg-amber-500/15 px-2 text-amber-300 text-xs font-semibold ring-1 ring-inset ring-amber-500/25">POLAROID</span>
+            <h3 class="text-lg font-semibold">Events — Polaroid</h3>
+          </div>
+        </header>
+        <div id="list_EVENT_POLAROID" class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"></div>
+      </section>
+
+      <!-- GM -->
+      <section data-type="GM" class="rounded-2xl border border-white/10 bg-slate-900/40 p-6 shadow-[0_0_0_1px_rgba(255,255,255,.03)]">
+        <header class="mb-5 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="inline-flex h-6 items-center rounded-md bg-rose-500/15 px-2 text-rose-300 text-xs font-semibold ring-1 ring-inset ring-rose-500/25">GM</span>
+            <h3 class="text-lg font-semibold">GM</h3>
+          </div>
+        </header>
+        <div id="list_GM" class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"></div>
+      </section>
+
+    </section>
+    <footer class="mt-10 border-t border-white/10">
+        <div class="mx-auto max-w-6xl px-4 py-6 text-center text-sm text-white/60">
+            © 2025 KSEA Sacramento chapter — <a href="/" class="underline">UCD KSEA</a>
+        </div>
+    </footer>
+    </main>
+
+<!-- ✅ 완전 통합: 리스트 렌더 + 삭제(업서트 서버 대응, 스코프/오타/괄호 수정) -->
+<script>
+    (function(){
+      // ===== 공통 상수 =====
+      const AUTO_BASE =
+        (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+          ? (location.port === "3000" ? "" : "http://localhost:3000")
+          : "";
+      const API = (window.KSEA_API_BASE ?? AUTO_BASE).replace(/\/+$/, "");
+      const extra = window.extraAuthHeaders || {};
+    
+      // ===== 카드 생성/렌더/조회 (기존 그대로 사용) =====
+      function cardEl(p, type){
+        const title   = (p.title || '').trim();
+        const dateTxt = p.date ? new Date(p.date).toLocaleDateString() : '';
+        const desc    = p.descKo || '';
+        const image   = p.imageUrl || '';
+        const isOfficer = type === 'OFFICER';
+        const nameLine  = [p.enName, p.koName].filter(Boolean).join(' | ') || '(no name)';
+        const roleLine  = p.role || '';
+    
+        const html = `
+          <div class="rounded-xl bg-white/5 border border-white/10 p-3"
+               data-id="${p.id}" data-type="${type}" data-image-url="${image}"
+               data-title="${title.replace(/"/g,'&quot;')}"
+               data-year="${p.year || ''}" data-quarter="${p.quarter || ''}"
+               data-link-url="${p.linkUrl || ''}">
+            <img src="${image}" loading="lazy" class="w-full h-36 object-cover rounded-lg mb-2">
+            ${
+              isOfficer
+              ? `<div class="text-sm font-semibold">${nameLine}</div>
+                 <div class="text-xs text-white/60">${roleLine}</div>`
+              : `<div class="text-sm font-semibold">${title || "(no title)"}</div>
+                 <div class="text-xs text-white/60">${dateTxt}</div>
+                 <div class="text-xs text-white/70 line-clamp-3">${desc}</div>`
+            }
+            <div class="mt-2">
+              <button class="btn-del px-3 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-sm">Delete</button>
+            </div>
+          </div>`;
+        const wrap = document.createElement('div');
+        wrap.innerHTML = html;
+        return wrap.firstElementChild;
+      }
+    
+      function renderList(el, type, list){
+        if (!el) return;
+        const seen = new Set();
+        const frag = document.createDocumentFragment();
+        for (const p of list) {
+          if (!p || !p.id || seen.has(p.id)) continue;
+          seen.add(p.id);
+          frag.appendChild(cardEl(p, type));
+        }
+        el.replaceChildren(frag);
+      }
+    
+      async function fetchList(type){
+        const url = new URL(`${API}/api/admin/posts`, location.origin);
+        url.searchParams.set('type', type);
+        url.searchParams.set('active', '1');            // 활성만
+        url.searchParams.set('_t', Date.now().toString());
+        const r = await fetch(url.toString(), {
+          credentials: 'include',
+          cache: 'no-store',
+          headers: { 'Accept': 'application/json', ...extra }
+        });
+        const j = await r.json().catch(()=> ({}));
+        const arr = Array.isArray(j.posts) ? j.posts : [];
+        const m = new Map(); for (const p of arr) if (p && p.id) m.set(p.id, p);
+        return Array.from(m.values());
+      }
+    
+      // ===== 여기만 핵심 수정: DELETE /api/admin/posts/:id 호출 =====
+      function delUrl(id, hard){
+        const u = new URL(`${API}/api/admin/posts/${encodeURIComponent(id)}`, location.origin);
+        if (hard) u.searchParams.set('hard', '1');      // Shift+Delete → 하드 삭제
+        u.searchParams.set('_t', Date.now().toString());
+        return u.toString();
+      }
+    
+      async function deleteOne(id, hard){
+        const r = await fetch(delUrl(id, hard), {
+          method: 'DELETE',
+          credentials: 'include',                      // ← 쿠키 인증 필요
+          headers: { 'Accept': 'application/json' }
+        });
+        const j = await r.json().catch(()=> ({}));
+        if (!r.ok) throw new Error(j?.error || `HTTP ${r.status}`);
+        return j; // 서버는 before/after/ok 등을 반환함
+      }
+    
+      async function attachAndRefresh(type){
+        const el = document.getElementById(`list_${type}`);
+        if (!el) return;
+    
+        // 최초 렌더
+        renderList(el, type, await fetchList(type));
+    
+        if (el._bound) return;
+        el.addEventListener('click', async (e) => {
+          const btn  = e.target.closest('.btn-del');
+          if (!btn) return;
+          const card = btn.closest('[data-id]');
+          if (!card) return;
+    
+          const id   = card.dataset.id;
+          const hard = e.shiftKey;
+          if (!confirm(hard ? 'Hard delete this post?' : 'Delete (deactivate) this post?')) return;
+    
+          btn.disabled = true;
+          try {
+            await deleteOne(id, hard);                 // ← 진짜 삭제 호출
+            card.remove();                              // 낙관적 제거
+            renderList(el, type, await fetchList(type)); // 서버 상태로 재동기화
+          } catch (err) {
+            alert(`삭제 실패: ${err?.message || err}`);
+          } finally {
+            btn.disabled = false;
+          }
+        }, { passive: true });
+        el._bound = true;
+      }
+    
+      function refreshAll(){
+        ['POPUP','EVENT_UPCOMING','EVENT_POLAROID','OFFICER','GM'].forEach(attachAndRefresh);
+      }
+    
+      document.addEventListener('DOMContentLoaded', refreshAll);
+    })();
+    </script>
+    
+</body>
+</html>

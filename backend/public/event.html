@@ -1,0 +1,395 @@
+<!-- /Users/stephanie/Desktop/ucdksea-website/event.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UC DAVIS KSEA</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Site CSS -->
+    <link rel="stylesheet" href="./css/style.css" />
+    <link rel="stylesheet" href="./css/event.css" />
+    <link rel="stylesheet" href="./css/media.css" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap" rel="stylesheet" />
+
+    <!-- Favicon -->
+    <link rel="icon" href="./images/kseaicon/kseawhiteicon.png" type="image/png" />
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  </head>
+
+  <body>
+    <!-- Header -->
+    <section class="subheader3">
+      <nav>
+        <a href="/"><img src="./images/kseaicon/ksealogo_white.png" alt="UC Davis KSEA logo" /></a>
+        <i class="fa-solid fa-bars" id="menuIcon" onclick="openMenu()"></i>
+        <div class="nav-links" id="navLinks">
+          <i class="fa-solid fa-xmark" id="closeIcon" onclick="closeMenu()"></i>
+          <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/#about">About UCD KSEA</a></li>
+            <li><a href="/officer">Officers</a></li>
+            <li><a href="/gm">General Members</a></li>
+            <li><a href="/event">Events</a></li>
+            <li><a href="/faq">FAQ</a></li>
+            <li><a href="/join">Join KSEA</a></li>
+          </ul>
+        </div>
+      </nav>
+      <h1>Events</h1>
+    </section>
+
+    <!-- Upcoming Event (백엔드 연동 / 기본은 숨김) -->
+    <section id="upcomingSection" class="upcoming_event" style="display:none">
+      <h2 style="font-weight:bold;">Upcoming Event</h2>
+      <div id="upcomingBox" class="upcoming_event_posters">
+        <a href="#" target="_blank" rel="noopener">
+          <img id="upcomingImg" src="" alt="upcoming_event_img" class="upcomig_event_img" />
+        </a>
+      </div>
+      <p class="upcomingDesc mt-4"></p>
+      <hr class="my-12 h-0.5 w-[85%] border-t-0 bg-neutral-200 mx-auto" />
+    </section>
+
+    <!-- Event Gallery (백엔드 연동) -->
+    <div class="event">
+      <h1>Event Gallery</h1>
+      <div id="polaroidGrid" class="event-container"></div>
+    </div>
+
+    <!-- 이미지 팝업 (event.js에서 사용) -->
+    <div id="imagePopup" class="full-img" style="display: none">
+      <span
+        class="close"
+        onclick="closeImage()"
+        style="position:absolute;top:10px;right:20px;font-size:30px;color:white;cursor:pointer;"
+      >X</span>
+
+      <div class="carousel">
+        <span class="prev" onclick="changeSlide(-1)" style="cursor:pointer;font-size:40px;color:white;margin-right:10px;">&#10094;</span>
+
+        <div class="popup-content-wrapper" style="display:flex;justify-content:center;align-items:center">
+          <div style="aspect-ratio:4 / 3;width:auto;overflow:hidden;display:flex;justify-content:center;align-items:center;">
+            <img class="popup-content" id="popupImage" style="width:100%;height:auto" />
+          </div>
+          <div class="popup-text" id="popupText" style="color:black;text-align:center;margin-top:10px"></div>
+        </div>
+
+        <span class="next" onclick="changeSlide(1)" style="cursor:pointer;font-size:40px;color:white;margin-left:10px;">&#10095;</span>
+      </div>
+    </div>
+
+    <!-- (필수) 팝업 동작 함수들 포함된 파일 -->
+    <script src="./js/event.js"></script>
+
+    <!-- Footer -->
+    <section class="footer">
+      <app-footer _ngcontent-xno-c271="" _nghost-xno-c31="">
+        <footer _ngcontent-xno-c31="">
+          <div _ngcontent-xno-c31="" class="wrap-footer-info">
+            <div _ngcontent-xno-c31="" class="con-info">
+              <img
+                _ngcontent-xno-c31=""
+                src="./images/kseaicon/ksealogo_white.png"
+                alt="KSEA_logo"
+              />
+              <ul _ngcontent-xno-c31="">
+                <li _ngcontent-xno-c31="" id="ngcontent1">
+                  Korean-American Scientists and Engineers Association (KSEA)
+                </li>
+                <li _ngcontent-xno-c31="" id="ngcontent2">
+                  KSEA Young Generation Group | University of California, Davis
+                </li>
+                <li _ngcontent-xno-c31="">
+                  <span style="color: rgb(223, 223, 223)"
+                    >Email: ucdksea@gmail.com</span
+                  >
+                </li>
+                <li _ngcontent-xno-c31="">
+                  <span style="color: rgb(223, 223, 223)"
+                    >Copyright © 2024 KSEA Sacramento chapter, All Rights
+                    Reserved</span
+                  >
+                </li>
+                <li>
+                  <a href="/login"
+                     rel="nofollow"
+                     class="text-sm text-gray-400 hover:text-white hover:underline transition"
+                     aria-label="Officer login (KSEA UC Davis officers only)">
+                    Officer Login
+                  </a>              
+                </li>
+              </ul>
+            </div>
+            <div><p><span style = "color: #3954A6 ;line-height: 0;">by 백지원&박여진</span></p></div>
+            <div _ngcontent-xno-c31="" class="con-sns">
+              <ul _ngcontent-xno-c31="">
+                <li _ngcontent-xno-c31="">
+                  <a
+                    _ngcontent-xno-c31=""
+                    href="https://www.instagram.com/kseadavis/"
+                    target="_blank"
+                    ><img
+                      _ngcontent-xno-c31=""
+                      src="./images/instagram.png"
+                      width="50"
+                      height="50"
+                      alt="KSEA instagram"
+                  /></a>
+                </li>
+                <li _ngcontent-xno-c31="">
+                  <a
+                    _ngcontent-xno-c31=""
+                    href="https://linktr.ee/ucdksea"
+                    target="_blank"
+                    ><img
+                      _ngcontent-xno-c31=""
+                      src="./images/linktree.png"
+                      width="50"
+                      height="50"
+                      alt="Ksea linktree"
+                  /></a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </footer>
+      </app-footer>
+    </section>
+
+    <!-- 모바일 메뉴 토글 -->
+    <script>
+      const navLinks = document.getElementById("navLinks");
+      const menuIcon = document.getElementById("menuIcon");
+      const closeIcon = document.getElementById("closeIcon");
+
+      function openMenu() {
+        navLinks.style.right = "0";
+        menuIcon.style.display = "none";
+        closeIcon.style.display = "block";
+      }
+
+      function closeMenu() {
+        navLinks.style.right = "-200px";
+        menuIcon.style.display = "block";
+        closeIcon.style.display = "none";
+      }
+    </script>
+
+    <!-- 백엔드 연동 스크립트 (데이터 없으면 안 보이게/조용히 실패) -->
+    <script>
+      // 로컬 개발 환경 감지 강화: localhost, 127.0.0.1, 0.0.0.0, 192.168.x.x, 포트 5500
+      const isLocalHost =
+        /^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(location.hostname) ||
+        /^192\.168\./.test(location.hostname) ||
+        location.port === "5500";
+    
+      const DEV = isLocalHost;
+      const API = DEV ? "http://localhost:3000" : "";
+    </script>
+    <script>
+      // 이미지 URL을 /file2/... 형태로 강제 변환
+      function ensureFile2(url){
+        if (!url) return "";
+        try {
+          // 절대/상대 경로 모두 처리
+          const base = (typeof API !== "undefined" && API) ? API : location.origin;
+          const u = url.startsWith("http") ? new URL(url) : new URL(url, base);
+          let p = u.pathname;
+    
+          if (p.includes("/file2/")) return u.toString();                // 이미 file2면 그대로
+          if (p.includes("/file/")) {                                    // /file/ → /file2/
+            u.pathname = p.replace("/file/", "/file2/");
+            return u.toString();
+          }
+          if (p.startsWith("/uploads/")) {                               // /uploads/... → /file2/uploads/...
+            u.pathname = "/file2" + p;
+            return u.toString();
+          }
+          if (p.includes("/uploads/")) {                                 // 기타 케이스 보정
+            u.pathname = p.replace("/uploads/", "/file2/uploads/");
+            return u.toString();
+          }
+          return u.toString();
+        } catch {
+          // URL 파싱 실패 시 단순 치환 Fallback
+          if (url.includes("/file/")) return url.replace("/file/", "/file2/");
+          if (url.includes("/uploads/")) return url.replace("/uploads/", "/file2/uploads/");
+          return url;
+        }
+      }
+    </script>
+    
+
+    <!-- 1) Event Polaroid (Gallery) -->
+    <script>
+      (async () => {
+        const wrap = document.getElementById("polaroidGrid");
+        if (!wrap) return;
+      
+        const esc = (s)=> (s||"").toString().replace(/"/g,"&quot;");
+      
+        try {
+          const r = await fetch(`${API}/api/admin/posts?type=EVENT_POLAROID&active=1`, { credentials: "omit" });
+          if (!r.ok) throw new Error(r.status);
+          const { posts = [] } = await r.json();
+          if (!posts.length) { wrap.innerHTML = ""; return; }
+      
+          const html = posts.map((p) => {
+            const m = p.meta || {};
+            const quarter = (p.quarter || m.quarter || p.semester || m.semester || "").trim();
+            const year    = (p.year || m.year || "").trim();
+            const title   = (p.title || "").trim();
+      
+            const captionRaw = (quarter && year) ? `${quarter} ${year}` : title;
+            const dateStr    = p.date ? new Date(p.date).toISOString().slice(0,10) : "";
+            const bottomCaption = [captionRaw, title].filter(Boolean).join(" ");
+      
+            // 목록 썸네일 = 포스터 우선 → 일반
+            const posterUrl     = m.posterUrl || "";         // ★ 포스터는 여기
+            const imageUrl      = p.imageUrl || "";          // ★ 일반 사진은 여기
+
+            const thumbOriginal = m.posterUrl || p.imageUrl || "";
+            // 팝업 큰 사진 = 일반 우선 → 포스터
+            const largeOriginal = p.imageUrl  || m.posterUrl || "";
+            // 외부 링크
+            const primaryLink   = m.formUrl || m.instagramUrl || p.linkUrl || "";
+      
+            // 설명(팝업용) + 포스터 토큰
+            const line1 = `${esc(title)}$<span style='color:gray;'>${esc(captionRaw)}${dateStr ? " | " + dateStr : ""}</span>$<span style='color:#ececec;'>_____________________</span>$`;
+            const line2 = p.descKo ? `<br>${esc(p.descKo)}$` : "";
+            const line3 = p.descEn ? `<br>${esc(p.descEn)}<br>$` : "";
+            const dataTextEnc = encodeURIComponent([line1, line2, line3, "<img-poster/>"].join(""));      
+            return `
+              <div class="event-item">
+                <div class="polaroid" onclick="expandImage(this)">
+                  <img
+                    alt="${esc(title)}"
+                    data-thumb-original="${esc(largeOriginal)}"
+                    data-large="${esc(largeOriginal)}"
+                    data-text-enc="${esc(dataTextEnc)}"
+                    data-poster="${esc(m.posterUrl || "")}"
+                    data-link="${esc(primaryLink)}"
+                  />
+                  <p>${esc(bottomCaption)}</p>
+                  ${primaryLink ? `<div style="margin-top:6px;">
+                    <a href="${esc(primaryLink)}" target="_blank" rel="noopener" class="text-sm underline">More</a>
+                  </div>` : ""}
+                </div>
+              </div>
+            `;
+          }).join("");
+      
+          wrap.innerHTML = html;
+      
+          // 목록 썸네일: file2 우선, 실패시 원본 폴백
+          wrap.querySelectorAll('.polaroid img').forEach(img => {
+            const original = img.getAttribute('data-thumb-original') || "";
+            if (!original) return;
+            const srcFile2 = (typeof ensureFile2==="function") ? ensureFile2(original) : original;
+            img.setAttribute("data-original", original);
+            img.src = srcFile2;
+            img.onerror = function(){
+              if (img.getAttribute("data-tried-original")==="1") return;
+              img.setAttribute("data-tried-original","1");
+              img.src = img.getAttribute("data-original");
+            };
+          });
+      
+        } catch(e) {
+          console.warn("EVENT_POLAROID fetch failed:", e);
+          wrap.innerHTML = "";
+        }
+      })();
+      </script>
+      
+    
+    
+    
+    
+
+<!-- 2) Upcoming Event (있을 때만 표시) -->
+<script>
+  (async () => {
+    const section = document.getElementById("upcomingSection");
+    const box = document.getElementById("upcomingBox");
+    const a = box ? box.querySelector("a") : null;
+    const img = document.getElementById("upcomingImg");
+    const descEl = document.querySelector(".upcomingDesc");
+    if (!section || !box || !a || !img || !descEl) return;
+
+    try {
+      const r = await fetch(`${API}/api/admin/posts?type=EVENT_UPCOMING&active=1`, { credentials: "omit" });
+      if (!r.ok) throw new Error(r.status);
+      const { posts = [] } = await r.json();
+
+      if (!posts.length) {
+        section.style.display = "none";
+        return;
+      }
+
+      const p = posts[0];                          // ← 여기서 p를 확보
+      section.style.display = "";                  // 섹션 표시
+
+      // 링크: formUrl → instagramUrl → linkUrl → '#'
+      const href = p.meta?.formUrl || p.meta?.instagramUrl || p.linkUrl || "#";
+      a.href = href;
+      if (href === "#") a.addEventListener("click", (e) => e.preventDefault());
+
+      // 이미지: poster(우선) → imageUrl, 그리고 /file2 강제
+      img.src = ensureFile2(p.meta?.posterUrl || p.imageUrl || "");
+
+      // 설명: ko 우선 → en
+      descEl.innerHTML = p.descKo || p.descEn || "";
+
+    } catch (e) {
+      console.warn("EVENT_UPCOMING fetch failed:", e);
+      section.style.display = "none";
+    }
+  })();
+</script>
+<script>
+  // file2 경로 추정
+  function toFile2(url) {
+    if (!url) return "";
+    try {
+      const base = (typeof API !== "undefined" && API) ? API : location.origin;
+      const u = url.startsWith("http") ? new URL(url) : new URL(url, base);
+      let p = u.pathname;
+      if (p.includes("/file2/")) return u.toString();
+      if (p.includes("/file/")) { u.pathname = p.replace("/file/", "/file2/"); return u.toString(); }
+      if (p.startsWith("/uploads/")) { u.pathname = "/file2" + p; return u.toString(); }
+      if (p.includes("/uploads/")) { u.pathname = p.replace("/uploads/", "/file2/uploads/"); return u.toString(); }
+      return u.toString();
+    } catch {
+      if (url.includes("/file/")) return url.replace("/file/", "/file2/");
+      if (url.includes("/uploads/")) return url.replace("/uploads/", "/file2/uploads/");
+      return url;
+    }
+  }
+
+  // <img>에 file2 우선 적용 + 실패 시 원본으로 자동 대체
+  function setImgWithFallback(imgEl, srcOriginal) {
+    const srcFile2 = toFile2(srcOriginal);
+    imgEl.setAttribute("data-original", srcOriginal);
+    imgEl.src = srcFile2;
+    imgEl.onerror = function () {
+      if (imgEl.getAttribute("data-tried-original") === "1") return;
+      imgEl.setAttribute("data-tried-original", "1");
+      imgEl.src = imgEl.getAttribute("data-original");
+    };
+  }
+</script>
+
+
+  </body>
+</html>

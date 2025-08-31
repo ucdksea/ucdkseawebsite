@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>KSEA Admin Post</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  .focus-ring:focus{outline:3px solid rgba(57,84,166,.45); outline-offset:2px}
+</style>
+</head>
+<header class=" top-1 z-10 bg-[#0F172A]/60 backdrop-blur supports-[backdrop-filter]:bg-[#0F172A]/40">
+    <div class="mx-auto max-w-6xl px-4 py-14 flex items-center justify-between">
+      <a href="/" class="inline-flex items-center gap-2 hover:opacity-90" aria-label="Go to home">
+        <img src="/images/kseaicon/ksealogo_white.png" alt="KSEA logo" class="h-7 w-auto"/>
+        <span class="hidden sm:inline font-semibold tracking-wide">UC DAVIS KSEA</span>
+      </a>  
+      <!-- 네비게이션 -->
+      <nav class="hidden md:flex space-x-6 text-sm font-medium">
+        <a href="/post" class="hover:text-blue-400 transition">Post</a>
+        <a href="/history" class="hover:text-blue-400 transition">History</a>
+        <a href="/log" class="hover:text-blue-400 transition">Log</a>
+      </nav>
+    </div>
+    <script>
+      window.KSEA_ADMIN_TOKEN = (localStorage.getItem('ksea:admintoken') || '').trim();
+      window.extraAuthHeaders = window.KSEA_ADMIN_TOKEN
+        ? { 'X-Admin-Token': window.KSEA_ADMIN_TOKEN, 'Authorization': `Bearer ${window.KSEA_ADMIN_TOKEN}` }
+        : {};
+    </script>    
+  </header>
+  <body class="bg-slate-900 text-white min-h-dvh">
+  <main class="max-w-5xl mx-auto px-4 py-0">
+    <h1 class="text-2xl font-bold mb-6">Admin — Post Console</h1>
+
+    <!-- 업로드 & 폼 -->
+    <section class="grid md:grid-cols-2 gap-6">
+      <!-- 업로드/미리보기 -->
+      <div class="rounded-2xl border border-white/15 bg-white/5 p-5">
+        <h2 class="font-semibold mb-3">1) Upload image</h2>
+        <input id="file" type="file" accept="image/*" class="block w-full text-sm mb-3">
+        <button id="btnUpload" class="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 font-semibold">Upload</button>
+        <p id="uploadStatus" class="text-sm text-white/70 mt-2"></p>
+        <img id="preview" class="mt-4 max-h-64 hidden rounded-lg w-full object-cover" />
+
+        <!-- POLAROID 전용 포스터 업로드 -->
+        <div id="extraUploadPoster" class="hidden mt-6 border-t border-white/10 pt-4">
+          <h3 class="font-semibold mb-2 text-sm">Poster image (EVENT_POLAROID)</h3>
+          <input id="file2" type="file" accept="image/*" class="block w-full text-sm mb-2">
+          <button id="btnUpload2" class="px-3 py-1 rounded bg-blue-600 hover:bg-blue-500 text-sm">Upload Poster</button>
+          <p id="uploadStatus2" class="text-sm text-white/70 mt-1"></p>
+        </div>
+      </div>
+
+      <!-- 폼 -->
+      <div class="rounded-2xl border border-white/15 bg-white/5 p-5">
+        <h2 class="font-semibold mb-3">2) Fill fields & Publish</h2>
+
+        <label class="block text-sm mb-1">Target</label>
+        <select id="target" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-4 focus-ring">
+          <option value="POPUP">Index — Popup</option>
+          <option value="OFFICER">Officers</option>
+          <option value="EVENT_UPCOMING">Events — Upcoming</option>
+          <option value="EVENT_POLAROID">Events — Polaroid</option>
+          <option value="GM">GM page — Gallery</option>
+        </select>
+
+        <!-- 타입별 추가 필드 -->
+        <div id="rowLink" class="hidden">
+          <label class="block text-sm mb-1">Google Form URL</label>
+          <input id="linkUrl" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-4 focus-ring" placeholder="https://..." />
+        </div>
+
+        <div id="rowPolaroid" class="hidden">
+          <label class="block text-sm mb-1">Instagram URL</label>
+          <input id="instagramUrl" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-3 focus-ring" placeholder="https://instagram.com/..."/>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm mb-1">Quarter</label>
+              <input id="quarter" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-3 focus-ring" placeholder="Spring"/>
+            </div>
+            <div>
+              <label class="block text-sm mb-1">Year</label>
+              <input id="year" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-3 focus-ring" placeholder="2025"/>
+            </div>
+          </div>
+        </div>
+
+        <div id="rowOfficer" class="hidden">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm mb-1">English name</label>
+              <input id="enName" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-3 focus-ring"/>
+            </div>
+            <div>
+              <label class="block text-sm mb-1">Korean name</label>
+              <input id="koName" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-3 focus-ring"/>
+            </div>
+          </div>
+          <label class="block text-sm mb-1">Role (e.g., President)</label>
+          <input id="role" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-3 focus-ring"/>
+          <label class="block text-sm mb-1">LinkedIn URL (optional)</label>
+          <input id="linkedin" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-4 focus-ring" placeholder="https://www.linkedin.com/in/..."/>
+        </div>
+
+        <!-- 공통 필드 -->
+        <label class="block text-sm mb-1">Title</label>
+        <input id="title" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-3 focus-ring" placeholder="(Popup/Upcoming은 선택)"/>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm mb-1">Date (yyyy-mm-dd)</label>
+            <input id="date" type="date" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-3 focus-ring"/>
+          </div>
+        </div>
+
+        <label class="block text-sm mb-1">설명 (Korean)</label>
+        <textarea id="descKo" rows="3" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-3 focus-ring"></textarea>
+
+        <label class="block text-sm mb-1">Description (English)</label>
+        <textarea id="descEn" rows="3" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-4 focus-ring"></textarea>
+
+        <button id="btnPublish" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 font-semibold disabled:opacity-60">Publish</button>
+        <p id="publishMsg" class="text-sm text-white/70 mt-2"></p>
+      </div>
+    </section>
+    <footer class="mt-10 border-t border-white/10">
+      <div class="mx-auto max-w-6xl px-4 py-6 text-center text-sm text-white/60">
+        © 2025 KSEA Sacramento chapter — <a href="/" class="underline">UCD KSEA</a>
+      </div>
+    </footer>
+  
+
+  </main>
+  <script>
+    // 공통 필드(Title/Date/설명) 토글 유틸
+    function toggleLabelAndField(el, hide) {
+      if (!el) return;
+      const label = el.previousElementSibling;
+      if (label && label.tagName === 'LABEL') label.classList.toggle('hidden', hide);
+      el.classList.toggle('hidden', hide);
+    }
+
+    function hideLabelAndInputById(id, hide) {
+      const el = document.getElementById(id);
+      if (!el) return;
+    
+      // label[for=id] 우선 찾고, 없으면 이전 형제 label 찾기
+      let label = document.querySelector(`label[for="${id}"]`);
+      if (!label && el.previousElementSibling?.tagName === "LABEL") {
+        label = el.previousElementSibling;
+      }
+    
+      if (label) label.classList.toggle("hidden", hide);
+      el.classList.toggle("hidden", hide);
+    }
+  
+    // OFFICER일 때 공통 필드를 감추고, 그 외에는 보이게
+    function hideCommonFields(hide) {
+      // Title
+      toggleLabelAndField(document.getElementById('title'), hide);
+  
+      // Date (input#date를 감싸는 div까지 숨김)
+      const dateInput = document.getElementById('date');
+      if (dateInput) {
+        const row = dateInput.closest('div');
+        if (row) row.classList.toggle('hidden', hide);
+      }
+  
+      // descKo / descEn
+      toggleLabelAndField(document.getElementById('descKo'), hide);
+      toggleLabelAndField(document.getElementById('descEn'), hide);
+    }
+  </script>
+  
+
+  <script>
+    const visibleMap = {
+      POPUP:          ['linkUrl'],                 // ← 여기!
+      EVENT_UPCOMING: ['imageUrl', 'linkUrl'],
+      EVENT_POLAROID: ['imageUrl', 'title', 'descKo', 'descEn'],
+      GM:             ['imageUrl'],
+    };
+    function applyVisibility(type) {
+      const show = new Set(visibleMap[type] || []);
+      Array.from(document.querySelectorAll('[data-field]')).forEach(el => {
+        const key = el.getAttribute('data-field');
+        el.classList.toggle('hidden', !show.has(key));
+      });
+    }
+    // ===== 공통 상수/유틸 =====
+    const DEV = location.hostname === "127.0.0.1" || location.hostname === "localhost";
+    const AUTO_BASE =
+      (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+        ? (location.port === "3000" ? "" : "http://localhost:3000")
+        : "";
+    const API = (window.KSEA_API_BASE ?? AUTO_BASE).replace(/\/+$/, "");
+    const $ = (id) => document.getElementById(id);
+  
+    // ----- (선택) 캐시 회피 쿼리 -----
+    const nocc = (url) => {
+      const u = new URL(url, location.origin);
+      u.searchParams.set('_t', Date.now().toString());
+      return u.toString();
+    };
+
+    function delUrl(id, extra = {}) {
+      const u = new URL(`${API}/api/admin/posts/${encodeURIComponent(id)}`, location.origin);
+      u.searchParams.set('_t', Date.now().toString());
+      for (const [k, v] of Object.entries(extra)) {
+        if (v != null) u.searchParams.set(k, String(v));
+      }
+      return u.toString();
+    }
+  
+    // ===== (선택) 로그인 도우미 =====
+    async function login(email, password) {
+      const r = await fetch(`${API}/api/auth/login`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const j = await r.json().catch(()=> ({}));
+      if (!r.ok) throw new Error(j.error || `Login failed (${r.status})`);
+      return j;
+    }
+  
+    let posterImageUrl = "";
+  
+    // ===== 타입별 UI 토글 =====
+    $("target").addEventListener("change", applyTypeUI);
+    function applyTypeUI(){
+      const t = $("target").value;
+      ["rowLink","rowPolaroid","rowOfficer"].forEach(id => $(id).classList.add("hidden"));
+      $("extraUploadPoster").classList.add("hidden");
+    
+      hideCommonFields(false);
+      if (t === "POPUP" || t === "OFFICER" || t === "GM") hideCommonFields(true);
+    
+      if (t === "POPUP" || t === "EVENT_UPCOMING") $("rowLink").classList.remove("hidden");
+      if (t === "EVENT_POLAROID") { $("rowPolaroid").classList.remove("hidden"); $("extraUploadPoster").classList.remove("hidden"); }
+      if (t === "OFFICER") $("rowOfficer").classList.remove("hidden");  
+      if (t === "GM") {
+        $("rowPolaroid").classList.remove("hidden"); // quarter/year 영역 재사용
+        hideLabelAndInputById("instagramUrl", true); // GM에선 Instagram 숨김
+      }
+      if (t === "EVENT_UPCOMING") {
+        toggleLabelAndField($("title"), true);
+        const di = $("date");
+        if (di) {
+          const row = di.closest("div");
+          if (row) row.classList.add("hidden");
+        }
+      } else if (t !== "POPUP" && t !== "OFFICER" && t !== "GM") {
+        toggleLabelAndField($("title"), false);
+        const di = $("date");
+        if (di) {
+          const row = di.closest("div");
+          if (row) row.classList.remove("hidden");
+        }
+      }
+    }
+    
+    applyTypeUI();
+  
+    // ===== 업로드 =====
+    // ✅ 정상 코드 (POST /api/upload)
+    $("btnUpload").addEventListener("click", async () => {
+      const f = $("file").files && $("file").files[0];
+      if (!f) { $("uploadStatus").textContent = "Choose an image first."; return; }
+      const fd = new FormData(); fd.append("file", f);
+
+      $("uploadStatus").textContent = "Uploading...";
+      try {
+        const r = await fetch(`${API}/api/upload`, { method: "POST", body: fd, credentials: "include" });
+        if (!r.ok) throw new Error(`Upload failed (${r.status})`);
+        const { url } = await r.json();
+        if (!url) throw new Error("No URL returned from upload API");
+        mainImageUrl = url;
+        $("uploadStatus").textContent = "Uploaded ✓";
+        $("preview").src = mainImageUrl; $("preview").classList.remove("hidden");
+      } catch (e) {
+        $("uploadStatus").textContent = (e && e.message) ? e.message : "Upload error";
+      }
+    });
+
+  
+    // POLAROID 포스터 업로드 (정상 동작 버전)
+    $("btnUpload2").addEventListener("click", async () => {
+      const f = $("file2").files && $("file2").files[0];
+      if (!f) { $("uploadStatus2").textContent = "Choose a poster first."; return; }
+
+      const fd = new FormData();
+      fd.append("file", f);
+
+      $("uploadStatus2").textContent = "Uploading...";
+      try {
+        const r = await fetch(`${API}/api/upload`, { method: "POST", body: fd, credentials: "include" });
+        if (!r.ok) throw new Error(`Upload failed (${r.status})`);
+        const { url } = await r.json();
+        if (!url) throw new Error("No URL returned from upload API");
+        window.posterImageUrl = url;  
+        $("uploadStatus2").textContent = "Uploaded ✓";
+      } catch (e) {
+        $("uploadStatus2").textContent = (e && e.message) ? e.message : "Upload error";
+      }
+    });
+  
+    // 카드 렌더
+    function card(p){
+      return `
+        <div class="rounded-xl bg-white/5 border border-white/10 p-3" data-id="${p.id}">
+          <img src="${p.imageUrl}" loading="lazy" class="w-full h-36 object-cover rounded-lg mb-2">
+          <div class="text-sm font-semibold">${p.title || "(no title)"}</div>
+          <div class="text-xs text-white/60">${p.date ? new Date(p.date).toLocaleDateString() : ""}</div>
+          <div class="text-xs text-white/70 line-clamp-3">${p.descKo || ""}</div>
+          <div class="mt-2">
+            <button class="btn-del px-3 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-sm">Delete</button>
+          </div>
+        </div>`;
+    }
+  
+  
+    function renderList(el, type, list) {
+      if (!el) { console.warn(`[SKIP] container missing for ${type}`); return; }
+    
+      const seen = new Set();
+      const unique = [];
+      for (const p of list) if (!seen.has(p.id)) { seen.add(p.id); unique.push(p); }
+    
+      const frag = document.createDocumentFragment();
+      for (const p of unique) {
+        const wrap = document.createElement('div');
+        wrap.innerHTML = card(p);
+        frag.appendChild(wrap.firstElementChild);
+      }
+      el.replaceChildren(frag);
+    
+      const idsInDom = Array.from(el.querySelectorAll(':scope > [data-id]')).map(n=>n.dataset.id);
+      const dup = idsInDom.filter((v,i,a)=> a.indexOf(v)!==i);
+      if (dup.length) console.warn('⛔ DUP IN DOM:', dup, 'type=', type, 'DOM ids=', idsInDom);
+    }
+    async function fetchList(type){
+      const url = new URL(`${API}/api/admin/posts`, location.origin);
+      url.searchParams.set('type', type);
+      url.searchParams.set('active', '1');
+      url.searchParams.set('_t', Date.now().toString());
+    
+      const r = await fetch(url.toString(), {
+        credentials: "include",
+        cache: "no-store",
+        headers: { "Accept": "application/json" }
+      });
+      const j = await r.json().catch(()=> ({}));
+      const list = Array.isArray(j.posts) ? j.posts : [];
+      console.log('[LIST]', type, { count: list.length, ids: list.map(p=>p.id) });
+      return list;
+    }
+    
+      // 이미 선언돼 있다면 중복선언해도 무해하지만, 한 번만 두는 것을 추천
+      function getListEl(type) {
+        return document.getElementById(`list_${type}`);
+      }
+    
+      async function refresh(type){
+        const el = getListEl(type);
+        if (!el) { console.warn(`[SKIP] no #list_${type} container`); return; }
+    
+        const list = await fetchList(type);
+        renderList(el, type, list);
+    
+        if (el._bound) return; // 중복 바인딩 방지
+    
+        el.addEventListener("click", async (e) => {
+          const btn = e.target.closest(".btn-del");
+          if (!btn) return;
+          const card = btn.closest("[data-id]");
+          const id = card?.dataset.id;
+          if (!id) return;
+        
+          const hard = e.shiftKey; // Shift = 하드 삭제
+          if (!confirm(hard ? "Hard delete this post?" : "Delete (deactivate) this post?")) return;
+        
+          btn.disabled = true;
+          try {
+            const r = await fetch(`${API}/api/admin/posts`, {
+              method: "POST",
+              credentials: "include",
+              headers: { "Content-Type": "application/json", ...window.extraAuthHeaders },
+              body: JSON.stringify({
+                action: hard ? "DELETE" : "SOFT_DELETE",
+                id,
+                hard
+              }),
+            });
+            const data = await r.json().catch(()=> ({}));
+        
+            if (r.status === 401 || r.status === 403) { alert("로그인이 필요합니다."); return; }
+            if (!r.ok || !data.ok) { alert(`삭제 실패: ${r.status}\n${JSON.stringify(data).slice(0,200)}`); return; }
+        
+            card?.remove();
+            const newList = await fetchList(type);
+            renderList(el, type, newList);
+          } finally {
+            btn.disabled = false;
+          }
+        }, { passive: true });
+        
+    
+        el._bound = true; // ✅ 빠졌던 부분
+      }
+    
+      function refreshAll(){
+        ["POPUP","EVENT_POLAROID","OFFICER","GM","EVENT_UPCOMING"]
+          .forEach(t => { if (getListEl(t)) refresh(t); });
+      }
+    
+      // applyTypeUI가 없으면 부드럽게 스킵 (정의 순서 이슈 방지)
+      document.addEventListener('DOMContentLoaded', () => {
+        if (typeof applyTypeUI === 'function') applyTypeUI();
+        refreshAll();
+      });
+    
+    
+    
+  </script>
+  <script>
+    const ADMIN_TOKEN = (localStorage.getItem('ksea:admintoken') || '').trim();
+    const extraAuthHeaders = ADMIN_TOKEN
+      ? { 'X-Admin-Token': ADMIN_TOKEN, 'Authorization': `Bearer ${ADMIN_TOKEN}` }
+      : {};
+  </script>
+  
+  <script>
+    function renderList(el, type, list) {
+      if (!el) { console.warn(`[SKIP] container missing for ${type}`); return; }
+    
+      const seen = new Set();
+      const unique = [];
+      for (const p of list) if (!seen.has(p.id)) { seen.add(p.id); unique.push(p); }
+    
+      const frag = document.createDocumentFragment();
+      for (const p of unique) {
+        const wrap = document.createElement('div');
+        wrap.innerHTML = card(p);
+        frag.appendChild(wrap.firstElementChild);
+      }
+      el.replaceChildren(frag);
+    
+      const idsInDom = Array.from(el.querySelectorAll(':scope > [data-id]')).map(n=>n.dataset.id);
+      const dup = idsInDom.filter((v,i,a)=> a.indexOf(v)!==i);
+      if (dup.length) console.warn('⛔ DUP IN DOM:', dup, 'type=', type, 'DOM ids=', idsInDom);
+    }
+    
+    async function refresh(type){
+      const el = document.getElementById(`list_${type}`);
+      if (!el) { console.warn(`[SKIP] no #list_${type} container`); return; }
+    
+      const list = await fetchList(type);
+      renderList(el, type, list);
+    
+      if (el._bound) return;
+    
+      el.addEventListener("click", async (e) => {
+        const btn = e.target.closest(".btn-del");
+        if (!btn) return;
+        const card = btn.closest("[data-id]");
+        const id = card?.dataset.id;
+        if (!id) return;
+    
+        const hard = e.shiftKey;
+        if (!confirm(hard ? "Hard delete this post?" : "Delete (deactivate) this post?")) return;
+    
+        btn.disabled = true;
+        try {
+          const r = await fetch(delUrl(id, hard ? { hard: 1 } : {}), {
+            method: "DELETE",
+            credentials: "include",
+            headers: { "Accept": "application/json" }
+          });
+          const data = await r.json().catch(()=> ({}));
+          if (r.status === 401 || r.status === 403) { alert("로그인이 필요합니다."); return; }
+          if (!r.ok || !data.ok) { alert(`삭제 실패: ${r.status}\n${JSON.stringify(data).slice(0,200)}`); return; }
+    
+          card?.remove();
+          const newList = await fetchList(type);
+          renderList(el, type, newList);
+        } finally {
+          btn.disabled = false;
+        }
+      }, { passive: true });
+    
+      el._bound = true;
+    }
+    
+  function getListEl(type) {
+    return document.getElementById(`list_${type}`);
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    applyTypeUI();
+    refreshAll();
+  });
+</script>
+<script>
+  // 맨 위 어딘가 공용 스크립트에
+  window.posterImageUrl = "";   // ✅ 전역 하나만
+  window.mainImageUrl   = "";   // (아래도 전역으로 통일하면 관리 쉬움)
+</script>
+
+<script>
+  document.getElementById("btnPublish").addEventListener("click", async () => {
+    const type = document.getElementById("target").value;
+
+    try {
+      let payload;
+
+      if (type === "OFFICER") {
+        // 업로드 URL 확보(전역 or 프리뷰 둘 다 체크)
+        const pv = document.getElementById("preview");
+        const previewSrc = (pv && pv.src) ? pv.src : "";
+        const imageUrl =
+          mainImageUrl ||
+          (previewSrc.startsWith("http://") || previewSrc.startsWith("https://") ? previewSrc : "");
+        if (!imageUrl) throw new Error("Upload photo.");
+
+        payload = {
+          type,
+          imageUrl,
+          enName: document.getElementById("enName").value.trim(),
+          koName: document.getElementById("koName").value.trim(),
+          role: document.getElementById("role").value.trim(),
+          linkedin: document.getElementById("linkedin").value.trim() || undefined,
+        };
+        if (!payload.enName || !payload.koName || !payload.role) {
+          throw new Error("Name/Role required.");
+        }
+      } else {
+        // 공통
+        const base = {
+          type,
+          title: document.getElementById("title").value.trim() || undefined,
+          date: document.getElementById("date").value || undefined,
+          descKo: document.getElementById("descKo").value.trim() || undefined,
+          descEn: document.getElementById("descEn").value.trim() || undefined,
+        };
+        payload = { ...base, imageUrl: mainImageUrl || undefined };
+
+        // 타입별 검증
+        if (type === "POPUP") {
+          if (!payload.imageUrl) throw new Error("Upload poster image.");
+          const link = document.getElementById("linkUrl").value.trim();
+          if (!link) throw new Error("Link URL required.");
+          payload.linkUrl = link;
+        }
+        else if (type === "GM") {
+          if (!payload.imageUrl) throw new Error("Upload image.");
+          payload.quarter = document.getElementById("quarter").value.trim() || undefined;
+          payload.year    = document.getElementById("year").value.trim() || undefined;
+          if (!payload.quarter) throw new Error('Quarter required .');
+          if (!payload.year) throw new Error("Year required.");
+
+        }
+        else if (type === "EVENT_POLAROID") {
+          if (!payload.imageUrl) throw new Error("Upload activity image.");
+          if (!payload.title) throw new Error("Title required.");
+          payload.posterUrl    = window.posterImageUrl || undefined;
+          payload.instagramUrl = document.getElementById("instagramUrl").value.trim() || undefined;
+          payload.quarter     = document.getElementById("quarter").value.trim() || undefined;
+          payload.year         = document.getElementById("year").value.trim() || undefined;
+          if (!payload.year) throw new Error("Year required.");
+          if (!payload.quarter) throw new Error('Quarter required .');
+
+        }
+        else if (type === "EVENT_UPCOMING") {
+          if (!payload.imageUrl) throw new Error("Upload poster.");
+          const link = document.getElementById("linkUrl").value.trim();
+          if (!link) throw new Error("Google Form URL required.");
+          payload.linkUrl = link;
+        }
+      }
+
+      // ===== 실제 전송 =====
+      document.getElementById("publishMsg").textContent = "Publishing...";
+      document.getElementById("btnPublish").disabled = true;
+      console.log("[payload]", payload);
+      const res = await fetch(`${API}/api/admin/posts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...window.extraAuthHeaders }, // ✅ 토큰 포함
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json().catch(() => ({}));
+      console.log("[POST /api/admin/posts] resp:", json);
+      alert(res.ok ? "Saved" : `${json?.error || "Publish failed"} (status ${res.status})`);
+      
+
+      if (!res.ok || j?.error) {
+        throw new Error(j?.error || `Publish failed (${res.status})`);
+      }
+
+      document.getElementById("publishMsg").textContent = "Published ✓";
+      refreshAll(); // ← 목록 즉시 갱신
+    } catch (e) {
+      document.getElementById("publishMsg").textContent = e?.message || "Error";
+    } finally {
+      document.getElementById("btnPublish").disabled = false;
+    }
+  });
+</script>
+
+<script>
+  // --- ONE SOURCE OF TRUTH ---
+  let mainImageUrl = "";
+
+  function setMainImage(url) {
+    mainImageUrl = url;
+    const pv = document.getElementById("preview");
+    pv.src = url;
+    pv.classList.remove("hidden");
+    document.getElementById("uploadStatus").textContent = "Uploaded ✓";
+    localStorage.setItem("ksea:lastUpload", url);
+  }
+
+  // 페이지 진입 시 마지막 업로드 복구(있을 때만)
+  (function restoreLastUpload(){
+    const last = localStorage.getItem("ksea:lastUpload");
+    if (last) setMainImage(last);
+  })();
+
+  // 업로드 핸들러 (중복 정의 제거하고 이거 하나만)
+  document.getElementById("btnUpload").addEventListener("click", async () => {
+    const f = document.getElementById("file").files?.[0];
+    if (!f) { document.getElementById("uploadStatus").textContent = "Choose an image first."; return; }
+
+    const fd = new FormData();
+    fd.append("file", f);
+
+    document.getElementById("uploadStatus").textContent = "Uploading...";
+    try {
+      const r = await fetch(`${API}/api/upload`, { method: "POST", body: fd, credentials: "include" });
+      const j = await r.json().catch(()=> ({}));
+      if (!r.ok) throw new Error(j?.error || `Upload failed (${r.status})`);
+
+      const url =
+        j?.url || j?.result?.url || j?.Location || j?.src ||
+        (typeof j === "string" ? j : "");
+      if (!url) throw new Error("No URL returned from upload API");
+
+      setMainImage(url);
+    } catch (e) {
+      document.getElementById("uploadStatus").textContent = (e?.message) || "Upload error";
+    }
+  });
+</script>
+<script>
+  function card(p, type){
+    if (type === 'OFFICER') {
+      const name = [p.enName, p.koName].filter(Boolean).join(' | ') || '(no name)';
+      const role = p.role || '';
+      return `
+        <div class="rounded-xl bg-white/5 border border-white/10 p-3" data-id="${p.id}">
+          <img src="${p.imageUrl}" loading="lazy" class="w-full h-36 object-cover rounded-lg mb-2">
+          <div class="text-sm font-semibold">${name}</div>
+          <div class="text-xs text-white/60">${role}</div>
+          <div class="mt-2">
+            <button class="btn-del px-3 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-sm">Delete</button>
+          </div>
+        </div>`;
+    }
+    // 기본(다른 타입)
+    return `
+      <div class="rounded-xl bg-white/5 border border-white/10 p-3" data-id="${p.id}">
+        <img src="${p.imageUrl}" loading="lazy" class="w-full h-36 object-cover rounded-lg mb-2">
+        <div class="text-sm font-semibold">${p.title || "(no title)"}</div>
+        <div class="text-xs text-white/60">${p.date ? new Date(p.date).toLocaleDateString() : ""}</div>
+        <div class="text-xs text-white/70 line-clamp-3">${p.descKo || ""}</div>
+        <div class="mt-2">
+          <button class="btn-del px-3 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-sm">Delete</button>
+        </div>
+      </div>`;
+  }
+
+</script>
+
+
+
+  
+</body>
+</html>

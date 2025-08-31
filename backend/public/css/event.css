@@ -1,0 +1,216 @@
+body {
+    overflow-x: hidden;
+}
+
+.subheader3 {
+    height: 50vh;
+    width: 100%;
+    background-image: linear-gradient(rgba(22, 38, 100, 0.67), rgba(16, 38, 124, 0.119)), url(/images/event/2024_winter/washere/IMG_9778.jpeg);
+    background-position-y: 49%;
+    background-size: cover;
+}
+
+.subheader3 h1{
+  font-weight: bold;
+    font-size: 23px;
+    margin-top: 50px;
+    text-align: center;
+    color: #FFDC34;
+    text-shadow: 3px 3px 9px rgba(0, 0, 0, 0.492);
+}
+
+.event {
+    width: 80%;
+    margin: auto;
+    padding-top: 70px;
+  }
+
+.event h1 {
+    text-align: center;
+    margin-bottom: 60px;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.492);
+    color: #2E3192;
+    font-size: 28px;
+}
+  
+.event-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 30px;
+    column-gap: 30px;
+  }
+
+.event-item {
+    flex: 1 1 300px; 
+    display: flex;
+    justify-content: center; 
+}
+  
+  .polaroid {
+    position: relative;
+    width: 100%;
+    height: auto;
+    max-width: 352px;
+    max-height: 265px;
+    cursor: pointer;
+    background: #fff; 
+    padding: 10px 10px 48px; 
+    box-shadow: 0 0px 15px rgba(0, 0, 0, 0.3); 
+    border-radius: 5px; 
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .polaroid img {
+    display: block;
+    width: 100%;
+    height:auto;
+    max-height: 210px;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border: none;
+
+  }
+  
+  .polaroid p {
+    width: 100%;
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: transparent;
+    padding: 5px 10px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+    text-align: center;
+
+  }
+  
+  .polaroid:hover {
+    transform: scale(1.1); 
+  }
+
+  .full-img {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.9);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    overflow: hidden;
+  }
+  
+.carousel {
+    display: flex;
+    align-items: center;
+  }
+
+  .popup-content-wrapper{
+    display: flex;
+    align-items: flex-start;
+    margin-left: 0;
+  }
+
+  .popup-content {
+    margin-left: 170px;
+    max-width: 800px;
+    max-height: 800px;
+  }
+  
+  .popup-text {
+    margin-top: 70px;
+    margin-left: 50px;
+    width: 240px;
+    height: auto;
+    padding: 20px;
+    background-color: white;
+    color: #000;
+    border-radius: 5px; 
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    word-wrap: break-word;
+    white-space: normal;
+
+    
+  }
+
+.close, .prev, .next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #fff;
+  font-size: 40px;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+}
+
+.close {
+  top: 20px;
+  right: 30px;
+  margin-top: 20px;
+}
+
+.prev {
+  left: 20px;
+  margin-left: 20px;
+}
+
+.next {
+  right: 20px;
+  margin-right: 20px;
+}
+
+/* upcoming event */
+.upcoming_event{
+  margin-left: 10%;
+  margin-top: 5%;
+  margin-right: 10%;
+}
+.upcoming_event h2{
+  color: #2E3192;
+  font-size: 28px;
+  text-align: center;
+  margin-bottom: 1%;
+}
+
+.upcoming_event h3{
+  text-align: center;
+  margin-bottom: 3%;
+}
+.upcoming_event_posters{
+  /* use commented code if there are more than 1 poster for the event */
+  /* display: flex;
+  gap: 5%; 
+  margin-left: 10%;
+  transition: transform 0.3s ease-in-out;
+*/
+  margin-left: auto;
+  margin-right: auto;
+  width: 25vw;
+  min-width: 200px;
+  height: auto;
+  transition: transform 0.3s ease-in-out;
+}
+
+.upcoming_event_posters:hover{
+  transform: scale(1.1); 
+}
+
+.upcoming_event_posters img{
+  width: 100%;
+  cursor: pointer;
+}
+
+.upcoming_event p{
+  margin-top:1%;
+  gap: 2%;
+  font-size:15px;
+  text-align: center;
+  margin-bottom:3rem;
+}

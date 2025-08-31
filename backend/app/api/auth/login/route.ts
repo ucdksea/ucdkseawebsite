@@ -1,12 +1,22 @@
 // app/api/auth/login/route.ts
+export const runtime = "nodejs";
+
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import { cookies } from "next/headers";
 
-/** 여러 오리진 허용 (localhost/127.0.0.1 둘 다) */
-const ALLOWED = (process.env.ALLOWED_ORIGINS ??
-  "http://127.0.0.1:5501,http://localhost:5501")
+// .env 예시:
+// ALLOWED_ORIGINS=http://127.0.0.1:3000,http://localhost:3000,https://ucdksea.com
+// APP_BASE_URL=http://localhost:3000   // 운영에선 https://ucdksea.com
+const DEFAULT_ALLOWED = [
+  "http://127.0.0.1:3000",
+  "http://localhost:3000",
+  "http://127.0.0.1:5501",
+  "http://localhost:5501",
+  "https://ucdksea.com",
+];
+const ALLOWED = (process.env.ALLOWED_ORIGINS ?? DEFAULT_ALLOWED.join(","))
   .split(",")
   .map(s => s.trim())
   .filter(Boolean);
@@ -14,19 +24,27 @@ const ALLOWED = (process.env.ALLOWED_ORIGINS ??
 function corsHeaders(origin: string | null) {
   const h: Record<string, string> = {
     "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-CSRF-Token",
+    "Access-Control-Max-Age": "600",
     "Vary": "Origin",
   };
   if (origin && ALLOWED.includes(origin)) {
     h["Access-Control-Allow-Origin"] = origin;
-    // 쿠키를 쓸 거면 Credentials 허용 필요
     h["Access-Control-Allow-Credentials"] = "true";
   }
   return h;
 }
 
+function sameOrigin(origin: string | null): boolean {
+  try {
+    const app = new URL(process.env.APP_BASE_URL ?? "http://localhost:3000").origin;
+    return !!origin && new URL(origin).origin === app;
+  } catch {
+    return false;
+  }
+}
+
 export async function OPTIONS(req: Request) {
-  // 프리플라이트 응답
   const origin = req.headers.get("origin");
   return new NextResponse(null, { status: 204, headers: corsHeaders(origin) });
 }
@@ -51,12 +69,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Not approved yet" }, { status: 403, headers });
     }
 
+    // 쿠키 정책 결정
+    const isProd = process.env.NODE_ENV === "production";
+    const isSame = sameOrigin(origin);
+
+    // 같은 오리진: Lax (개발에서 제일 편함)
+    // 크로스 오리진: None + Secure (⚠️ HTTPS 필수; http 로컬에선 브라우저가 쿠키를 막음)
+    const cookieSameSite = isSame ? "lax" : ("none" as const);
+    const cookieSecure = isSame ? isProd : true; // cross-site면 항상 true
+
     cookies().set("uid", user.id, {
       httpOnly: true,
-      sameSite: "lax",
-      secure: false,
+      sameSite: cookieSameSite, // "lax" | "none"
+      secure: cookieSecure,     // prod 또는 cross-site일 때 true
       path: "/",
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: 60 * 60 * 24 * 7, // 7 days
     });
 
     return NextResponse.json(

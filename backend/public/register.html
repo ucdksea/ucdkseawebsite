@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Officer Registration | UC DAVIS KSEA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/tailwind.css?v=20250825">
+  <style>
+    :root{
+      --ksea-blue:#3954A6;
+      --ksea-gold:#FFBF00;
+    }
+    html,body{height:100%}
+    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji"}
+    .bg-grid{
+      background-image: linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+                       linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .focus-ring:focus{outline:3px solid rgba(57,84,166,.45); outline-offset:2px}
+  </style>
+</head>
+<body class="min-h-dvh bg-[#0F172A] text-white selection:bg-white/20">
+  <header class="sticky top-6 z-10 bg-[#0F172A]/60 backdrop-blur supports-[backdrop-filter]:bg-[#0F172A]/40">
+    <div class="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
+      <a href="/" class="inline-flex items-center gap-2 hover:opacity-90" aria-label="Go to home">
+        <img src="/images/kseaicon/ksealogo_white.png" alt="KSEA logo" class="h-7 w-auto"/>
+        <span class="hidden sm:inline font-semibold tracking-wide">UC DAVIS KSEA</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="relative isolate">
+    <div aria-hidden class="pointer-events-none absolute inset-0 bg-grid opacity-40"></div>
+
+    <section class="mx-auto max-w-6xl px-4 pt-20 pb-12 md:pt-28 md:pb-16 grid md:grid-cols-2 gap-10 items-start">
+      <div class="space-y-5 self-start">
+        <h1 class="text-3xl md:text-4xl font-extrabold leading-tight">Officer Registration</h1>
+        <p class="text-white/80">This form is for <span class="font-semibold">UCD KSEA Officers</span> only. General members should instead use the <a href="/join" class="text-[var(--ksea-gold)] font-semibold hover:underline">Join KSEA</a> page.</p>
+        <ul class="text-white/70 list-disc pl-5 space-y-1">
+          <li>Please use your college-issued  <code>@ucdavis.edu</code> email address.</li>
+          <li>Your account may require approval by an administrator before activation.</li>
+        </ul>
+      </div>
+
+      <div class="">
+        <div class="relative rounded-2xl border border-white/15 bg-white/5 shadow-2xl ring-1 ring-white/10 p-6 md:p-8">
+          <div class="mb-4">
+            <h2 class="text-xl font-semibold">Create account</h2>
+            <p class="text-sm text-white/70"><span class="text-[var(--ksea-gold)]">Officers only.</span> All registrations are subject to approval.</p>
+          </div>
+
+          <div id="errorBanner" class="hidden mb-4 rounded-lg border border-red-400/40 bg-red-500/10 p-3 text-sm text-red-200"></div>
+
+          <form id="registerForm" class="space-y-4" novalidate>
+            <div>
+              <label for="name" class="block text-sm mb-1">Full Name</label>
+              <input id="name" name="name" type="text" required
+                     class="w-full rounded-xl bg-white/10 px-3 py-2 focus-ring placeholder:text-white/50"
+                     placeholder="GilDong Hong" />
+            </div>
+            
+            <div>
+              <label for="email" class="block text-sm mb-1">Officer Email</label>
+              <input id="email" name="email" type="email" required
+                     class="w-full rounded-xl bg-white/10 px-3 py-2 focus-ring placeholder:text-white/50"
+                     placeholder="username@ucdavis.edu" />
+            </div>
+            
+            <div class="flex items-center justify-between mb-1">
+              <label for="password" class="text-sm">Password</label>
+              <button type="button" id="togglePw"
+                      class="text-xs text-white/80 hover:text-white underline underline-offset-2">Show</button>
+            </div>
+            <div class="relative">
+              <input id="password" name="password" type="password" required minlength="8"
+                     class="w-full rounded-xl bg-white/10 px-3 py-2 pr-10 focus-ring placeholder:text-white/50"
+                     placeholder="••••••••" />
+              <span id="pwIcon" class="absolute inset-y-0 right-3 inline-flex items-center cursor-pointer text-white/50">
+                <i class="fa-solid fa-lock"></i>
+              </span>
+            </div>
+            
+            <div>
+              <label for="confirm" class="block text-sm mb-1">Confirm Password</label>
+              <input id="confirm" name="confirm" type="password" required minlength="8"
+                     class="w-full rounded-xl bg-white/10 px-3 py-2 pr-10 focus-ring placeholder:text-white/50"
+                     placeholder="••••••••" />
+            </div>
+            
+            <button type="submit" id="submitBtn"
+              class="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--ksea-blue)] px-4 py-2.5 font-semibold text-white shadow-lg transition-colors duration-200 hover:bg-white/60 hover:text-[var(--ksea-blue)] disabled:opacity-60 disabled:cursor-not-allowed">
+              <span>Register</span>
+              <svg id="spinner" class="hidden h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+              </svg>
+            </button>
+            
+            <p class="text-xs text-white/60">Already registered? <a href="/login" class="underline hover:text-[var(--ksea-gold)]">Sign in here</a>.</p>            
+          </form>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <footer class="mt-10 border-t border-white/10">
+    <div class="mx-auto max-w-6xl px-4 py-6 text-center text-sm text-white/60">
+      © 2025 KSEA Sacramento chapter — <a href="/" class="underline">UCD KSEA</a>
+    </div>
+  </footer>
+
+  <script>
+    // Next.js dev 서버로 보내기
+    const DEV = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
+    const API_BASE = DEV ? 'http://127.0.0.1:3000' : '';
+    const REGISTER_ENDPOINT = `${API_BASE}/api/auth/register`;
+  
+    const form = document.getElementById("registerForm");
+    const errorBanner = document.getElementById("errorBanner");
+    const submitBtn = document.getElementById("submitBtn");
+    const spinner = document.getElementById("spinner");
+    const ALLOWED_DOMAINS = ['ucdavis.edu']; // 필요 없으면 비워도 됨
+  
+    function showError(msg){ errorBanner.textContent = msg; errorBanner.classList.remove("hidden"); }
+    function hideError(){ errorBanner.classList.add("hidden"); errorBanner.textContent = ""; }
+    function setLoading(loading){ submitBtn.disabled = loading; spinner.classList.toggle("hidden", !loading); }
+  
+    form?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideError();
+  
+      const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const pw = document.getElementById("password").value;
+      const confirm = document.getElementById("confirm").value;
+  
+      if(!name || !email || !pw || !confirm){
+        showError("All fields are required.");
+        return;
+      }
+      const domain = (email.split('@')[1] || '').toLowerCase();
+      if (ALLOWED_DOMAINS.length && !ALLOWED_DOMAINS.includes(domain)) {
+        showError("Please use your @ucdavis.edu email.");
+        return;
+      }
+      if (pw !== confirm) {
+        showError("Passwords do not match.");
+        return;
+      }
+  
+      setLoading(true);
+      try{
+        const res = await fetch(REGISTER_ENDPOINT, {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ email, password: pw, name })
+        });
+  
+        if(!res.ok){
+          let msg = `Registration failed (${res.status}).`;
+          try{
+            const data = await res.json();
+            if (data?.issues) msg = "Invalid input.";
+            if (data?.error) msg = data.error;
+            if (data?.message) msg = data.message;
+            if (data?.detail) msg = data.detail;
+          }catch{}
+          throw new Error(msg);
+        }
+  
+        alert("Registration submitted. Await admin approval.");
+        window.location.href = "/login";
+      }catch(err){
+        showError(err.message || "Unable to register. Try again.");
+      }finally{
+        setLoading(false);
+      }
+    });
+  
+    // 비번 보기 토글
+    const pwInput  = document.getElementById("password");
+    const pwIcon   = document.getElementById("pwIcon");
+    const togglePw = document.getElementById("togglePw");
+    function togglePassword() {
+      if (!pwInput) return;
+      const isPwd = pwInput.type === "password";
+      pwInput.type = isPwd ? "text" : "password";
+      if (pwIcon) {
+        const ico = pwIcon.querySelector("i");
+        if (ico) {
+          ico.classList.toggle("fa-lock", !isPwd);
+          ico.classList.toggle("fa-lock-open", isPwd);
+        }
+      }
+      if (togglePw) togglePw.textContent = isPwd ? "Hide" : "Show"; // ← 추가
+    }    
+    pwIcon?.addEventListener("click", togglePassword);
+    togglePw?.addEventListener("click", togglePassword);
+  </script>  
+</body>
+</html>

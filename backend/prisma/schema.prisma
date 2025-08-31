@@ -38,15 +38,24 @@ enum PostType {
 }
 
 model Post {
-  id        String   @id @default(cuid())
-  type      PostType
-  title     String?
-  date      DateTime?
-  descKo    String?
-  descEn    String?
-  imageUrl  String
-  linkUrl   String?   // popup/upcoming용
-  meta      Json?     // polaroid/officer 부가정보 저장
-  active    Boolean   @default(true)
-  createdAt DateTime  @default(now())
+  id       String    @id @default(cuid())
+  type     PostType
+  active   Boolean   @default(true)
+  imageUrl String
+  title    String?
+  date     DateTime?
+  descKo   String?
+  year     String?
+  quarter  String?
+  descEn   String?
+  linkUrl  String?
+  enName   String?
+  koName   String?
+  role     String?
+  linkedin String?
+  meta      Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([type, active])
 }

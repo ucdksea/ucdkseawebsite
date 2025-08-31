@@ -1,24 +1,41 @@
-// app/api/admin/posts/route.ts
+// /Users/stephanie/Desktop/ucdksea-website/backend/app/api/admin/posts/route.ts
+console.log("✅ Loaded route.ts V7", new Date().toISOString());
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { prisma } from "lib/prisma";
+import { prisma } from "@/lib/prisma";
 
-const ALLOWED = (process.env.ALLOWED_ORIGINS ?? "http://127.0.0.1:5501,http://localhost:5501")
-  .split(",").map(s => s.trim()).filter(Boolean);
+const FINGERPRINT = "posts2-V7-THIS-IS-NEW";
+
+const ALLOWED = ["POPUP", "EVENT_UPCOMING", "EVENT_POLAROID", "GM", "OFFICER"] as const;
+type PostType = typeof ALLOWED[number];
+
+const DEFAULT_ALLOWED = [
+  "http://127.0.0.1:3000","http://localhost:3000",
+  "http://127.0.0.1:5501","http://localhost:5501",
+  "https://ucdksea.com",
+];
 
 function cors(origin: string | null) {
-  const h: Record<string,string> = {
-    "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Vary": "Origin",
+  const h: Record<string, string> = {
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-CSRF-Token, X-Admin-Token, Accept",
+    "Access-Control-Max-Age": "600",
+    "Cache-Control": "no-store",
+    Vary: "Origin",
+    "x-route-fingerprint": FINGERPRINT,
   };
-  if (origin && ALLOWED.includes(origin)) {
+  if (origin && DEFAULT_ALLOWED.includes(origin)) {
     h["Access-Control-Allow-Origin"] = origin;
     h["Access-Control-Allow-Credentials"] = "true";
   }
   return h;
+}
+
+function parsePostType(v: string | null): PostType | undefined {
+  if (!v) return undefined;
+  return (ALLOWED as readonly string[]).includes(v) ? (v as PostType) : undefined;
 }
 
 export async function OPTIONS(req: Request) {
@@ -26,112 +43,192 @@ export async function OPTIONS(req: Request) {
 }
 
 export async function GET(req: Request) {
-  const origin = req.headers.get("origin");
-  const headers = cors(origin);
-  const { searchParams } = new URL(req.url);
-  const type = searchParams.get("type") as any;
-  const active = searchParams.get("active");
+  const headers = cors(req.headers.get("origin"));
+  const url = new URL(req.url);
+  const typeEnum = parsePostType(url.searchParams.get("type"));
+  const activeParam = url.searchParams.get("active");
+  const onlyActive =
+    activeParam == null ? true :
+    activeParam === "1" ? true :
+    activeParam === "0" ? false : true;
 
-  const posts = await prisma.post.findMany({
-    where: {
-      ...(type ? { type } : {}),
-      ...(active ? { active: active === "1" || active === "true" } : {}),
-    },
+  const rows = await prisma.post.findMany({
+    where: { ...(typeEnum ? { type: typeEnum } : {}), active: onlyActive },
     orderBy: { createdAt: "desc" },
+    select: {
+      id: true, type: true, active: true, createdAt: true,
+      imageUrl: true, linkUrl: true, title: true, date: true, descKo: true, descEn: true,
+      year: true, quarter: true, meta: true,
+    },
   });
 
-  return NextResponse.json({ posts }, { status: 200, headers });
+  const posts = rows.map((p) =>
+    p.type === "OFFICER"
+      ? {
+          ...p,
+          enName:   p.title   ?? null,
+          koName:   p.descKo  ?? null,
+          role:     p.descEn  ?? null,
+          linkedin: p.linkUrl ?? null,
+        }
+      : p
+  );
+
+  return NextResponse.json({ posts }, { headers });
 }
 
-// 생성
 export async function POST(req: Request) {
-  const origin = req.headers.get("origin");
-  const headers = cors(origin);
+  console.log("[HIT /api/admin/posts] NEW ROUTE", Date.now());
+  
+  const seasonAliases: Record<string, string> = {
+    fall: "Fall", f: "Fall", "autumn": "Fall", "1": "Fall", q1: "Fall",
+    winter: "Winter", w: "Winter", "2": "Winter", q2: "Winter",
+    spring: "Spring", s: "Spring", "3": "Spring", q3: "Spring",
+  };
+  function normalizeQuarter(raw: unknown): string {
+    if (raw == null) return "";
+    const s = String(raw).trim();
+    if (!s) return "";
+    const key = s.toLowerCase().replace(/\s+/g, "");
+    return seasonAliases[key] ?? "";
+  }
+  const headers = cors(req.headers.get("origin"));
+  headers["x-posts-route-fp"] = "posts2-V7-THIS-IS-NEW";
+  headers["x-posts-route-hit"] = String(Date.now());
+  let body: any = {};
+  try { body = await req.json(); } catch {}
 
-  // 간단한 인증(로그인 + 승인)
-  const uid = cookies().get("uid")?.value || null;
-  if (!uid) return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers });
-  const me = await prisma.user.findUnique({ where: { id: uid }, select: { isApproved: true } });
-  if (!me?.isApproved) return NextResponse.json({ error: "Forbidden" }, { status: 403, headers });
-
-  const body = await req.json();
-  const { type } = body as { type?: string };
-  if (!type) return NextResponse.json({ error: "type required" }, { status: 400, headers });
-
-  // 타입별 검증/매핑
-  let data: any = { type, active: true };
-
-  switch (type) {
-    case "POPUP": {
-      // index popup: 구글폼 링크 + 포스터 이미지
-      const { imageUrl, linkUrl } = body;
-      if (!imageUrl) return NextResponse.json({ error: "imageUrl required" }, { status: 400, headers });
-      if (!linkUrl)  return NextResponse.json({ error: "linkUrl required" },  { status: 400, headers });
-      data.imageUrl = imageUrl;
-      data.linkUrl  = linkUrl;
-      break;
-    }
-
-    case "GM": {
-      // gm 카드: 사진 + 캡션(title: "YYYY Spring General Members")
-      const { imageUrl, title } = body;
-      if (!imageUrl) return NextResponse.json({ error: "imageUrl required" }, { status: 400, headers });
-      if (!title)    return NextResponse.json({ error: "title required" },    { status: 400, headers });
-      data.imageUrl = imageUrl;
-      data.title    = title;
-      break;
-    }
-
-    case "EVENT_POLAROID": {
-      // 폴라로이드: 썸네일(활동사진) + posterUrl + instagramUrl + 제목/학기/년/날짜/설명(한/영)
-      const { imageUrl, posterUrl, instagramUrl, title, semester, year, date, descKo, descEn } = body;
-      if (!imageUrl) return NextResponse.json({ error: "imageUrl required" }, { status: 400, headers });
-      if (!title)    return NextResponse.json({ error: "title required" },    { status: 400, headers });
-      data.imageUrl = imageUrl;
-      data.title    = title;
-      if (date) {
-        const d = new Date(date);
-        if (isNaN(d.getTime())) return NextResponse.json({ error: "Bad date" }, { status: 400, headers });
-        data.date = d;
-      }
-      data.descKo = descKo ?? null;
-      data.descEn = descEn ?? null;
-      data.meta = {
-        posterUrl: posterUrl || null,
-        instagramUrl: instagramUrl || null,
-        semester: semester || null,  // "Spring" 등
-        year: year || null,          // "2025"
-      };
-      break;
-    }
-
-    case "EVENT_UPCOMING": {
-      // upcmoing: 포스터 이미지 + 구글폼 링크 + 설명(ko/en 중 택)
-      const { imageUrl, linkUrl, descKo, descEn } = body;
-      if (!imageUrl) return NextResponse.json({ error: "imageUrl required" }, { status: 400, headers });
-      if (!linkUrl)  return NextResponse.json({ error: "linkUrl required" },  { status: 400, headers });
-      data.imageUrl = imageUrl;
-      data.linkUrl  = linkUrl;
-      data.descKo   = descKo ?? null;
-      data.descEn   = descEn ?? null;
-      break;
-    }
-
-    case "OFFICER": {
-      // officer: 영문/한글 이름 + 직책 + 사진 + linkedin
-      const { imageUrl, enName, koName, role, linkedin } = body;
-      if (!imageUrl) return NextResponse.json({ error: "imageUrl required" }, { status: 400, headers });
-      if (!enName || !koName || !role) return NextResponse.json({ error: "enName/koName/role required" }, { status: 400, headers });
-      data.imageUrl = imageUrl;
-      data.title    = `${enName} | ${koName}`;
-      data.meta     = { enName, koName, role, linkedin: linkedin || null };
-      break;
-    }
-
-    default:
-      return NextResponse.json({ error: "Unknown type" }, { status: 400, headers });
+  const typeEnum = parsePostType(body?.type ?? null);
+  if (!typeEnum) {
+    return NextResponse.json({ error: `type must be one of ${ALLOWED.join("|")}` }, { status: 400, headers });
+  }
+  if (!body?.imageUrl) {
+    return NextResponse.json({ error: "imageUrl required" }, { status: 400, headers });
   }
 
-  const post = await prisma.post.create({ data });
-  return NextResponse.json({ ok: true, post }, { status: 201, headers });
+  // 🔧 year/quarter를 관대하게 받아서 정규화
+  const yRaw =
+    body.year ??
+    body.gmYear ??
+    body.polaroidYear ??
+    body?.meta?.year ??
+    null;
+
+  const qRaw =
+    body.quarter ??
+    body.gmQuarter ??
+    body.polaroidQuarter ??
+    body?.meta?.quarter ??
+    null;
+
+  const normYear =
+    typeof yRaw === "number" ? String(yRaw) :
+    typeof yRaw === "string" ? yRaw.trim() : "";
+
+  // "Q1", "q2", "2 " 같은 입력도 허용
+  const normQuarterStr =
+    typeof qRaw === "number" ? String(qRaw) :
+    typeof qRaw === "string" ? qRaw.trim().replace(/^q/i, "").replace(/^Q/i, "") : "";
+
+  const normQuarterNum = Number(normQuarterStr);
+  const normQuarter = normalizeQuarter(qRaw);
+
+  // ✅ 타입별 필수값
+  if ((typeEnum === "POPUP" || typeEnum === "EVENT_UPCOMING") && !body.linkUrl) {
+    return NextResponse.json({ error: "linkUrl required for POPUP/EVENT_UPCOMING" }, { status: 400, headers });
+  }
+  if (typeEnum === "EVENT_POLAROID" && !body.title) {
+    return NextResponse.json({ error: "title required for EVENT_POLAROID" }, { status: 400, headers });
+  }
+
+  // ✅ GM & EVENT_POLAROID 모두 year/quarter 필수
+  if (typeEnum === "GM" || typeEnum === "EVENT_POLAROID") {
+    if (!normYear) {
+      return NextResponse.json(
+        { error: `Year required for ${typeEnum}`, received: { year: yRaw } },
+        { status: 400, headers }
+      );
+    }
+    if (!normQuarterStr) {
+      return NextResponse.json(
+        { error: `Quarter required for ${typeEnum}`, received: { quarter: qRaw } },
+        { status: 400, headers }
+      );
+    }
+    if (!normQuarter) {
+      return NextResponse.json(
+        { error: "Quarter must be one of Fall / Winter / Spring", received: { quarter: qRaw } },
+        { status: 400, headers }
+      );
+    }
+  }
+
+  // 저장 데이터 구성
+  const data: any = {
+    type: typeEnum,
+    imageUrl: body.imageUrl,     
+    active: true,
+    meta: {
+      posterUrl: body?.meta?.posterUrl ?? body.posterUrl ?? null,
+      instagramUrl: body?.meta?.instagramUrl ?? body.instagramUrl ?? null,
+      formUrl: body?.meta?.formUrl ?? body.formUrl ?? null,
+      year: body?.meta?.year ?? null,
+      quarter: body?.meta?.quarter ?? null,
+    },
+  };
+  const posterUrlIn = body.posterUrl ?? body?.meta?.posterUrl ?? "";
+  const effectivePosterUrl = posterUrlIn || data.imageUrl;
+
+    // 🔽 추가: posterUrl/formUrl/instagramUrl을 meta에 담아 저장
+    const meta: any = {};
+    if (effectivePosterUrl) meta.posterUrl = effectivePosterUrl;
+    if (body.formUrl ?? body?.meta?.formUrl) meta.formUrl = body.formUrl ?? body?.meta?.formUrl;
+    if (body.instagramUrl ?? body?.meta?.instagramUrl) meta.instagramUrl = body.instagramUrl ?? body?.meta?.instagramUrl;
+    if (Object.keys(meta).length) data.meta = meta;
+  
+
+  if (typeEnum === "OFFICER") {
+    data.title   = (body.enName   ?? "").trim();
+    data.descKo  = (body.koName   ?? "").trim();
+    data.descEn  = (body.role     ?? "").trim();
+    data.linkUrl = (body.linkedin ?? "").trim() || null;
+    data.date    = null;
+    data.year    = null;
+    data.quarter = null;
+  } else if (typeEnum === "GM") {
+    data.title   = null;
+    data.date    = null;
+    data.descKo  = body.descKo ?? null;
+    data.descEn  = body.descEn ?? null;
+    data.linkUrl = body.linkUrl ?? null;
+    data.year    = normYear;            // ← 문자열로 저장 (schema: String?)
+    data.quarter = String(normQuarterNum);
+    data.quarter = normQuarter;
+  } else if (typeEnum === "EVENT_POLAROID") {
+    data.title   = body.title ?? null;
+    data.descKo  = body.descKo ?? null;
+    data.descEn  = body.descEn ?? null;
+    data.linkUrl = body.linkUrl ?? null;   // 예비 링크
+    data.date    = body.date ? new Date(body.date) : null;
+    data.year    = normYear;
+    data.quarter = normQuarter;
+  } else {
+    data.title   = body.title ?? null;
+    data.descKo  = body.descKo ?? null;
+    data.descEn  = body.descEn ?? null;
+    data.linkUrl = body.linkUrl ?? null;
+    data.date    = body.date ? new Date(body.date) : null;
+    data.year    = null;
+    data.quarter = null;
+  }
+
+  try {
+    const post = await prisma.post.create({ data });
+    return NextResponse.json({ ok: true, post }, { headers });
+  } catch (e: any) {
+    return NextResponse.json({ error: e?.message || "Create failed" }, { status: 500, headers });
+  }  
 }
+
+
+

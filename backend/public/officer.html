@@ -1,0 +1,232 @@
+<!-- /Users/stephanie/Desktop/ucdksea-website/officer.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UC DAVIS KSEA</title>
+
+    <!-- Site CSS -->
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/officer.css" />
+    <link rel="stylesheet" href="/css/media.css" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Favicon & Icons -->
+    <link
+      rel="icon"
+      href="/images/kseaicon/kseawhiteicon.png"
+      type="image/png"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <!-- Header -->
+    <section class="subheader2">
+      <nav>
+        <a href="/"><img src="/images/kseaicon/ksealogo_white.png" alt="UC Davis KSEA logo" /></a>
+        <i class="fa-solid fa-bars" id="menuIcon" onclick="openMenu()"></i>
+        <div class="nav-links" id="navLinks">
+          <i class="fa-solid fa-xmark" id="closeIcon" onclick="closeMenu()"></i>
+          <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/#about">About UCD KSEA</a></li>
+            <li><a href="/officer">Officers</a></li>
+            <li><a href="/gm">General Members</a></li>
+            <li><a href="/event">Events</a></li>
+            <li><a href="/faq">FAQ</a></li>
+            <li><a href="/join">Join KSEA</a></li>
+          </ul>
+        </div>
+      </nav>
+      <h1>Officers</h1>
+    </section>
+
+    <!-- Officers -->
+    <section class="board">
+      <div>
+        <div id="list_OFFICER" class="board-members"></div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <section class="footer">
+      <app-footer _ngcontent-xno-c271="" _nghost-xno-c31="">
+        <footer _ngcontent-xno-c31="">
+          <div _ngcontent-xno-c31="" class="wrap-footer-info">
+            <div _ngcontent-xno-c31="" class="con-info">
+              <img
+                _ngcontent-xno-c31=""
+                src="/images/kseaicon/ksealogo_white.png"
+                alt="KSEA_logo"
+              />
+              <ul _ngcontent-xno-c31="">
+                <li _ngcontent-xno-c31="" id="ngcontent1">
+                  Korean-American Scientists and Engineers Association (KSEA)
+                </li>
+                <li _ngcontent-xno-c31="" id="ngcontent2">
+                  KSEA Young Generation Group | University of California, Davis
+                </li>
+                <li _ngcontent-xno-c31="">
+                  <span style="color: rgb(223, 223, 223)"
+                    >Email: ucdksea@gmail.com</span
+                  >
+                </li>
+                <li _ngcontent-xno-c31="">
+                  <span style="color: rgb(223, 223, 223)"
+                    >Copyright © 2024 KSEA Sacramento chapter, All Rights
+                    Reserved</span
+                  >
+                </li>
+                <li>
+                  <a href="/login"
+                     rel="nofollow"
+                     class="text-sm text-gray-400 hover:text-white hover:underline transition"
+                     aria-label="Officer login (KSEA UC Davis officers only)">
+                    Officer Login
+                  </a>              
+                </li>
+              </ul>
+            </div>
+            <div><p><span style = "color: #3954A6 ;line-height: 0;">by 백지원&박여진</span></p></div>
+            <div _ngcontent-xno-c31="" class="con-sns">
+              <ul _ngcontent-xno-c31="">
+                <li _ngcontent-xno-c31="">
+                  <a
+                    _ngcontent-xno-c31=""
+                    href="https://www.instagram.com/kseadavis/"
+                    target="_blank"
+                    ><img
+                      _ngcontent-xno-c31=""
+                      src="/images/instagram.png"
+                      width="50"
+                      height="50"
+                      alt="KSEA instagram"
+                  /></a>
+                </li>
+                <li _ngcontent-xno-c31="">
+                  <a
+                    _ngcontent-xno-c31=""
+                    href="https://linktr.ee/ucdksea"
+                    target="_blank"
+                    ><img
+                      _ngcontent-xno-c31=""
+                      src="/images/linktree.png"
+                      width="50"
+                      height="50"
+                      alt="Ksea linktree"
+                  /></a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </footer>
+      </app-footer>
+    </section>
+    <script>
+      // 파일 최상단 유틸 근처에 추가 (혹은 남아 있는 호출을 전부 삭제)
+      function hideCommonFields() {}
+      function showCommonFields() {}
+      function hideOfficerFields() {}
+      function showOfficerFields() {}
+    </script>
+
+    <!-- 모바일 메뉴 토글 -->
+    <script>
+      const navLinks = document.getElementById("navLinks");
+      const menuIcon = document.getElementById("menuIcon");
+      const closeIcon = document.getElementById("closeIcon");
+
+      function openMenu() {
+        navLinks.style.right = "0";
+        menuIcon.style.display = "none";
+        closeIcon.style.display = "block";
+      }
+      function closeMenu() {
+        navLinks.style.right = "-200px";
+        menuIcon.style.display = "block";
+        closeIcon.style.display = "none";
+      }
+    </script>
+
+    <!-- 백엔드 연동: OFFICER 목록 로딩 (빈 데이터/실패 시 조용히 비움) -->
+    <script>
+      (async () => {
+        const DEV = location.hostname === "127.0.0.1" || location.hostname === "localhost";
+        const API = DEV ? "http://localhost:3000" : "";
+    
+        const grid = document.querySelector("#list_OFFICER");
+        if (!grid) return;
+    
+        const esc = (s) =>
+          String(s ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    
+        try {
+          const r = await fetch(`${API}/api/admin/posts?type=OFFICER&active=1`, { credentials: "omit" });
+          if (!r.ok) throw new Error(r.status);
+          const { posts = [] } = await r.json();
+    
+          if (!posts.length) { grid.innerHTML = ""; return; }
+    
+          grid.innerHTML = posts.map((p) => {
+            // ✅ 새 API(top-level) 우선, 혹시 옛 데이터면 meta 백업 사용
+            const enName   = p.enName   ?? p.title   ?? "";
+            const koName   = p.koName   ?? p.descKo  ?? "";
+            const role     = p.role     ?? p.descEn  ?? "";
+            const linkedin = p.linkedin ?? p.linkUrl ?? "";
+            const imgSrc   = p.imageUrl ?? "";
+    
+            const nameLine = [enName, koName].filter(Boolean).join(" | ");
+            const imgTag   = `<img src="${esc(imgSrc)}" alt="${esc(nameLine)}" loading="lazy" />`;
+            const imgWrap  = linkedin
+              ? `<a href="${esc(linkedin)}" target="_blank" rel="noopener noreferrer">${imgTag}</a>`
+              : imgTag;
+    
+            return `
+              <div class="board-member">
+                <div class="image-container">${imgWrap}</div>
+                <h3>${esc(nameLine)}</h3>
+                <p>${esc(role)}</p>
+              </div>
+            `;
+          }).join("");
+    
+        } catch (e) {
+          console.warn("OFFICER fetch failed:", e);
+          grid.innerHTML = "";
+        }
+      })();
+      function hideCommonFields(hide) {
+        const ids = ['title','date','descKo','descEn'];
+        for (const id of ids) {
+          const el = document.getElementById(id);
+          if (!el) continue;
+          el.classList.toggle('hidden', hide);
+          const lab = el.previousElementSibling;
+          if (lab && lab.tagName === 'LABEL') lab.classList.toggle('hidden', hide);
+        }
+      }
+      </script>
+      <script>
+        function getListEl(type) {
+          return document.getElementById(`list_${type}`);
+        }
+      </script>
+      
+  </body>
+</html>

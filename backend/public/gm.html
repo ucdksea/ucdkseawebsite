@@ -1,0 +1,280 @@
+<!-- /Users/stephanie/Desktop/ucdksea-website/gm.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UC DAVIS KSEA</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Site CSS -->
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/gm.css" />
+    <link rel="stylesheet" href="/css/media.css" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Favicon & Icons -->
+    <link
+      rel="icon"
+      href="/images/kseaicon/kseawhiteicon.png"
+      type="image/png"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+  </head>
+
+  <body>
+    <!-- Header -->
+    <section class="subheader5">
+      <nav>
+        <a href="/"><img src="/images/kseaicon/ksealogo_white.png" alt="UC Davis KSEA logo" /></a>
+        <i class="fa-solid fa-bars" id="menuIcon" onclick="openMenu()"></i>
+        <div class="nav-links" id="navLinks">
+          <i class="fa-solid fa-xmark" id="closeIcon" onclick="closeMenu()"></i>
+          <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/#about">About UCD KSEA</a></li>
+            <li><a href="/officer">Officers</a></li>
+            <li><a href="/gm">General Members</a></li>
+            <li><a href="/event">Events</a></li>
+            <li><a href="/faq">FAQ</a></li>
+            <li><a href="/join">Join KSEA</a></li>
+          </ul>
+        </div>
+      </nav>
+      <h1>General Members</h1>
+    </section>
+
+    <!-- Hero Section -->
+    <section class="first">
+      <h1>✨ Become a UCD KSEA General Member</h1>
+      <p>Grow your network, lead your peers, and make an impact.</p>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="benefit">
+      <h2 class="text-2xl font-bold text-blue-800 mb-6 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16" />
+        </svg>
+        Membership Benefits
+      </h2>
+      <ul>
+        <li>Various volunteer opportunities</li>
+        <li>Major-specific networking groups & seasonal hangouts</li>
+        <li>Members-only academic and social events</li>
+        <li>Free social events</li>
+        <li>Opportunity to plan and lead the DoDream program</li>
+        <li>Big/Little mentoring program</li>
+        <li>Discounts or free access to fundraising events</li>
+      </ul>
+    </section>
+
+    <!-- Requirements Section -->
+    <section class="requirements">
+      <h2 class="text-2xl font-bold text-blue-800 mb-6 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        Membership Requirements
+      </h2>
+      <ul>
+        <li>Pay a small membership fee</li>
+        <li>Attend at least 2 General Meetings per term</li>
+        <li>Participate in at least 2 KSEA events per term</li>
+      </ul>
+    </section>
+
+    <!-- Application Process -->
+    <section class="application">
+      <h2 class="text-2xl font-bold text-blue-800 mb-6 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16h8M8 12h8m-8-4h8M4 6h16M4 18h16" />
+        </svg>
+        How to Apply
+      </h2>
+      <ul>
+        <li>Fill out the application form via Google Form</li>
+        <li>Short interview with the President and Vice President</li>
+      </ul>
+    </section>
+
+    <!-- Photo Section (백엔드 연동) -->
+    <section id="gmSection" class="gallery-section">
+      <h2 class="text-center text-2xl font-bold text-blue-700 mb-10">📸 Our General Members</h2>
+      <div
+        id="gmGallery"
+        class="mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 max-w-6xl px-4">
+        <!-- 백엔드에서 동적으로 채움 -->
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <section class="footer">
+      <app-footer _ngcontent-xno-c271="" _nghost-xno-c31="">
+        <footer _ngcontent-xno-c31="">
+          <div _ngcontent-xno-c31="" class="wrap-footer-info">
+            <div _ngcontent-xno-c31="" class="con-info">
+              <img
+                _ngcontent-xno-c31=""
+                src="/images/kseaicon/ksealogo_white.png"
+                alt="KSEA_logo"
+              />
+              <ul _ngcontent-xno-c31="">
+                <li _ngcontent-xno-c31="" id="ngcontent1">
+                  Korean-American Scientists and Engineers Association (KSEA)
+                </li>
+                <li _ngcontent-xno-c31="" id="ngcontent2">
+                  KSEA Young Generation Group | University of California, Davis
+                </li>
+                <li _ngcontent-xno-c31="">
+                  <span style="color: rgb(223, 223, 223)"
+                    >Email: ucdksea@gmail.com</span
+                  >
+                </li>
+                <li _ngcontent-xno-c31="">
+                  <span style="color: rgb(223, 223, 223)"
+                    >Copyright © 2024 KSEA Sacramento chapter, All Rights
+                    Reserved</span
+                  >
+                </li>
+                <li>
+                  <a href="/login"
+                     rel="nofollow"
+                     class="text-sm text-gray-400 hover:text-white hover:underline transition"
+                     aria-label="Officer login (KSEA UC Davis officers only)">
+                    Officer Login
+                  </a>              
+                </li>
+              </ul>
+            </div>
+            <div><p><span style = "color: #3954A6 ;line-height: 0;">by 백지원&박여진</span></p></div>
+            <div _ngcontent-xno-c31="" class="con-sns">
+              <ul _ngcontent-xno-c31="">
+                <li _ngcontent-xno-c31="">
+                  <a
+                    _ngcontent-xno-c31=""
+                    href="https://www.instagram.com/kseadavis/"
+                    target="_blank"
+                    ><img
+                      _ngcontent-xno-c31=""
+                      src="/images/instagram.png"
+                      width="50"
+                      height="50"
+                      alt="KSEA instagram"
+                  /></a>
+                </li>
+                <li _ngcontent-xno-c31="">
+                  <a
+                    _ngcontent-xno-c31=""
+                    href="https://linktr.ee/ucdksea"
+                    target="_blank"
+                    ><img
+                      _ngcontent-xno-c31=""
+                      src="/images/linktree.png"
+                      width="50"
+                      height="50"
+                      alt="Ksea linktree"
+                  /></a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </footer>
+      </app-footer>
+    </section>
+
+    <!-- 모바일 메뉴 토글 -->
+    <script>
+      const navLinks = document.getElementById("navLinks");
+      const menuIcon = document.getElementById("menuIcon");
+      const closeIcon = document.getElementById("closeIcon");
+
+      function openMenu() {
+        navLinks.style.right = "0";
+        menuIcon.style.display = "none";
+        closeIcon.style.display = "block";
+      }
+
+      function closeMenu() {
+        navLinks.style.right = "-200px";
+        menuIcon.style.display = "block";
+        closeIcon.style.display = "none";
+      }
+    </script>
+
+    <!-- 백엔드 연동: GM 갤러리 로딩 (빈 데이터/실패 시 조용히 숨김) -->
+    <script>
+      (async () => {
+        const isDev = location.hostname === "127.0.0.1" || location.hostname === "localhost";
+        // 같은 도메인에서 서빙되면 빈 문자열("")로 두는 현재 방식 OK.
+        // 단, file:// 로 열면 CORS/경로 이슈가 나니 꼭 http://localhost:5500 또는 3000 등 서버로 열기.
+        const API_BASE = isDev ? "http://localhost:3000" : "";
+    
+        const section = document.getElementById("gmSection");
+        const box = document.getElementById("gmGallery");
+        if (!section || !box) return;
+    
+        try {
+          // active=1 필터를 쓰고 싶다면 백엔드가 그 파라미터를 지원하는지 확인.
+          // 일단 지원된다고 가정하고 유지.
+          const res = await fetch(`${API_BASE}/api/admin/posts?type=GM&active=1`, {
+            credentials: "omit",
+            headers: { "Accept": "application/json" }
+          });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    
+          const data = await res.json();
+          const posts = Array.isArray(data?.posts) ? data.posts : [];
+    
+          if (!posts.length) { section.style.display = "none"; return; }
+    
+          const html = posts
+            .filter(p => p?.imageUrl)
+            .map(p => {
+              const quarter = (p.quarter || p.semester || "").toString().trim();
+              const year    = (p.year || "").toString().trim();
+              const title   = (p.title || "").toString().trim();
+    
+              const captionRaw =
+                (quarter && year) ? `${quarter} ${year}` :
+                title ? title : "";
+    
+              const caption = (captionRaw || "").replace(/"/g, "&quot;"); // XSS/속성깨짐 방지
+              const img = p.imageUrl;
+    
+              return `
+                <div class="flex flex-col items-center text-center">
+                  <img src="${img}" alt="${caption}" loading="lazy"
+                       class="rounded-xl shadow-md w-[280px] h-[200px] object-cover" />
+                  <p class="mt-3 text-gray-600 text-sm">${caption} General Members</p>
+                </div>
+              `;
+            })
+            .join("");
+    
+          if (!html) { section.style.display = "none"; return; }
+          box.innerHTML = html;
+    
+        } catch (err) {
+          console.warn("GM fetch failed:", err);
+          section.style.display = "none";
+        }
+      })();
+    </script>
+    
+    
+  </body>
+</html>

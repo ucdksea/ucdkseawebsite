@@ -1,0 +1,417 @@
+<!-- /Users/stephanie/Desktop/ucdksea-website/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>UC DAVIS KSEA | Korean-American Scientists and Engineers Association at UC Davis</title>
+
+    <!-- domain -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "UCDKSEA",
+        "alternateName": ["ucdksea", "ucdavis ksea", "UCDKSEA", "KSEA", "ksea"],
+        "url": "https://ucdksea.com",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://ucdksea.com/search?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
+
+    <meta name="google-site-verification" content="DueuXaL9-m_R064iOz7R9-0kQgYKckYP7MTi9bXN9O8" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/index.css" />
+    <link rel="stylesheet" href="/css/about.css" />
+    <link rel="stylesheet" href="/css/media.css" />
+    <style>
+      .observe.show { opacity: 1 !important; transform: none !important; }
+    </style>
+
+    <!-- Fonts / Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap" rel="stylesheet" />
+    <link rel="icon" href="/images/kseaicon/kseawhiteicon.png" type="image/png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  </head>
+
+  <body>
+    <section class="header">
+      <nav>
+        <a href="/"><img src="/images/kseaicon/ksealogo_white.png" alt="UC Davis KSEA logo"/></a>
+        <i class="fa-solid fa-bars" id="menuIcon" onclick="openMenu()"></i>
+        <div class="nav-links" id="navLinks">
+          <i class="fa-solid fa-xmark" id="closeIcon" onclick="closeMenu()"></i>
+          <ul>
+            <li><a href="/">Home</a></li>
+            <!-- hidePopup 안전 호출 처리 -->
+            <li><a href="/#about" onclick="window.hidePopup && hidePopup(); closeMenu();">About UCD KSEA</a></li>
+            <li><a href="/officer">Officers</a></li>
+            <li><a href="/gm">General Members</a></li>
+            <li><a href="/event">Events</a></li>
+            <li><a href="/faq">FAQ</a></li>
+            <li><a href="/join">Join KSEA</a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <div class="textbox">
+        <h1>UC DAVIS KSEA</h1>
+        <h5>Korean-American Scientists and Engineers Association</h5>
+      </div>
+    </section>
+
+    <!-- ---------------------- About Section ---------------------- -->
+    <section id="about">
+      <!-- page 1 -->
+      <div class="page_1">
+        <div class="we_help">
+          <p>“We help Korean-American scientists and engineers develop their full career potential” - National KSEA</p>
+        </div>
+        <div class="page1_2">
+          <div class="KseaStandsFor">
+            <p>
+              <span class="ksea">K</span>orean - American
+              <br><span class="ksea">S</span>cientists and
+              <br><span class="ksea">E</span>ngineers
+              <br><span class="ksea">A</span>ssociation
+            </p>
+          </div>
+          <div class="kseaiconwithwhite">
+            <a href="https://www.ksea.org/"><img class="hoverimg_0" src="/images/about/kseaicon-1.png" alt="KSEA icon" /></a>
+          </div>
+        </div>
+        <div class="an_academic">
+          <p>“An academic community comprising Korean students & professionals from across the country”</p>
+        </div>
+      </div>
+
+      <!-- page 2 -->
+      <div class="page_2">
+        <div class="ucdavispng">
+          <img src="/images/about/ucdavis.svg" alt="UC Davis wordmark">
+        </div>
+        <div class="page2_1">
+          <div class="UCDAVISKSEA">
+            <h1>UC DAVIS <span style="color:white">KSEA</span></h1>
+          </div>
+          <div class="WeareUCDavis">
+            <p>“We are UC Davis Young Generation (YG) group within the KSEA chapter in Sacramento”</p>
+          </div>
+          <div class="Currently">
+            <p>Currently, there are over 20 YG groups and more than 70 chapters operating within the state. UC Davis KSEA strives to collaborate with other YG groups to foster an active and vibrant KSEA community.</p>
+          </div>
+          <div class="ucdksealogo">
+            <img src="/images/kseaicon/ksealogo_white.png" alt="KSEA logo" />
+          </div>
+          <div class="WeFoster">
+            <p>We foster international cooperation especially between the U.S. and Korea</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- page 3 -->
+      <div class="page_3">
+        <div class="OurKseaOpportunities observe">
+          <h1>OUR KSEA OPPORTUNITIES</h1>
+        </div>
+
+        <!-- Networking -->
+        <section class="networking observe">
+          <div class="text-block">
+            <h2><i class="fas fa-users"></i> Networking</h2>
+            <p>Connect through national meetings and events like:</p>
+            <ul>
+              <li>Ygnite</li>
+              <li>UKC</li>
+              <li>YGF</li>
+              <li>YPF</li>
+            </ul>
+          </div>
+          <div class="img-block">
+            <img src="/images/about/networking.svg" alt="Networking">
+          </div>
+        </section>
+
+        <section class="networking observe">
+          <div class="text-block">
+            <h3><a href="#" style="color: #ffffff; text-decoration: underline;">Our Community</a></h3>
+            <p>We connect undergraduates, graduate students, and professionals across the U.S. to build long-lasting relationships and support systems.</p>
+            <div class="highlight-box">
+              <h3>UCD Signature Programs</h3>
+              <ul>
+                <li>Mentor / Mentee Night — Academic & career guidance from undergraduate/graduate mentors</li>
+                <li>KSEA Alumni — National professional network</li>
+                <li>Study Marathon — Peer-learning before finals</li>
+                <li>Do-Dream Study Group — Collaborative sessions</li>
+                <li>UCB & UCD Joint Workshop — Regional engagement</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- Scholarships -->
+        <section class="scholarship observe">
+          <div class="img-block">
+            <img src="/images/about/members.svg" alt="Scholarships">
+          </div>
+          <div class="text-block">
+            <h2><i class="fas fa-coins"></i> Scholarships</h2>
+            <p><u>$1500</u> scholarship awarded annually through National KSEA</p>
+          </div>
+        </section>
+
+        <!-- Professional Development -->
+        <section class="professional observe">
+          <div class="img-block">
+            <img src="/images/about/professional.svg" alt="Leadership">
+          </div>
+          <div class="text-block">
+            <h2><i class="fas fa-rocket"></i> Professional Development & Leadership</h2>
+            <ul>
+              <li>Roles in conference organizing, YG National Board, and local chapters</li>
+              <li>Workshops like SEED, PDF</li>
+            </ul>
+            <div class="highlight-box">
+              <h3>UCD Signature Programs</h3>
+              <ul>
+                <li>Resume Workshop — polish your professional materials with expert guidance</li>
+                <li>Job Seminar — gain insights into industry trends and career opportunities</li>
+                <li>OPT Workshop — learn the steps and tips to navigate OPT applications</li>
+                <li>Interview Workshop — prepare for success with mock interviews and feedback</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- General Members -->
+        <section class="membership observe">
+          <div class="img-block">
+            <img src="/images/about/members.svg" alt="Membership">
+          </div>
+          <div class="text-block">
+            <h2><i class="fas fa-handshake"></i> General Members</h2>
+            <p>Join a vibrant network of UC Davis students through exclusive academic and social programs.</p>
+            <a href="/gm" class="learn">Learn more →</a>
+          </div>
+        </section>
+      </div>
+
+      <div class="page_5">
+        <div class="nationalksea">
+          <div class="kseaiconpng">
+            <a href="https://www.ksea.org/"><img class="hover-yellow" src="/images/kseaicon/kseaicon.png" alt="KSEA Icon"></a>
+          </div>  
+          <a href="https://www.ksea.org/">National KSEA</a>
+        </div>
+        <div class="withus">
+          <p>KSEA YG Groups With Us:</p>
+        </div>
+        <div class="kseas">
+          <img src="/images/about/kseas.png" alt="KSEA YG groups">
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <section class="footer">
+      <app-footer _ngcontent-xno-c271="" _nghost-xno-c31="">
+        <footer _ngcontent-xno-c31="">
+          <div _ngcontent-xno-c31="" class="wrap-footer-info">
+            <div _ngcontent-xno-c31="" class="con-info">
+              <img
+                _ngcontent-xno-c31=""
+                src="/images/kseaicon/ksealogo_white.png"
+                alt="KSEA_logo"
+              />
+              <ul _ngcontent-xno-c31="">
+                <li _ngcontent-xno-c31="" id="ngcontent1">
+                  Korean-American Scientists and Engineers Association (KSEA)
+                </li>
+                <li _ngcontent-xno-c31="" id="ngcontent2">
+                  KSEA Young Generation Group | University of California, Davis
+                </li>
+                <li _ngcontent-xno-c31="">
+                  <span style="color: rgb(223, 223, 223)"
+                    >Email: ucdksea@gmail.com</span
+                  >
+                </li>
+                <li _ngcontent-xno-c31="">
+                  <span style="color: rgb(223, 223, 223)"
+                    >Copyright © 2024 KSEA Sacramento chapter, All Rights
+                    Reserved</span
+                  >
+                </li>
+                <li>
+                  <a href="/login"
+                     rel="nofollow"
+                     class="text-sm text-gray-400 hover:text-white hover:underline transition"
+                     aria-label="Officer login (KSEA UC Davis officers only)">
+                    Officer Login
+                  </a>              
+                </li>
+              </ul>
+            </div>
+            <div><p><span style = "color: #3954A6 ;line-height: 0;">by 백지원&박여진</span></p></div>
+            <div _ngcontent-xno-c31="" class="con-sns">
+              <ul _ngcontent-xno-c31="">
+                <li _ngcontent-xno-c31="">
+                  <a
+                    _ngcontent-xno-c31=""
+                    href="https://www.instagram.com/kseadavis/"
+                    target="_blank"
+                    ><img
+                      _ngcontent-xno-c31=""
+                      src="/images/instagram.png"
+                      width="50"
+                      height="50"
+                      alt="KSEA instagram"
+                  /></a>
+                </li>
+                <li _ngcontent-xno-c31="">
+                  <a
+                    _ngcontent-xno-c31=""
+                    href="https://linktr.ee/ucdksea"
+                    target="_blank"
+                    ><img
+                      _ngcontent-xno-c31=""
+                      src="/images/linktree.png"
+                      width="50"
+                      height="50"
+                      alt="Ksea linktree"
+                  /></a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </footer>
+      </app-footer>
+    </section>
+
+    <!-- 모바일 메뉴 토글 (누락되면 다른 스크립트도 에러 나므로 반드시 포함) -->
+    <script>
+      const navLinks = document.getElementById("navLinks");
+      const menuIcon = document.getElementById("menuIcon");
+      const closeIcon = document.getElementById("closeIcon");
+
+      function openMenu() {
+        if (!navLinks) return;
+        navLinks.style.right = "0";
+        if (menuIcon) menuIcon.style.display = "none";
+        if (closeIcon) closeIcon.style.display = "block";
+      }
+      function closeMenu() {
+        if (!navLinks) return;
+        navLinks.style.right = "-200px";
+        if (menuIcon) menuIcon.style.display = "block";
+        if (closeIcon) closeIcon.style.display = "none";
+      }
+    </script>
+
+    <!-- Popup script -->
+    <!-- 운영에서 프록시가 없으면 <head> 어딘가에 아래 한 줄로 API 고정 가능:
+         <script>window.KSEA_API_BASE = 'https://api.ucdksea.com';</script> -->
+         <script>
+          (() => {
+            const DEV = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
+            const AUTO_BASE = DEV ? 'http://localhost:3000' : '';
+            const API_BASE = (window.KSEA_API_BASE || AUTO_BASE).replace(/\/+$/, '');
+        
+            async function fetchPopup() {
+              const url = `${API_BASE}/api/admin/posts?type=POPUP&active=1`;
+              try {
+                const r = await fetch(url, { credentials: 'omit' });
+                const raw = await r.text();
+                try {
+                  const j = JSON.parse(raw);
+                  const posts = j.posts || j.data || [];
+                  return posts[0] || null;
+                } catch {
+                  console.warn('POPUP: JSON parse failed. Preview:', raw.slice(0,200));
+                  return null;
+                }
+              } catch (e) {
+                console.warn('POPUP: network error', e);
+                return null;
+              }
+            }
+        
+            function renderPopup(post) {
+              // ✅ 영구 숨김 로직 제거 (localStorage 체크 삭제)
+              // const key = `popupDismissed:${post.id}`;
+              // if (localStorage.getItem(key) === '1') return;
+        
+              const overlay = document.createElement('div');
+              overlay.id = 'ksea-popup';
+              overlay.className = 'fixed inset-0 bg-black/60 z-[9999] items-center justify-center p-4';
+        
+              overlay.innerHTML = `
+                <div class="relative bg-white text-slate-900 rounded-2xl overflow-hidden shadow-2xl max-w-md w-full"
+                    style="position:absolute; top:10vh; left:5vw;">
+                  <button aria-label="Close" class="absolute right-2 top-2 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center">×</button>
+                  <a href="${post.linkUrl || '#'}" target="_blank" rel="noopener">
+                    <img src="${post.imageUrl}" alt="${(post.title || 'KSEA event').replace(/"/g,'&quot;')}" class="w-full h-auto block">
+                  </a>
+                  ${post.title ? `<div class="p-3 font-semibold">${post.title}</div>` : ''}
+                </div>
+              `;
+              document.body.appendChild(overlay);
+        
+              const close = () => {
+                // ✅ 영구 저장 제거: 새로고침하면 다시 뜨도록
+                // localStorage.setItem(key, '1');
+                overlay.remove();
+              };
+        
+              overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+              overlay.querySelector('button')?.addEventListener('click', close);
+        
+              // 외부에서 안전 호출하도록 노출
+              window.hidePopup = close;
+            }
+        
+            document.addEventListener('DOMContentLoaded', async () => {
+              const post = await fetchPopup();
+              if (post) renderPopup(post);
+            });
+          })();
+        </script>
+        
+    <script>
+      (function () {
+        // .observe가 display:none; 이라면 아래 한 줄로 강제 표시
+        // (display:none이 아니라 opacity/transform만 제어하는 구조라면 자동 show 토글만으로 충분)
+        // document.querySelectorAll('.observe').forEach(el => el.style.display = '');
+    
+        const els = document.querySelectorAll('.observe');
+        if (!els.length) return;
+    
+        // 교차 관찰로 화면에 들어오면 보여주기
+        function reveal(el){ el.classList.add('show'); }
+    
+        if ('IntersectionObserver' in window) {
+          const io = new IntersectionObserver((entries) => {
+            entries.forEach((e) => {
+              if (e.isIntersecting) {
+                reveal(e.target);
+                io.unobserve(e.target);
+              }
+            });
+          }, { threshold: 0.15 });
+          els.forEach(el => io.observe(el));
+        } else {
+          els.forEach(reveal);
+        }
+      })();
+    </script>
+  </body>
+</html>
