@@ -5,6 +5,8 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { appendAuditEvent } from "@/lib/audit";
+import { getRequestId, getClientIp, getActor } from "@/lib/req";
 
 const FINGERPRINT = "posts2-V7-THIS-IS-NEW";
 
@@ -82,6 +84,9 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const headers = cors(req.headers.get("origin"));
+  const requestId = getRequestId();
+  const ip = getClientIp();
+  const actor = await getActor();
 
   let body: any = {};
   try { body = await req.json(); } catch {}
@@ -95,9 +100,27 @@ export async function POST(req: Request) {
         : null;
 
     if (!typeEnum) {
+      try {
+        await appendAuditEvent({
+          actorId: actor, actorIp: ip, requestId,
+          action: "UPDATE", targetType: "POST",
+          title: "Reorder posts failed",
+          summary: "FAILED: type required for REORDER",
+          severity: 2,
+        });
+      } catch {}
       return NextResponse.json({ error: "type required for REORDER" }, { status: 400, headers });
     }
     if (!order || order.length === 0) {
+      try {
+        await appendAuditEvent({
+          actorId: actor, actorIp: ip, requestId,
+          action: "UPDATE", targetType: "POST",
+          title: "Reorder posts failed",
+          summary: "FAILED: order (string[]) required",
+          severity: 2,
+        });
+      } catch {}
       return NextResponse.json({ error: "order (string[]) required" }, { status: 400, headers });
     }
 
@@ -108,6 +131,16 @@ export async function POST(req: Request) {
     const existingIds = new Set(existing.map(x => x.id));
     const invalid = order.filter(id => !existingIds.has(id));
     if (invalid.length) {
+      try {
+        await appendAuditEvent({
+          actorId: actor, actorIp: ip, requestId,
+          action: "UPDATE", targetType: "POST",
+          title: "Reorder posts failed",
+          summary: `FAILED: invalid ids`,
+          changes: [{ field: "invalid", kind: "list", to: invalid.slice(0, 50) }], // 너무 길어지지 않게 제한
+          severity: 2,
+        });
+      } catch {}
       return NextResponse.json({ error: "Invalid ids for REORDER", invalid }, { status: 400, headers });
     }
 
@@ -121,6 +154,16 @@ export async function POST(req: Request) {
     );
 
     console.log("[REORDER] type=%s ids=%o", typeEnum, order);
+    try {
+      await appendAuditEvent({
+        actorId: actor, actorIp: ip, requestId,
+        action: "UPDATE", targetType: "POST",
+        title: "Reorder posts",
+        summary: `type=${typeEnum}, count=${order.length}`,
+        changes: [{ field: "sortOrder", kind: "reorder", to: order.slice(0, 100) }], // 상한 제한
+        severity: 1,
+      });
+    } catch {}
 
     return NextResponse.json({ ok: true, type: typeEnum, order }, { headers });
   }
@@ -145,9 +188,27 @@ export async function POST(req: Request) {
 
   const typeEnum = parsePostType(body?.type ?? null);
   if (!typeEnum) {
+    try {
+      await appendAuditEvent({
+        actorId: actor, actorIp: ip, requestId,
+        action: "CREATE", targetType: "POST",
+        title: "Create post failed",
+        summary: `FAILED: type must be one of ${ALLOWED.join("|")}`,
+        severity: 2,
+      });
+    } catch {}
     return NextResponse.json({ error: `type must be one of ${ALLOWED.join("|")}` }, { status: 400, headers });
   }
   if (!body?.imageUrl) {
+    try {
+      await appendAuditEvent({
+        actorId: actor, actorIp: ip, requestId,
+        action: "CREATE", targetType: "POST",
+        title: "Create post failed",
+        summary: "FAILED: imageUrl required",
+        severity: 2,
+      });
+    } catch {}
     return NextResponse.json({ error: "imageUrl required" }, { status: 400, headers });
   }
 
@@ -170,7 +231,6 @@ export async function POST(req: Request) {
     typeof yRaw === "number" ? String(yRaw) :
     typeof yRaw === "string" ? yRaw.trim() : "";
 
-  // "Q1", "q2", "2 " 같은 입력도 허용
   const normQuarterStr =
     typeof qRaw === "number" ? String(qRaw) :
     typeof qRaw === "string" ? qRaw.trim().replace(/^q/i, "").replace(/^Q/i, "") : "";
@@ -179,26 +239,72 @@ export async function POST(req: Request) {
   const normQuarter = normalizeQuarter(qRaw);
 
   if ((typeEnum === "POPUP" || typeEnum === "EVENT_UPCOMING") && !body.linkUrl) {
+    try {
+      await appendAuditEvent({
+        actorId: actor, actorIp: ip, requestId,
+        action: "CREATE", targetType: "POST",
+        title: "Create post failed",
+        summary: "FAILED: linkUrl required for POPUP/EVENT_UPCOMING",
+        severity: 2,
+      });
+    } catch {}
     return NextResponse.json({ error: "linkUrl required for POPUP/EVENT_UPCOMING" }, { status: 400, headers });
   }
   if (typeEnum === "EVENT_POLAROID" && !body.title) {
+    try {
+      await appendAuditEvent({
+        actorId: actor, actorIp: ip, requestId,
+        action: "CREATE", targetType: "POST",
+        title: "Create post failed",
+        summary: "FAILED: title required for EVENT_POLAROID",
+        severity: 2,
+      });
+    } catch {}
     return NextResponse.json({ error: "title required for EVENT_POLAROID" }, { status: 400, headers });
   }
 
   if (typeEnum === "GM" || typeEnum === "EVENT_POLAROID") {
     if (!normYear) {
+    try {
+      await appendAuditEvent({
+        actorId: actor, actorIp: ip, requestId,
+        action: "CREATE", targetType: "POST",
+        title: "Create post failed",
+        summary: "FAILED: Year required for ${typeEnum}",
+        severity: 2,
+      });
+    } catch {}
       return NextResponse.json(
         { error: `Year required for ${typeEnum}`, received: { year: yRaw } },
         { status: 400, headers }
       );
     }
     if (!normQuarterStr) {
+      // 🔹 감사 로그: 실패(유효성)
+    try {
+      await appendAuditEvent({
+        actorId: actor, actorIp: ip, requestId,
+        action: "CREATE", targetType: "POST",
+        title: "Create post failed",
+        summary: "FAILED: Quarter required for ${typeEnum}",
+        severity: 2,
+      });
+    } catch {}
       return NextResponse.json(
         { error: `Quarter required for ${typeEnum}`, received: { quarter: qRaw } },
         { status: 400, headers }
       );
     }
     if (!normQuarter) {
+    try {
+      await appendAuditEvent({
+        actorId: actor, actorIp: ip, requestId,
+        action: "CREATE", targetType: "POST",
+        title: "Create post failed",
+        summary: "Quarter must be one of Fall / Winter / Spring",
+        severity: 2,
+      });
+    } catch {}
       return NextResponse.json(
         { error: "Quarter must be one of Fall / Winter / Spring", received: { quarter: qRaw } },
         { status: 400, headers }
@@ -265,8 +371,35 @@ export async function POST(req: Request) {
 
   try {
     const post = await prisma.post.create({ data });
+    try {
+      await appendAuditEvent({
+        actorId: actor, actorIp: ip, requestId,
+        action: "CREATE", targetType: "POST", targetId: post.id,
+        title: "Create post",
+        summary: `type=${typeEnum}`,
+        changes: [
+          { field: "type",    kind: "add", to: typeEnum },
+          { field: "imageUrl",kind: "add", to: !!data.imageUrl },
+          ...(data.title    != null ? [{ field: "title",    kind: "add", to: true }] : []),
+          ...(data.linkUrl  != null ? [{ field: "linkUrl",  kind: "add", to: true }] : []),
+          ...(data.date     != null ? [{ field: "date",     kind: "add", to: true }] : []),
+          ...(data.year     != null ? [{ field: "year",     kind: "add", to: data.year }] : []),
+          ...(data.quarter  != null ? [{ field: "quarter",  kind: "add", to: data.quarter }] : []),
+        ],
+        severity: 1,
+      });
+    } catch {}
     return NextResponse.json({ ok: true, post }, { headers });
   } catch (e: any) {
+    try {
+      await appendAuditEvent({
+        actorId: actor, actorIp: ip, requestId,
+        action: "CREATE", targetType: "POST",
+        title: "Create post failed",
+        summary: `FAILED: ${e?.message || "Create failed"}`,
+        severity: 3,
+      });
+    } catch {}
     return NextResponse.json({ error: e?.message || "Create failed" }, { status: 500, headers });
   }  
 }

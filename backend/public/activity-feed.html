@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>변화 이력 | Activity Feed</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    .focus-ring:focus{outline:3px solid rgba(57,84,166,.45); outline-offset:2px}
+    .badge{border-radius:9999px; font-weight:600; font-size:.75rem; padding:.125rem .5rem}
+    .dot{width:.5rem;height:.5rem;border-radius:9999px}
+    .diff del{background:#fee2e2;color:#991b1b;text-decoration:none;padding:0 .2rem;border-radius:.25rem}
+    .diff ins{background:#dcfce7;color:#166534;text-decoration:none;padding:0 .2rem;border-radius:.25rem}
+    .truncate-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  </style>
+</head>
+
+<body class="bg-slate-900 text-white min-h-dvh">
+  <!-- 헤더 -->
+  <header class="top-1 z-10 bg-[#0F172A]/60 backdrop-blur supports-[backdrop-filter]:bg-[#0F172A]/40">
+    <div class="mx-auto max-w-6xl px-4 py-6 flex items-center justify-between">
+      <a href="/" class="inline-flex items-center gap-2 hover:opacity-90" aria-label="Go to home">
+        <img src="/images/kseaicon/ksealogo_white.png" alt="KSEA logo" class="h-7 w-auto"/>
+        <span class="hidden sm:inline font-semibold tracking-wide">UC DAVIS KSEA</span>
+      </a>
+      <nav class="hidden md:flex gap-6 text-sm font-medium">
+        <a href="/post" class="hover:text-blue-400 transition">Post</a>
+        <a href="/history" class="hover:text-blue-400">History</a>
+        <a href="/log" class="text-blue-400 transition">Log</a>
+      </nav>
+    </div>
+  </header>
+<!-- Top Bar -->
+<div class="rounded-2xl bg-slate-800/60 border border-white/10 backdrop-blur p-5 max-w-[70rem] mx-auto px-4 py-4">  <div class="flex items-center">
+    <!-- Left: icon + title -->
+    <div class="flex items-center gap-3">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M3 12a9 9 0 1018 0 9 9 0 10-18 0zm6.5 0a2.5 2.5 0 105 0 2.5 2.5 0 10-5 0z" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+      <div class="flex items-baseline gap-3">
+        <h1 class="text-lg sm:text-xl font-semibold text-white">로그</h1>
+        <span class="text-xs text-slate-400">/ Log</span>
+      </div>
+    </div>
+
+    <!-- Spacer to push buttons to the right -->
+    <div class="flex-1"></div>
+
+    <!-- Right: actions -->
+    <div class="flex items-center gap-2">
+      <button id="btn-export" class="focus-ring inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm bg-slate-900 text-white hover:bg-slate-800">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        CSV 내보내기
+      </button>
+      <button id="btn-refresh" class="focus-ring inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm bg-slate-700 text-slate-100 hover:bg-slate-600">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 4v6h6M20 20v-6h-6M20 8a8 8 0 00-7-4 8 8 0 00-8 8m14 4a8 8 0 01-7 4 8 8 0 01-8-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        새로고침
+      </button>
+    </div>
+  </div>
+</div>
+
+  <main class="mx-auto max-w-6xl px-4 py-6 text-slate-100">
+    <!-- Filters -->
+    <section class="mb-4">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+        <div class="md:col-span-2">
+          <label class="block text-xs font-medium text-slate-300 mb-1">액션</label>          
+          <select id="f-action" class="w-full rounded-xl border-slate-700 focus-ring px-3 py-2 text-sm bg-slate-800 text-slate-100">
+            <option value="">모두</option>
+            <option value="CREATE">CREATE</option>
+            <option value="UPDATE">UPDATE</option>
+            <option value="DELETE">DELETE</option>
+            <option value="APPROVE">APPROVE</option>
+            <option value="REJECT">REJECT</option>
+            <option value="ASSIGN">ASSIGN</option>
+          </select>
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-xs font-medium text-slate-600 mb-1">대상 타입</label>
+          <select id="f-target" class="w-full rounded-xl border-slate-700 focus-ring px-3 py-2 text-sm bg-slate-800 text-slate-100">
+            <option value="">모두</option>
+            <option>POST</option>
+            <option>USER</option>
+            <option>ROLE</option>
+            <option>PERMISSION</option>
+            <option>QUOTE</option>
+            <option>PRODUCT</option>
+          </select>
+        </div>
+        <div class="md:col-span-3">
+          <label class="block text-xs font-medium text-slate-600 mb-1">기간 시작</label>
+          <input id="f-start" type="datetime-local" class="w-full rounded-xl border-slate-700 focus-ring px-3 py-2 text-sm bg-slate-800 text-slate-100" />
+
+        </div>
+        <div class="md:col-span-3">
+          <label class="block text-xs font-medium text-slate-600 mb-1">기간 종료</label>
+          <input id="f-end" type="datetime-local" class="w-full rounded-xl border-slate-700 focus-ring px-3 py-2 text-sm bg-slate-800 text-slate-100" />
+
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-xs font-medium text-slate-600 mb-1">사용자</label>
+          <input id="f-user" placeholder="예: stephanie" class="w-full rounded-xl border-slate-700 focus-ring px-3 py-2 text-sm bg-slate-800 text-slate-100" />
+        </div>
+      </div>
+      <div class="mt-2 flex items-center gap-4">
+        <div class="relative w-full md:w-auto md:min-w-[320px]">
+          <input id="f-q" placeholder="검색: 제목, 설명, 변경필드, IP, 요청ID" class="w-full rounded-xl border-slate-300 focus-ring pl-9 pr-3 py-2 text-sm bg-slate-800" />
+          <svg class="absolute left-2 top-1/2 -translate-y-1/2" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <label class="inline-flex items-center gap-2 text-sm select-none">
+          <input id="f-auto" type="checkbox" class="rounded border-slate-300" /> 10초마다 자동 갱신
+        </label>
+        <span id="last-updated" class="text-xs text-slate-400">—</span>
+      </div>
+    </section>
+
+    <!-- Grouped Timeline -->
+    <section id="timeline" class="space-y-6">
+      <!-- 그룹(날짜)와 항목이 JS로 삽입됨 -->
+    </section>
+
+    <!-- Pager -->
+    <div class="flex items-center justify-between gap-3 mt-6">
+      <div class="text-xs text-slate-500">페이지 <span id="page">1</span> / <span id="pages">1</span> • 전체 <span id="total">0</span>건</div>
+      <div class="flex items-center gap-2">
+        <button id="prev" class="focus-ring rounded-xl border border-slate-700 bg-slate-800 px-3 py-1.5 text-sm text-slate-100 hover:bg-slate-700 disabled:opacity-50">이전</button>
+        <button id="next" class="focus-ring rounded-xl border border-slate-700 bg-slate-800 px-3 py-1.5 text-sm text-slate-100 hover:bg-slate-700 disabled:opacity-50">다음</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 hidden"><div class="rounded-xl bg-slate-900 text-white text-sm px-3 py-2 shadow-lg">복사되었습니다</div></div>
+  <footer class="mt-10 border-t border-white/10">
+    <div class="mx-auto max-w-6xl px-4 py-6 text-center text-sm text-white/60">
+      © 2025 KSEA Sacramento chapter — <a href="/" class="underline">UCD KSEA</a>
+    </div>
+  </footer>
+
+  <script>
+  const API = '/api/activity';
+  const PAGE_SIZE = 20;
+  let state = { page:1, pages:1, total:0, action:'', target:'', start:'', end:'', user:'', q:'', auto:false };
+  let timer = null; let aborter = null; let bound=false;
+
+  const $ = (s)=>document.querySelector(s);
+  const h = (str)=>String(str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+  const qs = (o)=>Object.entries(o).filter(([,v])=>v!==''&&v!=null).map(([k,v])=>`${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&');
+  const debounce=(f,m=300)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>f(...a),m)}};
+  const fmtDate=(iso)=>{try{const d=new Date(iso);return d.toLocaleString()}catch{return iso}}
+
+  const ACTION_COLOR={CREATE:'bg-emerald-100 text-emerald-700',UPDATE:'bg-amber-100 text-amber-700',DELETE:'bg-rose-100 text-rose-700',APPROVE:'bg-indigo-100 text-indigo-700',REJECT:'bg-fuchsia-100 text-fuchsia-700',ASSIGN:'bg-sky-100 text-sky-700'};
+
+  function groupByDate(items){
+    const map = new Map();
+    for(const it of items){
+      const d = new Date(it.timestamp);
+      const key = d.toISOString().slice(0,10); // YYYY-MM-DD
+      if(!map.has(key)) map.set(key, []);
+      map.get(key).push(it);
+    }
+    return Array.from(map.entries()).sort((a,b)=>a[0]<b[0]?1:-1);
+  }
+
+  function render(list, resp){
+    const root = $('#timeline'); root.innerHTML='';
+    const groups = groupByDate(list);
+
+    if(groups.length===0){
+      root.innerHTML = '<div class="text-center text-slate-500 py-12">표시할 이력이 없습니다.</div>';
+    }
+
+    for(const [date, items] of groups){
+      const wrap = document.createElement('div');
+      wrap.innerHTML = `
+        <div class="flex items-start gap-3">
+          <div class="mt-1 text-sm font-semibold text-slate-300 w-28 shrink-0">${date}</div>
+          <ol class="relative border-l border-slate-700 pl-5 space-y-6 w-full">
+          </ol>
+        </div>`;
+      const ol = wrap.querySelector('ol');
+
+      for(const it of items){
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <span class="absolute -left-[4.5px] top-[0.575rem] flex items-center justify-center dot bg-slate-900 border border-slate-300"></span>
+          <div class="rounded-2xl border border-slate-900 bg-slate-800 p-4">
+            <div class="flex flex-wrap items-center gap-2 justify-between text-slate-100">
+              <div class="flex items-center gap-3">
+                <img src="${h(it.actor_avatar||'https://api.dicebear.com/9.x/thumbs/svg?seed='+encodeURIComponent(it.actor||'u'))}" alt="avatar" class="w-7 h-7 rounded-full border border-slate-600"/>                <div class="text-sm">
+                  <div class="font-semibold text-slate-100">${h(it.actor||'Unknown')}</div>
+                  <div class="text-xs text-slate-400">${fmtDate(it.timestamp)} • IP ${h(it.ip||'-')} • ${h(it.request_id||'—')}</div>
+                </div>
+              </div>
+              <span class="badge ${ACTION_COLOR[it.action]||'bg-slate-700 text-slate-100'}">${h(it.action)}</span>
+            </div>
+
+            <div class="mt-3 text-sm">
+              <div class="text-slate-200">
+                <strong class="text-slate-100">${h(it.target_type)}</strong>
+                <span class="text-slate-400">#${h(it.target_id||'—')}</span>
+                ${it.title?`<span class="mx-1">·</span><span class="font-medium">${h(it.title)}</span>`:''}
+              </div>
+              ${it.summary?`<div class="text-slate-300 mt-1 truncate-2">${h(it.summary)}</div>`:''}
+            </div>
+
+            ${renderChanges(it.changes)}
+
+            <div class="mt-3 flex flex-wrap items-center gap-2">
+              ${it.labels?.map(l=>`<span class="badge bg-slate-700 text-slate-100">${h(l)}</span>`).join('')||''}
+              <div class="ml-auto space-x-2 text-xs">
+                ${it.diff_before || it.diff_after ? '<button class="focus-ring rounded-lg border border-slate-600 bg-slate-800 text-slate-100 hover:bg-slate-700 px-2 py-1" data-action="toggle-diff">DIFF</button>' : ''}
+                ${it.meta ? '<button class="focus-ring rounded-lg border border-slate-600 bg-slate-800 text-slate-100 hover:bg-slate-700 px-2 py-1" data-action="copy-json">JSON 복사</button>' : ''}
+              </div>
+            </div>
+
+            <div class="mt-3 hidden" data-detail="diff">
+              ${renderDiff(it)}
+            </div>
+          </div>`;
+        li.__item = it;
+        ol.appendChild(li);
+      }
+
+      root.appendChild(wrap);
+    }
+
+    // footer / pager
+    state.page = Number(resp.page||1);
+    state.total = Number(resp.total||list.length||0);
+    state.pages = Math.max(1, Math.ceil(state.total / (resp.page_size || PAGE_SIZE)));
+    $('#page').textContent = String(state.page);
+    $('#pages').textContent = String(state.pages);
+    $('#total').textContent = String(state.total);
+    $('#last-updated').textContent = '업데이트: ' + new Date().toLocaleString();
+  }
+
+  function renderChanges(changes){
+    if(!changes || !changes.length) return '';
+    const rows = changes.slice(0,6).map(c=>`<li class="flex items-center gap-2 text-sm"><span class="dot ${c.kind==='add'?'bg-emerald-400':c.kind==='remove'?'bg-rose-400':'bg-amber-400'}"></span><span class="text-slate-200">${h(c.field)}</span><span class="text-slate-400">→</span><span class="text-slate-300 font-medium">${h(String(c.to))}</span>${c.more?'<span class="text-slate-300"> (+'+c.more+')</span>':''}</li>`).join('');
+    return `<ul class="mt-3 space-y-1">${rows}</ul>`;
+  }
+
+  function renderDiff(it){
+    if(!(it.diff_before || it.diff_after)) return '';
+    return `<div class="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs diff overflow-auto"><pre>${h(makeUnifiedDiff(it.diff_before||'', it.diff_after||''))}</pre></div>`;
+  }
+
+  function makeUnifiedDiff(a,b){
+    // 매우 단순한 줄단위 diff (MVP)
+    const A=a.split(/\r?\n/), B=b.split(/\r?\n/);
+    const max=Math.max(A.length,B.length); let out='';
+    for(let i=0;i<max;i++){
+      if(A[i]===B[i]) out += '  ' + (A[i]||'') + '\n';
+      else{
+        if(A[i]!==undefined) out += '- ' + A[i] + '\n';
+        if(B[i]!==undefined) out += '+ ' + B[i] + '\n';
+      }
+    }
+    // 시각 강조를 위해 <ins>/<del> 치환
+    return out.replace(/^\-\s(.+)$/gm,'<del>$1<\/del>').replace(/^\+\s(.+)$/gm,'<ins>$1<\/ins>');
+  }
+
+  async function fetchList(){
+    if (aborter) aborter.abort();
+    aborter = new AbortController();
+    const params={page:state.page,page_size:PAGE_SIZE,action:state.action,target:state.target,user:state.user,q:state.q,start:state.start,end:state.end,order:'desc'};
+    const url = API + '?' + qs(params);
+    try{
+      const res = await fetch(url,{signal:aborter.signal,headers:{'Accept':'application/json'}});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const json = await res.json();
+      render(json.data||[], json);
+    }catch(e){
+      console.warn('[activity] mock fallback:', e?.message||e);
+      const mock = buildMock(state.page, PAGE_SIZE, state);
+      render(mock.data, mock);
+    }
+  }
+
+  function bind(){
+    if(bound) return; bound=true;
+    $('#f-action').addEventListener('change',()=>{state.action=$('#f-action').value;state.page=1;fetchList()});
+    $('#f-target').addEventListener('change',()=>{state.target=$('#f-target').value;state.page=1;fetchList()});
+    $('#f-user').addEventListener('input',debounce(()=>{state.user=$('#f-user').value.trim();state.page=1;fetchList()},300));
+    $('#f-q').addEventListener('input',debounce(()=>{state.q=$('#f-q').value.trim();state.page=1;fetchList()},300));
+    $('#f-start').addEventListener('change',()=>{state.start=$('#f-start').value?new Date($('#f-start').value).toISOString():'';state.page=1;fetchList()});
+    $('#f-end').addEventListener('change',()=>{state.end=$('#f-end').value?new Date($('#f-end').value).toISOString():'';state.page=1;fetchList()});
+    $('#f-auto').addEventListener('change',(e)=>{state.auto=e.target.checked; if(state.auto){if(timer)clearInterval(timer); timer=setInterval(fetchList,10000)} else {if(timer)clearInterval(timer)}});
+    $('#prev').addEventListener('click',()=>{if(state.page>1){state.page--;fetchList()}});
+    $('#next').addEventListener('click',()=>{if(state.page<state.pages){state.page++;fetchList()}});
+    $('#btn-refresh').addEventListener('click',fetchList);
+
+    // 델리게이션: diff 토글 & JSON 복사
+    $('#timeline').addEventListener('click', (e)=>{
+      const btn = e.target.closest('button'); if(!btn) return;
+      const li = e.target.closest('li'); if(!li) return; const it = li.__item;
+      if(btn.dataset.action==='toggle-diff'){
+        const box = li.querySelector('[data-detail="diff"]'); box.classList.toggle('hidden');
+      } else if(btn.dataset.action==='copy-json'){
+        navigator.clipboard.writeText(JSON.stringify(it,null,2)).then(()=>toast('JSON 복사됨'));
+      }
+    });
+
+    // CSV export (현재 페이지)
+    $('#btn-export').addEventListener('click',()=>{
+      const items = Array.from(document.querySelectorAll('#timeline li')).map(li=>li.__item).filter(Boolean);
+      exportCSV(items);
+    })
+  }
+
+  function exportCSV(items){
+    if(!items.length) return toast('내보낼 데이터가 없습니다');
+    const headers=['timestamp','action','actor','target_type','target_id','title','summary','ip','request_id'];
+    const rows = items.map(x=>headers.map(k=>String(x[k]??'' ).replaceAll('"','""')));
+    const csv = [headers, ...rows].map(r=>r.map(c=>'"'+c+'"').join(',')).join('\n');
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download=`activity_page${state.page}.csv`; a.click(); URL.revokeObjectURL(url);
+  }
+
+  function toast(msg){ const t=$('#toast'); t.firstElementChild.textContent=msg; t.classList.remove('hidden'); setTimeout(()=>t.classList.add('hidden'),1200); }
+
+  function init(){ bind(); fetchList(); document.addEventListener('visibilitychange',()=>{ if(document.hidden){if(timer)clearInterval(timer)} else if(state.auto){timer=setInterval(fetchList,10000)} }); }
+  document.addEventListener('DOMContentLoaded', init, {once:true});
+
+  // MOCK for preview
+  const TITLES=['회원가입 양식','동아리 공지','가을 행사','제품 A','제품 B','견적 #1023','권한 정책'];
+  function buildMock(page=1, pageSize=20, s={}){
+    const total=356; const startIdx=(page-1)*pageSize; const data=[];
+    for(let i=0;i<pageSize;i++){
+      const ts = new Date(Date.now() - (startIdx+i)*3600*1000 + Math.random()*300000).toISOString();
+      const action = s.action || ['CREATE','UPDATE','DELETE','APPROVE','ASSIGN'][Math.floor(Math.random()*5)];
+      const target = s.target || ['POST','USER','ROLE','PERMISSION','QUOTE','PRODUCT'][Math.floor(Math.random()*6)];
+      const item = {
+        id:'mock-'+(startIdx+i+1),
+        timestamp: ts,
+        action,
+        actor: ['stephanie','admin','manager','system'][Math.floor(Math.random()*4)],
+        actor_avatar: '',
+        target_type: target,
+        target_id: Math.floor(1000+Math.random()*9000),
+        title: TITLES[Math.floor(Math.random()*TITLES.length)],
+        summary: action==='CREATE'? '새 항목이 추가되었습니다.' : action==='DELETE'? '항목이 삭제되었습니다.' : '필드가 업데이트되었습니다.',
+        labels: target==='QUOTE' ? ['Finance','High Risk'] : (action==='APPROVE'?['Approval'] : []),
+        changes: action==='UPDATE' ? [
+          {field:'title', kind:'change', to:'가을 행사(수정)'},
+          {field:'status', kind:'change', to:'APPROVED'}
+        ] : action==='CREATE' ? [{field:'title', kind:'add', to:'새 공지'}] : [],
+        diff_before: action==='UPDATE' ? 'title: 가을 행사\nstatus: DRAFT' : '',
+        diff_after:  action==='UPDATE' ? 'title: 가을 행사(수정)\nstatus: APPROVED' : '',
+        ip: ['203.0.113.5','198.51.100.7','192.0.2.9'][Math.floor(Math.random()*3)],
+        request_id: 'req_'+Math.random().toString(36).slice(2,8),
+        meta: { method:'POST', path:'/api/admin/posts' }
+      };
+      data.push(item);
+    }
+    const filtered = data.filter(x=>(!s.user || x.actor.includes(s.user)) && (!s.q || JSON.stringify(x).toLowerCase().includes(s.q.toLowerCase())));
+    return { data: filtered, total, page, page_size: pageSize };
+  }
+  </script>
+
+  <!--
+  ==========================================
+  ✅ 백엔드 연동 메모 (/api/activity)
+  ==========================================
+  기대 응답 스키마
+  {
+    data: Array<{
+      id: string,
+      timestamp: string,      // ISO8601
+      action: 'CREATE'|'UPDATE'|'DELETE'|'APPROVE'|'REJECT'|'ASSIGN',
+      actor: string,          // 이메일/아이디 표시 권장
+      actor_avatar?: string,  // 선택
+      target_type: string,    // POST | USER | ROLE | ...
+      target_id?: string|number,
+      title?: string,         // 대상 표시명
+      summary?: string,       // 한 줄 설명 (예: "필드 3개 변경")
+      changes?: Array<{field:string, kind:'add'|'remove'|'change', to:any, more?:number}>,
+      diff_before?: string,   // 줄단위 diff 용 원본
+      diff_after?: string,    // 줄단위 diff 용 변경본
+      labels?: string[],
+      ip?: string,
+      request_id?: string,
+      meta?: Record<string, any>
+    }>,
+    page: number,
+    page_size: number,
+    total: number
+  }
+
+  예시 Next.js(App Router): app/api/activity/route.ts
+  import { NextResponse } from 'next/server'
+
+  export async function GET(req: Request){
+    const url = new URL(req.url)
+    const page = Number(url.searchParams.get('page')||'1')
+    const pageSize = Number(url.searchParams.get('page_size')||'20')
+    const action = url.searchParams.get('action')||''
+    const target = url.searchParams.get('target')||''
+    const user = url.searchParams.get('user')||''
+    const q = (url.searchParams.get('q')||'').toLowerCase()
+    const start = url.searchParams.get('start')
+    const end = url.searchParams.get('end')
+
+    // TODO 실제 DB에서 조회. Demo rows:
+    let rows = Array.from({length:300}, (_,i)=>({
+      id:'id_'+i,
+      timestamp:new Date(Date.now()-i*3600*1000).toISOString(),
+      action:['CREATE','UPDATE','DELETE','APPROVE','ASSIGN'][i%5],
+      actor:['stephanie','admin','system'][i%3],
+      target_type:['POST','USER','ROLE','QUOTE','PRODUCT'][i%5],
+      target_id:1000+i,
+      title:'샘플 항목 '+i,
+      summary:'필드 '+(i%3+1)+'개 변경',
+      ip:'203.0.113.'+(i%255), request_id:'req_'+i,
+      diff_before:i%5===1?'status: DRAFT':'',
+      diff_after:i%5===1?'status: APPROVED':'',
+      changes:i%5===1?[{field:'status',kind:'change',to:'APPROVED'}]:[]
+    }))
+
+    if(action) rows = rows.filter(r=>r.action===action)
+    if(target) rows = rows.filter(r=>r.target_type===target)
+    if(user) rows = rows.filter(r=>r.actor?.includes(user))
+    if(start) rows = rows.filter(r=>new Date(r.timestamp)>=new Date(start))
+    if(end) rows = rows.filter(r=>new Date(r.timestamp)<=new Date(end))
+    if(q) rows = rows.filter(r=>JSON.stringify(r).toLowerCase().includes(q))
+
+    const total = rows.length
+    const startIdx=(page-1)*pageSize
+    const data = rows.slice(startIdx, startIdx+pageSize)
+    return NextResponse.json({ data, page, page_size: pageSize, total })
+  }
+  -->
+</body>
+</html>

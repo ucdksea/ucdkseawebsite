@@ -1,0 +1,50 @@
+name: Deploy static site to GitHub Pages (backend/public)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 선택: CNAME과 .nojekyll 자동 생성 (있으면 덮어쓰지 않음)
+      - name: Prepare artifact from backend/public
+        run: |
+          mkdir -p dist
+          cp -R backend/public/* dist/
+
+          # CNAME 필요하면 주석 해제하고 도메인 적기
+          # echo "ucdksea.com" > dist/CNAME
+
+          # jekyll 처리 방지 (언더스코어 폴더 사용 대비)
+          touch dist/.nojekyll
+
+          # 파비콘 없으면 경고만 남김 (필요시 파일 추가)
+          if [ ! -f dist/favicon.ico ]; then
+            echo "::notice ::No favicon.ico found in backend/public (optional)"
+          fi
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4

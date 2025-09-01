@@ -60,3 +60,41 @@ model Post {
 
   @@index([type, active, sortOrder], name: "Post_type_sortOrder_idx")
 }
+
+model AuditEvent {
+  id           String   @id @default(cuid())
+  ts           DateTime @default(now())
+  actorId      String?
+  actorIp      String?
+  action       AuditAction
+  targetType   String
+  targetId     String?
+  title        String?
+  summary      String?
+  changesJson  Json?
+  requestId    String?
+  severity     Int      @default(0)
+  // tamper-evident
+  hash         String
+  prevHash     String?
+  // 조회 최적화
+  yyyymm       String   @db.VarChar(6)
+
+  @@index([ts])
+  @@index([action, ts])
+  @@index([yyyymm, ts])
+}
+
+enum AuditAction {
+  LOGIN
+  LOGOUT
+  SIGNUP_REQUEST
+  CREATE
+  UPDATE
+  DELETE
+  ROLE_ASSIGN
+  ROLE_REVOKE
+  APPROVE
+  REJECT
+}
+

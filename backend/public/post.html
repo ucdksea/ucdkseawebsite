@@ -19,7 +19,7 @@
       </a>  
       <!-- 네비게이션 -->
       <nav class="hidden md:flex space-x-6 text-sm font-medium">
-        <a href="/post" class="hover:text-blue-400 transition">Post</a>
+        <a href="/post" class="text-blue-400 transition">Post</a>
         <a href="/history" class="hover:text-blue-400 transition">History</a>
         <a href="/log" class="hover:text-blue-400 transition">Log</a>
       </nav>
@@ -92,22 +92,22 @@
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-sm mb-1">English name</label>
-              <input id="enName" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-3 focus-ring"/>
+              <input id="enName" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-3 focus-ring" placeholder="Gildong Hong"/>
             </div>
             <div>
               <label class="block text-sm mb-1">Korean name</label>
-              <input id="koName" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-3 focus-ring"/>
+              <input id="koName" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-3 focus-ring" placeholder="홍길동"/>
             </div>
           </div>
-          <label class="block text-sm mb-1">Role (e.g., President)</label>
-          <input id="role" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-3 focus-ring"/>
+          <label class="block text-sm mb-1">Role</label>
+          <input id="role" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-3 focus-ring" placeholder = "President"/>
           <label class="block text-sm mb-1">LinkedIn URL (optional)</label>
           <input id="linkedin" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-4 focus-ring" placeholder="https://www.linkedin.com/in/..."/>
         </div>
 
         <!-- 공통 필드 -->
         <label class="block text-sm mb-1">Title</label>
-        <input id="title" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-3 focus-ring" placeholder="(Popup/Upcoming은 선택)"/>
+        <input id="title" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-3 focus-ring" placeholder="얼죽삼 / KseaFourCuts"/>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
@@ -116,11 +116,11 @@
           </div>
         </div>
 
-        <label class="block text-sm mb-1">설명 (Korean)</label>
-        <textarea id="descKo" rows="3" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-3 focus-ring"></textarea>
+        <label class="block text-sm mb-1">설명 (한국어)</label>
+        <textarea id="descKo" rows="3" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-3 focus-ring" placeholder="이전 행사글 참고"></textarea>
 
         <label class="block text-sm mb-1">Description (English)</label>
-        <textarea id="descEn" rows="3" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-4 focus-ring"></textarea>
+        <textarea id="descEn" rows="3" class="w-full rounded-xl bg-white/10 px-3 py-2 mb-4 focus-ring" placeholder="Refer to previous posts"></textarea>
 
         <button id="btnPublish" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 font-semibold disabled:opacity-60">Publish</button>
         <p id="publishMsg" class="text-sm text-white/70 mt-2"></p>

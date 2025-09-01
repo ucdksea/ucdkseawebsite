@@ -6,9 +6,9 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import { cookies } from "next/headers";
 
-// .env 예시:
-// ALLOWED_ORIGINS=http://127.0.0.1:3000,http://localhost:3000,https://ucdksea.com
-// APP_BASE_URL=http://localhost:3000   // 운영에선 https://ucdksea.com
+import { appendAuditEvent } from "@/lib/audit";
+import { getRequestId, getClientIp } from "@/lib/req";
+
 const DEFAULT_ALLOWED = [
   "http://127.0.0.1:3000",
   "http://localhost:3000",
@@ -26,7 +26,7 @@ function corsHeaders(origin: string | null) {
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization, X-CSRF-Token",
     "Access-Control-Max-Age": "600",
-    "Vary": "Origin",
+    Vary: "Origin",
   };
   if (origin && ALLOWED.includes(origin)) {
     h["Access-Control-Allow-Origin"] = origin;
@@ -53,45 +53,109 @@ export async function POST(req: Request) {
   const origin = req.headers.get("origin");
   const headers = corsHeaders(origin);
 
+  const requestId = getRequestId();
+  const ip = getClientIp();
+
   try {
     const { email, password } = await req.json();
     if (!email || !password) {
+      await appendAuditEvent({
+        actorId: email ?? "anonymous",
+        actorIp: ip,
+        requestId,
+        action: "LOGIN",
+        targetType: "USER",
+        summary: "FAILED: Missing credentials",
+        severity: 2,
+      });
       return NextResponse.json({ error: "Missing credentials" }, { status: 400, headers });
     }
 
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) return NextResponse.json({ error: "Invalid login" }, { status: 401, headers });
+    if (!user) {
+      await appendAuditEvent({
+        actorId: email,
+        actorIp: ip,
+        requestId,
+        action: "LOGIN",
+        targetType: "USER",
+        summary: "FAILED: No such user",
+        severity: 2,
+      });
+      return NextResponse.json({ error: "Invalid login" }, { status: 401, headers });
+    }
 
     const ok = await bcrypt.compare(password, user.passwordHash);
-    if (!ok) return NextResponse.json({ error: "Invalid login" }, { status: 401, headers });
+    if (!ok) {
+      await appendAuditEvent({
+        actorId: email,
+        actorIp: ip,
+        requestId,
+        action: "LOGIN",
+        targetType: "USER",
+        targetId: user.id,
+        summary: "FAILED: Wrong password",
+        severity: 2,
+      });
+      return NextResponse.json({ error: "Invalid login" }, { status: 401, headers });
+    }
 
     if (!user.isApproved) {
+      await appendAuditEvent({
+        actorId: email,
+        actorIp: ip,
+        requestId,
+        action: "LOGIN",
+        targetType: "USER",
+        targetId: user.id,
+        summary: "BLOCKED: Not approved yet",
+        severity: 1,
+      });
       return NextResponse.json({ error: "Not approved yet" }, { status: 403, headers });
     }
 
-    // 쿠키 정책 결정
+    // ── 성공 로그인 ──
     const isProd = process.env.NODE_ENV === "production";
     const isSame = sameOrigin(origin);
 
-    // 같은 오리진: Lax (개발에서 제일 편함)
-    // 크로스 오리진: None + Secure (⚠️ HTTPS 필수; http 로컬에선 브라우저가 쿠키를 막음)
     const cookieSameSite = isSame ? "lax" : ("none" as const);
-    const cookieSecure = isSame ? isProd : true; // cross-site면 항상 true
+    const cookieSecure = isSame ? isProd : true;
 
     cookies().set("uid", user.id, {
       httpOnly: true,
-      sameSite: cookieSameSite, // "lax" | "none"
-      secure: cookieSecure,     // prod 또는 cross-site일 때 true
+      sameSite: cookieSameSite,
+      secure: cookieSecure,
       path: "/",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    await appendAuditEvent({
+      actorId: email,
+      actorIp: ip,
+      requestId,
+      action: "LOGIN",
+      targetType: "USER",
+      targetId: user.id,
+      title: "User login success",
+      summary: "Login successful",
+      severity: 0,
     });
 
     return NextResponse.json(
       { ok: true, user: { id: user.id, email: user.email, name: user.name } },
       { status: 200, headers },
     );
-  } catch (e) {
+  } catch (e: any) {
     console.error(e);
+    await appendAuditEvent({
+      actorId: "system",
+      actorIp: ip,
+      requestId,
+      action: "LOGIN",
+      targetType: "USER",
+      summary: `FAILED: ${e?.message ?? "Server error"}`,
+      severity: 3,
+    });
     return NextResponse.json({ error: "Server error" }, { status: 500, headers });
   }
 }
