@@ -58,34 +58,57 @@ app.delete("/api/admin/posts/:id", (req, res) => res.json({ ok: true }));
   app.listen(PORT, () => console.log("API up on", PORT));
 
   // --- TEMP: SMTP live test route (삭제 예정) ---
-import nodemailer from "nodemailer";
-
-app.get("/api/dev/test-email", async (req, res) => {
-  const port = Number(process.env.SMTP_PORT || 465);
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port,
-    secure: port === 465,             // 465면 TLS
-    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-    logger: true,                     // Render 로그에 자세히 남김
-    debug: true,
+// 점검: 현재 SMTP env 요약
+app.get("/api/dev/env", (_req, res) => {
+    const env = {
+      SMTP_HOST: process.env.SMTP_HOST || null,
+      SMTP_PORT: process.env.SMTP_PORT || null,
+      SMTP_USER: process.env.SMTP_USER ? "(set)" : null,
+      FROM_EMAIL: process.env.FROM_EMAIL || null,
+      APP_BASE_URL: process.env.APP_BASE_URL || null,
+      APP_LOGIN_URL: process.env.APP_LOGIN_URL || null,
+    };
+    res.json({ ok: true, env });
   });
-
-  try {
-    // 1) SMTP 자격/접속 확인
-    await transporter.verify();
-
-    // 2) 실제 발송
-    const info = await transporter.sendMail({
-      from: process.env.FROM_EMAIL || process.env.SMTP_USER, // ex) "UC DAVIS KSEA <your@gmail.com>"
-      to: process.env.SMTP_USER,                              // 수신: 본인 메일로 우선
-      subject: "SMTP test from api.ucdksea.com",
-      text: "If you can read this, SMTP is working 🎉",
-    });
-
-    res.json({ ok: true, messageId: info.messageId });
-  } catch (e) {
-    console.error("SMTP TEST ERROR:", e);
-    res.status(500).json({ ok: false, error: String(e?.message || e) });
-  }
-});
+  
+  // SMTP 실발송 테스트
+  app.get("/api/dev/test-email", async (_req, res) => {
+    try {
+      const host = process.env.SMTP_HOST;
+      const port = Number(process.env.SMTP_PORT || 465);
+      const user = process.env.SMTP_USER;
+      const pass = process.env.SMTP_PASS;
+  
+      if (!host || !user || !pass) {
+        return res.status(400).json({
+          ok: false,
+          error: "SMTP env missing",
+          missing: {
+            SMTP_HOST: !host,
+            SMTP_USER: !user,
+            SMTP_PASS: !pass
+          }
+        });
+      }
+  
+      const transporter = nodemailer.createTransport({
+        host,
+        port,
+        secure: port === 465,
+        auth: { user, pass }
+      });
+  
+      await transporter.verify();
+      const info = await transporter.sendMail({
+        from: process.env.FROM_EMAIL || user,
+        to: user,
+        subject: "SMTP test from api.ucdksea.com",
+        text: "If you can read this, SMTP is working 🎉"
+      });
+  
+      res.json({ ok: true, messageId: info.messageId });
+    } catch (e) {
+      res.status(500).json({ ok: false, error: String(e?.message || e) });
+    }
+  });
+  
