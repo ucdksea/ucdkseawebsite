@@ -8,7 +8,7 @@ const allowed = (process.env.ALLOWED_ORIGINS || "")
   .split(",")
   .map(s => s.trim())
   .filter(Boolean);
-  
+
 app.use(cors({
     origin: (origin, cb) => {
       // no Origin(서버 간 통신 등) 허용
@@ -56,3 +56,37 @@ app.delete("/api/admin/posts/:id", (req, res) => res.json({ ok: true }));
   
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => console.log("API up on", PORT));
+
+
+  // --- TEMP: SMTP live test route (삭제 예정) ---
+import nodemailer from "nodemailer";
+
+app.get("/api/dev/test-email", async (req, res) => {
+  const port = Number(process.env.SMTP_PORT || 465);
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port,
+    secure: port === 465,             // 465면 TLS
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    logger: true,                     // Render 로그에 자세히 남김
+    debug: true,
+  });
+
+  try {
+    // 1) SMTP 자격/접속 확인
+    await transporter.verify();
+
+    // 2) 실제 발송
+    const info = await transporter.sendMail({
+      from: process.env.FROM_EMAIL || process.env.SMTP_USER, // ex) "UC DAVIS KSEA <your@gmail.com>"
+      to: process.env.SMTP_USER,                              // 수신: 본인 메일로 우선
+      subject: "SMTP test from api.ucdksea.com",
+      text: "If you can read this, SMTP is working 🎉",
+    });
+
+    res.json({ ok: true, messageId: info.messageId });
+  } catch (e) {
+    console.error("SMTP TEST ERROR:", e);
+    res.status(500).json({ ok: false, error: String(e?.message || e) });
+  }
+});
