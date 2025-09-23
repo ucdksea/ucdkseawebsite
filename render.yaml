@@ -1,10 +1,10 @@
 services:
   - type: web
-    name: ucdksea-backend
+    name: ucdkseawebsite
     env: node
     rootDir: backend
     region: oregon
-    plan: starter
+    plan: free
     buildCommand: "npm ci"
     startCommand: "npm start"
     healthCheckPath: "/healthz"

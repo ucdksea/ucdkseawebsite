@@ -11,11 +11,9 @@ app.use(cors({
   ],
   credentials: true
 }));
-
 app.options("*", cors());
 
 app.get("/healthz", (_, res) => res.send("ok"));
-
 app.get("/api/ping", (_, res) => res.json({ pong: true }));
 
 app.get("/api/log", (req, res) => {
@@ -27,22 +25,9 @@ app.get("/api/log", (req, res) => {
   });
 });
 
-app.get("/api/admin/posts", (req, res) => {
-    const { type = "", active = "1" } = req.query;
-    // TODO: 실제 데이터로 대체
-    res.json({ posts: [] });
-  });
-  
-  app.post("/api/admin/posts", (req, res) => {
-    const { action, type, order } = req.body || {};
-    if (action === "REORDER" && Array.isArray(order)) return res.json({ ok: true });
-    res.status(400).json({ ok: false, error: "Invalid action" });
-  });
-  
-  app.delete("/api/admin/posts/:id", (req, res) => {
-    const hard = req.query.hard === "1";
-    res.json({ ok: true, id: req.params.id, hard });
-  });
+app.get("/api/admin/posts", (req, res) => res.json({ posts: [] }));
+app.post("/api/admin/posts", (req, res) => res.json({ ok: true }));
+app.delete("/api/admin/posts/:id", (req, res) => res.json({ ok: true }));
 
 app.post("/api/auth/login", (req, res) => {
     const { username, password } = req.body || {};
