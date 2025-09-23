@@ -178,11 +178,11 @@ General members should use the <a href="/join" class=" underline hover:text-[var
   
       setLoading(true);
       try {
-        const res = await fetch(LOGIN_ENDPOINT, {
+        await fetch("https://api.ucdksea.com/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          credentials: "include",       // 서버가 CORS에 Credentials 허용해야 함
-          body: JSON.stringify({ email, password, remember: document.getElementById("remember").checked }),
+          body: JSON.stringify({ /* ... */ }),
+          credentials: "include", // 세션/쿠키 쓸 때 필수
         });
   
         if (!res.ok) {
