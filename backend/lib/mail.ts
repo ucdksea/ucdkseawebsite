@@ -1,5 +1,5 @@
 // lib/mail.ts
-import "server-only";
+// import "server-only";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 
