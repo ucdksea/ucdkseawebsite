@@ -130,22 +130,18 @@
       const API_BASE = "https://api.ucdksea.com";
       const API_ROOT = `${API_BASE}/api`;
     
-      // ✅ 한 번만 정의하고 재사용
+      // ✅ 한 번만 정의 (여기만 믿고 씀)
       const ENDPOINT = {
         healthz:  `${API_BASE}/healthz`,
         ping:     `${API_ROOT}/ping`,
         activity: `${API_ROOT}/activity`,
-        posts:    `${API_ROOT}/admin/posts`,                              // 목록/정렬/등록
-        post: (id) => `${API_ROOT}/admin/posts/${encodeURIComponent(id)}` // 단건/삭제
+        posts:    `${API_ROOT}/admin/posts`,
+        post: (id) => `${API_ROOT}/admin/posts/${encodeURIComponent(id)}`
       };
     
-      // 가벼운 체크
       fetch(ENDPOINT.healthz, { credentials: "include" });
-    
-      // (선택) 페이지 사이즈 등
       const PAGE_SIZE = 20;
     </script>
-    
     
     <script>
         (function(){
