@@ -129,17 +129,23 @@
     <script>
       const API_BASE = "https://api.ucdksea.com";
       const API_ROOT = `${API_BASE}/api`;
-      const API = `${API_BASE}/api/history`;
-      const PAGE_SIZE = 20;
+    
+      // ✅ 한 번만 정의하고 재사용
       const ENDPOINT = {
         healthz:  `${API_BASE}/healthz`,
         ping:     `${API_ROOT}/ping`,
         activity: `${API_ROOT}/activity`,
-        posts:    `${API_ROOT}/admin/posts`,          // 목록/정렬/등록
-        post: (id) => `${API_ROOT}/admin/posts/${encodeURIComponent(id)}`, // 단건/삭제
+        posts:    `${API_ROOT}/admin/posts`,                              // 목록/정렬/등록
+        post: (id) => `${API_ROOT}/admin/posts/${encodeURIComponent(id)}` // 단건/삭제
       };
+    
+      // 가벼운 체크
       fetch(ENDPOINT.healthz, { credentials: "include" });
+    
+      // (선택) 페이지 사이즈 등
+      const PAGE_SIZE = 20;
     </script>
+    
     
     <script>
         (function(){
@@ -147,9 +153,7 @@
             (location.hostname === "localhost" || location.hostname === "127.0.0.1")
               ? (location.port === "3000" ? "" : "http://localhost:3000")
               : "";
-              fetch(`${API_BASE}/api/ping`, { credentials: "include" });                        const extra = window.extraAuthHeaders || {};
-            const TYPES = ['POPUP','EVENT_UPCOMING','EVENT_POLAROID','OFFICER','GM'];
-        
+              fetch(ENDPOINT.ping, { credentials: "include" });            const TYPES = ['POPUP','EVENT_UPCOMING','EVENT_POLAROID','OFFICER','GM'];
           const $ = (id) => document.getElementById(id);
           const activeParam = () => ($('toggleActive')?.checked ? '1' : '0');
         
@@ -204,7 +208,7 @@
           window.renderList = renderList;
         
           async function fetchList(type){
-            const url = new URL(`${API}/api/admin/posts`, location.origin);
+            const url = new URL(ENDPOINT.posts);
             url.searchParams.set('type', type);
             url.searchParams.set('active', activeParam());
             url.searchParams.set('_t', Date.now().toString());
@@ -225,7 +229,7 @@
           }
         
           function delUrl(id, hard){
-            const u = new URL(`${API}/api/admin/posts/${encodeURIComponent(id)}`, location.origin);
+            const u = new URL(ENDPOINT.post(id));
             if (hard) u.searchParams.set('hard','1');
             u.searchParams.set('_t', Date.now().toString());
             return u.toString();
@@ -248,7 +252,7 @@
           }
           async function saveOrder(type, ids){
             if (!ids || ids.length <= 1) return { ok:true, skipped:true };
-            const r = await fetch(`${API}/api/admin/posts`, {
+            const r = await fetch(ENDPOINT.posts, {
               method: 'POST',
               credentials: 'include',
               headers: { 'Content-Type': 'application/json', ...extra },
