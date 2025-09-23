@@ -44,5 +44,13 @@ app.get("/api/admin/posts", (req, res) => {
     res.json({ ok: true, id: req.params.id, hard });
   });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("API up on", PORT));
+app.post("/api/auth/login", (req, res) => {
+    const { username, password } = req.body || {};
+    if (username === "test" && password === "1234") {
+      return res.json({ success: true, message: "Login successful" });
+    }
+    return res.status(403).json({ success: false, message: "Invalid credentials" });
+  });
+  
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log("API up on", PORT));
