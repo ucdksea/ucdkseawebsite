@@ -1,13 +1,16 @@
 import express from "express";
 import cors from "cors";
 
+app.set("trust proxy", 1);
 const app = express();
 app.use(express.json());
+app.set("trust proxy", 1);
 
 const allowed = (process.env.ALLOWED_ORIGINS || "")
   .split(",")
   .map(s => s.trim())
   .filter(Boolean);
+  
 
 app.use(cors({
     origin: (origin, cb) => {
@@ -19,10 +22,35 @@ app.use(cors({
     },
     credentials: true,
   }));
+
+  const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || [
+    "https://www.ucdksea.com",
+    "https://ucdksea.com",
+  ]).toString().split(",").map(s => s.trim()).filter(Boolean);
+
+  const corsOptions = {
+    origin(origin, cb) {
+      // SSR/서버-서버 호출(Origin 없음) 허용
+      if (!origin) return cb(null, true);
+      const ok = ALLOWED_ORIGINS.includes(origin);
+      cb(ok ? null : new Error("Not allowed by CORS"), ok);
+    },
+    credentials: true,
+    methods: ["GET","HEAD","POST","PUT","PATCH","DELETE","OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  };
+
+app.use(cors(corsOptions));
 app.options("*", cors());
 
 app.get("/healthz", (_, res) => res.send("ok"));
-app.get("/api/ping", (_, res) => res.json({ pong: true }));
+app.get("/api/ping", (req, res) => {
+    res.json({
+      ok: true,
+      time: new Date().toISOString(),
+      origin: req.headers.origin || null,
+    });
+  });
 
 app.get("/api/log", (req, res) => {
   res.json({
@@ -43,20 +71,18 @@ app.post("/api/auth/register", (req, res) => {
   });
   
 app.post("/api/auth/login", (req, res) => {
-    const { username, password } = req.body || {};
-    if (username === "test" && password === "1234") {
-      return res.json({ success: true, message: "Login successful" });
-    }
-    return res.status(403).json({ success: false, message: "Invalid credentials" });
-  });
+  const { username, password } = req.body || {};
+  if (username === "test" && password === "1234") {
+    return res.json({ success: true, message: "Login successful" });
+  }
+  return res.status(403).json({ success: false, message: "Invalid credentials" });
+});
+
 
 app.get("/api/admin/posts", (req, res) => res.json({ posts: [] }));
 app.post("/api/admin/posts", (req, res) => res.json({ ok: true }));
 app.delete("/api/admin/posts/:id", (req, res) => res.json({ ok: true }));
   
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => console.log("API up on", PORT));
-
   // --- TEMP: SMTP live test route (삭제 예정) ---
 // 점검: 현재 SMTP env 요약
 app.get("/api/dev/env", (_req, res) => {
@@ -129,3 +155,10 @@ app.get("/api/admin/users/action", async (req, res) => {
     return res.status(400).send("Invalid or expired token.");
   }
 });
+
+
+
+//
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("API up on", PORT));
+
