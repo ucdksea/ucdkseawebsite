@@ -135,7 +135,8 @@ General members should use the <a href="/join" class=" underline hover:text-[var
   <script>
     // ---- CONFIG (단일 정의, 덮어쓰기 방지) ----
     const DEV = location.hostname === "127.0.0.1" || location.hostname === "localhost";
-    const API_BASE = DEV ? "http://localhost:3000" : "";
+    const PROD_API_BASE = "https://api.ucdksea.com";
+    const API_BASE = DEV ? "http://localhost:3000" : PROD_API_BASE;
     const APP_BASE = location.origin;                     // 프런트의 실제 호스트를 사용
     const LOGIN_ENDPOINT = `${API_BASE}/api/auth/login`;
     const REDIRECT_AFTER = `${APP_BASE}/post`;
