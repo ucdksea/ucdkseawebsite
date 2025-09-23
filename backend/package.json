@@ -2,12 +2,14 @@
   "name": "ucdksea-website-backend",
   "version": "1.0.0",
   "private": true,
+  "type": "module", 
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "start": "node server.js"
   },
+  "engines": { "node": ">=18" },
   "dependencies": {
     "bcrypt": "^5.1.1",
     "jsonwebtoken": "^9.0.2",
@@ -33,4 +35,5 @@
     "tailwindcss": "^4.1.12",
     "typescript": "^5.4.0"
   }
+  
 }
