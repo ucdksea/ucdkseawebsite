@@ -160,7 +160,8 @@ app.get("/api/admin/users/action", async (req, res) => {
 // server.ts or app.ts (Express)
 import devRoutes from "./routes/dev";
 app.use("/api/dev", devRoutes);
-
+app.use(authRoutes);              // ✅ /api/auth/*
+app.use(adminRoutes);             // ✅ /api/admin/*
 
 //
 const PORT = process.env.PORT || 3000;

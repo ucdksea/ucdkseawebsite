@@ -1,6 +1,7 @@
 // lib/auth.ts
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { sendAdminNewRegistration } from "../lib/mail"; 
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 export type JwtPayload = { uid: string; email: string };
