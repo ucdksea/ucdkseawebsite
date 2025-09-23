@@ -27,5 +27,15 @@ app.post("/api/auth/login", (req, res) => {
   return res.status(403).json({ success: false, message: "Invalid credentials" });
 });
 
+app.get("/api/activity", (req, res) => {
+    // TODO: 실제 DB 조회/필터링을 구현
+    res.json({
+      data: [],          // 아이템 배열
+      page: Number(req.query.page || 1),
+      page_size: Number(req.query.page_size || 20),
+      total: 0
+    });
+  });
+  
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("API up on", PORT));

@@ -147,9 +147,9 @@
   </footer>
 
   <script>
-  const API = '/api/activity';
-  const API_BASE = "https://api.ucdksea.com";  // 절대경로!
-  fetch(`${API_BASE}/api/ping`, { credentials: "include" });
+    const API_BASE = "https://api.ucdksea.com";
+    const API = `${API_BASE}/api/activity`;   // 👈 절대경로로 변경
+    fetch(`${API_BASE}/healthz`, { credentials: "include" }); // 있으면 /healthz가 더 간단
   const PAGE_SIZE = 20;
   let state = { page:1, pages:1, total:0, action:'', target:'', start:'', end:'', user:'', q:'', auto:false };
   let timer = null; let aborter = null; let bound=false;
