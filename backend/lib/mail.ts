@@ -52,9 +52,22 @@ export async function sendApprovalEmail(to: string, name: string, email: string)
 
 /* ---------------- Admin notify (원클릭 승인/거절) ---------------- */
 
-function signAdminActionToken(uid: string, action: "approve" | "decline") {
+// ✅ 변경: uid 대신 user 객체를 통째로 담는다.
+function signAdminActionToken(
+  user: { id: string; name: string; email: string },
+  action: "approve" | "decline"
+) {
   const secret = process.env.ADMIN_ACTION_SECRET!;
-  return jwt.sign({ uid, action }, secret, { expiresIn: "30m" }); // 30분 유효
+  return jwt.sign({ action, user }, secret, { expiresIn: "30m" }); // 30분 유효
+}
+
+// ✅ 추가: 관리자 액션 토큰 검증 함수 (서버 라우트에서 사용)
+export function verifyAdminActionToken(token: string) {
+  const secret = process.env.ADMIN_ACTION_SECRET!;
+  return jwt.verify(token, secret) as {
+    action: "approve" | "decline";
+    user: { id: string; name: string; email: string };
+  };
 }
 
 /**
@@ -69,8 +82,9 @@ export async function sendAdminNewRegistration(
   const appName = process.env.APP_NAME || "UCD KSEA";
   const base = process.env.APP_BASE_URL || "http://127.0.0.1:3000";
 
-  const approveToken = signAdminActionToken(user.id, "approve");
-  const declineToken = signAdminActionToken(user.id, "decline");
+  // ✅ 변경: user.id가 아니라 user 객체 전체를 넘긴다.
+  const approveToken = signAdminActionToken(user, "approve");
+  const declineToken = signAdminActionToken(user, "decline");
 
   const approveUrl = `${base}/api/admin/users/action?token=${encodeURIComponent(approveToken)}`;
   const declineUrl = `${base}/api/admin/users/action?token=${encodeURIComponent(declineToken)}`;

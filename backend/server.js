@@ -111,4 +111,21 @@ app.get("/api/dev/env", (_req, res) => {
       res.status(500).json({ ok: false, error: String(e?.message || e) });
     }
   });
-  
+  import { sendAdminNewRegistration, sendApprovalEmail, verifyAdminActionToken } from "./lib/mail.js";
+
+app.get("/api/admin/users/action", async (req, res) => {
+  try {
+    const token = String(req.query.token || "");
+    const payload = verifyAdminActionToken(token); // { action, user:{ id, name, email } }
+
+    if (payload.action === "approve") {
+      await sendApprovalEmail(payload.user.email, payload.user.name, payload.user.email);
+      return res.send("✅ Approved. An approval email has been sent to the user.");
+    } else {
+      return res.send("❌ Declined. The registration was declined.");
+    }
+  } catch (e) {
+    console.error(e);
+    return res.status(400).send("Invalid or expired token.");
+  }
+});
