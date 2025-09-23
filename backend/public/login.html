@@ -178,23 +178,26 @@ General members should use the <a href="/join" class=" underline hover:text-[var
   
       setLoading(true);
       try {
-        await fetch("https://api.ucdksea.com/api/auth/login", {
+        const res = await fetch("https://api.ucdksea.com/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ /* ... */ }),
-          credentials: "include", // 세션/쿠키 쓸 때 필수
+          body: JSON.stringify({ username: "test", password: "1234" }),
+          credentials: "include"
         });
-  
+      
         if (!res.ok) {
           if (res.status === 403) {
             showError("Your account is pending approval. Please check your email or contact the admin.");
             return;
           }
           let info = "";
-          try { const data = await res.json(); info = data?.detail || data?.message || data?.error || "" } catch {}
+          try { 
+            const data = await res.json(); 
+            info = data?.detail || data?.message || data?.error || ""; 
+          } catch {}
           throw new Error(info || `Login failed (${res.status}).`);
         }
-  
+      
         // ✅ 성공 시, 히스토리 남기지 않고 /post로 강제 이동
         window.location.replace(REDIRECT_AFTER);
         return; // 혹시 모를 이후 코드 실행 차단
@@ -202,7 +205,7 @@ General members should use the <a href="/join" class=" underline hover:text-[var
         showError(err.message || "Unable to sign in. Try again.");
       } finally {
         setLoading(false); // replace가 되면 이 줄은 실행되지 않음
-      }
+      }      
     });
   </script>  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js" defer></script>
