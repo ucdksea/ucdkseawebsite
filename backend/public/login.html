@@ -178,7 +178,7 @@ General members should use the <a href="/join" class=" underline hover:text-[var
   
       setLoading(true);
       try {
-        const res = await fetch("https://api.ucdksea.com/api/auth/login", {
+        const res = await fetch(LOGIN_ENDPOINT, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username: "test", password: "1234" }),
