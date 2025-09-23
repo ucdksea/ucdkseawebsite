@@ -3,7 +3,6 @@ import cors from "cors";
 
 app.set("trust proxy", 1);
 const app = express();
-app.use(express.json());
 app.set("trust proxy", 1);
 
 const allowed = (process.env.ALLOWED_ORIGINS || "")
@@ -12,16 +11,8 @@ const allowed = (process.env.ALLOWED_ORIGINS || "")
   .filter(Boolean);
   
 
-app.use(cors({
-    origin: (origin, cb) => {
-      // no Origin(서버 간 통신 등) 허용
-      if (!origin) return cb(null, true);
-      // 명시한 프론트만 허용
-      if (allowed.includes(origin)) return cb(null, true);
-      return cb(new Error("Not allowed by CORS"), false);
-    },
-    credentials: true,
-  }));
+  app.use(cors({ origin: ["https://ucdksea.com", "https://www.ucdksea.com"], credentials: true }));
+  app.use(express.json());
 
   const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || [
     "https://www.ucdksea.com",
@@ -159,7 +150,7 @@ app.get("/api/admin/users/action", async (req, res) => {
 
 // server.ts or app.ts (Express)
 import devRoutes from "./routes/dev";
-app.use("/api/dev", devRoutes);
+app.use("/api/dev", devRouter);
 app.use(authRoutes);              // ✅ /api/auth/*
 app.use(adminRoutes);             // ✅ /api/admin/*
 
