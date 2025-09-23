@@ -57,7 +57,6 @@ app.delete("/api/admin/posts/:id", (req, res) => res.json({ ok: true }));
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => console.log("API up on", PORT));
 
-
   // --- TEMP: SMTP live test route (삭제 예정) ---
 import nodemailer from "nodemailer";
 
