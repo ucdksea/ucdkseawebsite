@@ -1,19 +1,29 @@
 // lib/mail.ts
-// import "server-only";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 
+function bool(v: any) { return String(v).toLowerCase() === "true"; }
+
 const port = Number(process.env.SMTP_PORT ?? 587);
+const secure = port === 465 || bool(process.env.SMTP_SECURE);
 
 export const mailer = nodemailer.createTransport({
   host: process.env.SMTP_HOST!,
   port,
-  secure: port === 465, // 465면 TLS
+  secure, // 465면 true, 587이면 false
   auth: {
     user: process.env.SMTP_USER!,
     pass: process.env.SMTP_PASS!,
   },
+  // TLS 이슈시만 임시로 해제 (필요할때만 주석 해제)
+  // tls: { rejectUnauthorized: false },
 });
+
+// 앱 시작 시 한번 점검하고 로그 남기기 (실패해도 앱 죽이지 않음)
+mailer.verify().then(
+  () => console.log("[SMTP] verify OK:", process.env.SMTP_HOST, port, "(secure:", secure, ")"),
+  (err) => console.error("[SMTP] verify FAIL:", err?.message || err)
+);
 
 export async function sendApprovalEmail(to: string, name: string, email: string) {
   const from = process.env.FROM_EMAIL || process.env.SMTP_USER!;
@@ -47,22 +57,18 @@ export async function sendApprovalEmail(to: string, name: string, email: string)
     </div>
   `;
 
-  await mailer.sendMail({ from, to, subject, text, html });
+  return mailer.sendMail({ from, to, subject, text, html });
 }
 
-/* ---------------- Admin notify (원클릭 승인/거절) ---------------- */
-
-// ✅ 변경: uid 대신 user 객체를 통째로 담는다.
+/* ---- Admin one-click ---- */
 function signAdminActionToken(
   user: { id: string; name: string; email: string },
   action: "approve" | "decline"
-) {
+){
   const secret = process.env.ADMIN_ACTION_SECRET!;
-  return jwt.sign({ action, user }, secret, { expiresIn: "30m" }); // 30분 유효
+  return jwt.sign({ action, user }, secret, { expiresIn: "30m" });
 }
-
-// ✅ 추가: 관리자 액션 토큰 검증 함수 (서버 라우트에서 사용)
-export function verifyAdminActionToken(token: string) {
+export function verifyAdminActionToken(token: string){
   const secret = process.env.ADMIN_ACTION_SECRET!;
   return jwt.verify(token, secret) as {
     action: "approve" | "decline";
@@ -70,26 +76,21 @@ export function verifyAdminActionToken(token: string) {
   };
 }
 
-/**
- * 새 회원가입 관리자 알림 (대상: 운영진)
- * - 메일에 승인/거절 pill 버튼 포함
- */
 export async function sendAdminNewRegistration(
   to: string | string[],
   user: { id: string; name: string; email: string }
-) {
+){
   const from = process.env.FROM_EMAIL || process.env.SMTP_USER!;
   const appName = process.env.APP_NAME || "UCD KSEA";
   const base = process.env.APP_BASE_URL || "http://127.0.0.1:3000";
 
-  // ✅ 변경: user.id가 아니라 user 객체 전체를 넘긴다.
   const approveToken = signAdminActionToken(user, "approve");
   const declineToken = signAdminActionToken(user, "decline");
 
   const approveUrl = `${base}/api/admin/users/action?token=${encodeURIComponent(approveToken)}`;
   const declineUrl = `${base}/api/admin/users/action?token=${encodeURIComponent(declineToken)}`;
 
-  const toList = Array.isArray(to) ? to : to.split(",").map(s => s.trim()).filter(Boolean);
+  const toList = Array.isArray(to) ? to : to.split(",").map(s=>s.trim()).filter(Boolean);
   if (!toList.length) return;
 
   const subject = `[${appName}] New officer registration pending`;
@@ -99,36 +100,25 @@ export async function sendAdminNewRegistration(
     `Approve: ${approveUrl}\nDecline: ${declineUrl}\n`;
 
   const html = `
-  <div style="font-family:system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; line-height:1.6; color:#111; max-width:560px; margin:auto; padding:24px">
-    <h2 style="margin:0 0 12px">${appName} — New officer registration</h2>
-    <p style="margin:0 0 16px">A new registration is pending approval.</p>
-    <ul style="margin:0 0 20px; padding:0 0 0 18px">
-      <li><b>Name:</b> ${user.name}</li>
-      <li><b>Email:</b> ${user.email}</li>
-      <li><b>User ID:</b> ${user.id}</li>
-    </ul>
-
-    <div style="margin:14px 0 6px">
-      <a href="${approveUrl}" style="
-        display:inline-block; padding:10px 14px; margin-right:8px;
-        border-radius:9999px; background:#111827; color:#fff; text-decoration:none;
-        font-weight:600; font-size:14px;">Approve</a>
-      <a href="${declineUrl}" style="
-        display:inline-block; padding:10px 14px;
-        border-radius:9999px; border:1px solid #D1D5DB; color:#111827; text-decoration:none;
-        font-weight:600; font-size:14px; background:#fff;">Decline</a>
+    <div style="font-family:system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; line-height:1.6;">
+      <h2>${appName} — New officer registration</h2>
+      <p>A new registration is pending approval.</p>
+      <ul>
+        <li><b>Name:</b> ${user.name}</li>
+        <li><b>Email:</b> ${user.email}</li>
+        <li><b>User ID:</b> ${user.id}</li>
+      </ul>
+      <p>
+        <a href="${approveUrl}" style="display:inline-block;padding:10px 14px;margin-right:8px;border-radius:9999px;background:#111827;color:#fff;text-decoration:none;font-weight:600;">Approve</a>
+        <a href="${declineUrl}" style="display:inline-block;padding:10px 14px;border-radius:9999px;border:1px solid #D1D5DB;color:#111827;text-decoration:none;font-weight:600;background:#fff;">Decline</a>
+      </p>
+      <p style="font-size:12px;color:#6B7280">
+        If the buttons don’t work:<br/>
+        Approve: ${approveUrl}<br/>
+        Decline: ${declineUrl}
+      </p>
     </div>
-
-    <p style="font-size:12px; color:#6B7280; margin-top:18px">
-      If the buttons don’t work, copy and paste these links:<br/>
-      Approve: <a href="${approveUrl}" style="color:#111827">${approveUrl}</a><br/>
-      Decline: <a href="${declineUrl}" style="color:#111827">${declineUrl}</a>
-    </p>
-
-    <hr style="border:none; border-top:1px solid #E5E7EB; margin:18px 0">
-    <p style="font-size:12px; color:#6B7280; margin:0">This is an automated message.</p>
-  </div>
   `;
 
-  await mailer.sendMail({ from, to: toList, subject, text, html });
+  return mailer.sendMail({ from, to: toList, subject, text, html });
 }
