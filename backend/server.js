@@ -4,13 +4,21 @@ import cors from "cors";
 const app = express();
 app.use(express.json());
 
+const allowed = (process.env.ALLOWED_ORIGINS || "")
+  .split(",")
+  .map(s => s.trim())
+  .filter(Boolean);
+  
 app.use(cors({
-  origin: [
-    "https://ucdksea.com",
-    "https://www.ucdksea.com"
-  ],
-  credentials: true
-}));
+    origin: (origin, cb) => {
+      // no Origin(서버 간 통신 등) 허용
+      if (!origin) return cb(null, true);
+      // 명시한 프론트만 허용
+      if (allowed.includes(origin)) return cb(null, true);
+      return cb(new Error("Not allowed by CORS"), false);
+    },
+    credentials: true,
+  }));
 app.options("*", cors());
 
 app.get("/healthz", (_, res) => res.send("ok"));
