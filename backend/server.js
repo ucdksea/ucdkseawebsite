@@ -11,8 +11,11 @@ const allowed = (process.env.ALLOWED_ORIGINS || "")
   .filter(Boolean);
   
 
-  app.use(cors({ origin: ["https://ucdksea.com", "https://www.ucdksea.com"], credentials: true }));
-  app.use(express.json());
+  app.use(cors({
+    origin: ["https://ucdksea.com", "https://www.ucdksea.com"],
+    credentials: true
+  }));
+    app.use(express.json());
 
   const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || [
     "https://www.ucdksea.com",
@@ -147,6 +150,7 @@ app.get("/api/admin/users/action", async (req, res) => {
   }
 });
 
+app.use((_req, res) => res.status(404).json({ ok: false, error: "Not Found" }));
 
 // server.ts or app.ts (Express)
 import devRoutes from "./routes/dev";
@@ -154,7 +158,14 @@ app.use("/api/dev", devRouter);
 app.use(authRoutes);              // ✅ /api/auth/*
 app.use(adminRoutes);             // ✅ /api/admin/*
 
+// 에러 핸들
+app.use((err, _req, res, _next) => {
+    console.error("[UNCAUGHT]", err);
+    res.status(500).json({ ok: false, error: err?.message || "Server error" });
+  });
 //
+// 반드시 Render가 주는 PORT와 0.0.0.0로 리스닝
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("API up on", PORT));
-
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("API up on", PORT);
+});
