@@ -15,6 +15,9 @@ app.use(cors({
 // 헬스체크
 app.get("/healthz", (_, res) => res.send("ok"));
 
+// ✅ 핑 라우트 (프론트가 GET /api/ping 호출)
+app.get("/api/ping", (_, res) => res.json({ pong: true }));
+
 // 로그인 라우트
 app.post("/api/auth/login", (req, res) => {
     const { username, password } = req.body;
