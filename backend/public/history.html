@@ -133,6 +133,7 @@
               ? (location.port === "3000" ? "" : "http://localhost:3000")
               : "";
               const API_BASE = "https://api.ucdksea.com";  // 절대경로!
+              const API = `${API_BASE}/api/activity`;
               fetch(`${API_BASE}/api/ping`, { credentials: "include" });                        const extra = window.extraAuthHeaders || {};
             const TYPES = ['POPUP','EVENT_UPCOMING','EVENT_POLAROID','OFFICER','GM'];
         
