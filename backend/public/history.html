@@ -128,8 +128,17 @@
 
     <script>
       const API_BASE = "https://api.ucdksea.com";
+      const API_ROOT = `${API_BASE}/api`;
       const API = `${API_BASE}/api/history`;
       const PAGE_SIZE = 20;
+      const ENDPOINT = {
+        healthz:  `${API_BASE}/healthz`,
+        ping:     `${API_ROOT}/ping`,
+        activity: `${API_ROOT}/activity`,
+        posts:    `${API_ROOT}/admin/posts`,          // 목록/정렬/등록
+        post: (id) => `${API_ROOT}/admin/posts/${encodeURIComponent(id)}`, // 단건/삭제
+      };
+      fetch(ENDPOINT.healthz, { credentials: "include" });
     </script>
     
     <script>
