@@ -19,6 +19,4 @@ app.get("/api/ping", (req, res) => res.json({ pong: true }));
 
 // Render가 넣어주는 포트 사용 필수
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`API listening on ${PORT}`);
-});
+app.listen(PORT, () => console.log("API up on", PORT));

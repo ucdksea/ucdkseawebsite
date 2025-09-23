@@ -2,25 +2,13 @@ services:
   - type: web
     name: ucdksea-backend
     env: node
-    rootDir: backend             # 백엔드 폴더 지정! (중요)
-    region: oregon               # 가까운 리전으로 변경 가능
-    plan: starter                # 요금제
-    buildCommand: "npm ci"       # 빌드 스텝 없다면 npm ci만
-    startCommand: "npm start"    # package.json의 start가 node server.js 실행
-    healthCheckPath: "/healthz"  # server.js에 /healthz 200 응답 추가
+    rootDir: backend
+    region: oregon
+    plan: starter
+    buildCommand: "npm ci"
+    startCommand: "npm start"
+    healthCheckPath: "/healthz"
     autoDeploy: true
     envVars:
-      - key: NODE_VERSION        # Node 버전 고정(권장)
+      - key: NODE_VERSION
         value: "20"
-# 필요시 DB까지 같이 생성하려면 아래 주석 해제 예시
-# databases:
-#   - name: ucdksea-db
-#     plan: starter
-# services:
-#   - type: web
-#     ...
-#     envVars:
-#       - key: DATABASE_URL
-#         fromDatabase:
-#           name: ucdksea-db
-#           property: connectionString
