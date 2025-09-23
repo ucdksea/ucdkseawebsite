@@ -141,6 +141,9 @@
     
       fetch(ENDPOINT.healthz, { credentials: "include" });
       const PAGE_SIZE = 20;
+      const extra = (window.extraAuthHeaders && typeof window.extraAuthHeaders === "object")
+    ? window.extraAuthHeaders
+    : {};
     </script>
     
     <script>
