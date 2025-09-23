@@ -324,8 +324,9 @@
           (() => {
             const DEV = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
             const AUTO_BASE = DEV ? 'http://localhost:3000' : '';
-            const API_BASE = (window.KSEA_API_BASE || AUTO_BASE).replace(/\/+$/, '');
-        
+            const API_BASE = "https://api.ucdksea.com";  // 절대경로!
+            fetch(`${API_BASE}/api/ping`, { credentials: "include" });
+                    
             async function fetchPopup() {
               const url = `${API_BASE}/api/admin/posts?type=POPUP&active=1`;
               try {

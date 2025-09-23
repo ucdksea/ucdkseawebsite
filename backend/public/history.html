@@ -132,9 +132,9 @@
             (location.hostname === "localhost" || location.hostname === "127.0.0.1")
               ? (location.port === "3000" ? "" : "http://localhost:3000")
               : "";
-          const API   = (window.KSEA_API_BASE ?? AUTO_BASE).replace(/\/+$/, "");
-          const extra = window.extraAuthHeaders || {};
-          const TYPES = ['POPUP','EVENT_UPCOMING','EVENT_POLAROID','OFFICER','GM'];
+              const API_BASE = "https://api.ucdksea.com";  // 절대경로!
+              fetch(`${API_BASE}/api/ping`, { credentials: "include" });                        const extra = window.extraAuthHeaders || {};
+            const TYPES = ['POPUP','EVENT_UPCOMING','EVENT_POLAROID','OFFICER','GM'];
         
           const $ = (id) => document.getElementById(id);
           const activeParam = () => ($('toggleActive')?.checked ? '1' : '0');

@@ -163,8 +163,9 @@
     <script>
       (async () => {
         const DEV = location.hostname === "127.0.0.1" || location.hostname === "localhost";
-        const API = DEV ? "http://localhost:3000" : "";
-    
+        const API_BASE = "https://api.ucdksea.com";  // 절대경로!
+        fetch(`${API_BASE}/api/ping`, { credentials: "include" });
+            
         const grid = document.querySelector("#list_OFFICER");
         if (!grid) return;
     

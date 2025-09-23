@@ -194,8 +194,9 @@
         location.port === "5500";
     
       const DEV = isLocalHost;
-      const API = DEV ? "http://localhost:3000" : "";
-    </script>
+      const API_BASE = "https://api.ucdksea.com";  // 절대경로!
+      fetch(`${API_BASE}/api/ping`, { credentials: "include" });
+          </script>
     <script>
       // 이미지 URL을 /file2/... 형태로 강제 변환
       function ensureFile2(url){

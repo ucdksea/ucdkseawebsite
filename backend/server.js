@@ -7,8 +7,11 @@ app.use(express.json());
 
 // 프론트 도메인만 열기 (Squarespace 도메인으로 교체)
 app.use(cors({
-  origin: ["https://YOUR-SQUARESPACE-DOMAIN.com"], // 예: https://cosmepack.squarespace.com 또는 커스텀 도메인
-  credentials: true
+    origin: [
+        "https://ucdksea.com",
+        "https://www.ucdksea.com"
+    ],
+    credentials: true
 }));
 
 // 헬스체크 (Render가 200 확인)

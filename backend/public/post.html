@@ -196,8 +196,9 @@
       (location.hostname === "localhost" || location.hostname === "127.0.0.1")
         ? (location.port === "3000" ? "" : "http://localhost:3000")
         : "";
-    const API = (window.KSEA_API_BASE ?? AUTO_BASE).replace(/\/+$/, "");
-    const $ = (id) => document.getElementById(id);
+        const API_BASE = "https://api.ucdksea.com";  // 절대경로!
+        fetch(`${API_BASE}/api/ping`, { credentials: "include" });
+        const $ = (id) => document.getElementById(id);
   
     // ----- (선택) 캐시 회피 쿼리 -----
     const nocc = (url) => {

@@ -117,7 +117,8 @@
   <script>
     // Next.js dev 서버로 보내기
     const DEV = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
-    const API_BASE = DEV ? 'http://127.0.0.1:3000' : '';
+    const API_BASE = "https://api.ucdksea.com";  // 절대경로!
+    fetch(`${API_BASE}/api/ping`, { credentials: "include" });
     const REGISTER_ENDPOINT = `${API_BASE}/api/auth/register`;
   
     const form = document.getElementById("registerForm");
