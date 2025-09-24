@@ -370,6 +370,80 @@ app.post("/api/auth/register", async (req, res) => {
   }
 });
 
+// ──────────────────────────────────────────────
+// Mail helpers (Nodemailer) — uses your .env keys
+// ─────────────────────────────────────────────-
+import nodemailer from "nodemailer";
+
+const mailer = nodemailer.createTransport({
+  host: process.env.SMTP_HOST!,
+  port: Number(process.env.SMTP_PORT || 587),
+  secure: String(process.env.SMTP_PORT || "").trim() === "465", // Gmail: 465=true
+  auth: {
+    user: process.env.SMTP_USER!,
+    pass: process.env.SMTP_PASS!,
+  },
+});
+
+async function sendMail(opts: { to: string; subject: string; html: string; text?: string }) {
+  const from = process.env.FROM_EMAIL || `${process.env.APP_NAME || "App"} <no-reply@local>`;
+  await mailer.sendMail({ from, ...opts });
+}
+
+export async function sendApprovalEmail(to: string, name?: string, loginEmail?: string) {
+  const appName = process.env.APP_NAME || "App";
+  const loginUrl = process.env.APP_LOGIN_URL || "/";
+  const subject = `[${appName}] Your officer account is approved`;
+
+  const text = `Hello ${name || to},
+
+Your officer account has been approved. You can now sign in:
+${loginUrl}
+${loginEmail ? `\nEmail: ${loginEmail}` : ""}
+
+Thank you.`;
+
+  const html = `
+    <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial">
+      <p>Hello ${name || to},</p>
+      <p>Your officer account has been <b>approved</b>.</p>
+      <p><a href="${loginUrl}">Sign in</a>${loginEmail ? ` with <code>${loginEmail}</code>` : ""}.</p>
+      <p>Thank you.</p>
+    </div>
+  `;
+  await sendMail({ to, subject, text, html });
+}
+
+// ──────────────────────────────────────────────
+// POST /api/admin/users/:id/approve
+// Header: x-admin-token: <ADMIN_TOKEN>
+// ─────────────────────────────────────────────-
+app.post(
+  "/api/admin/users/:id/approve",
+  (req, res, next) => (requireAdmin(req, res) ? next() : undefined),
+  async (req, res) => {
+    try {
+      const id = req.params.id;
+      const user = await prisma.user.update({
+        where: { id },
+        data: { isApproved: true },
+        select: { id: true, email: true, name: true, isApproved: true },
+      });
+
+      try {
+        await sendApprovalEmail(user.email, user.name ?? user.email, user.email);
+      } catch (e) {
+        console.error("[MAIL][approve] fail:", e);
+      }
+
+      return res.json({ ok: true, user });
+    } catch (e: any) {
+      if (e?.code === "P2025") return res.status(404).json({ error: "User not found" });
+      console.error("[POST /api/admin/users/:id/approve] ERR", e);
+      return res.status(500).json({ error: e?.message || "Server error" });
+    }
+  }
+);
 
 // Listen
 const PORT = Number(process.env.PORT || 4000);
