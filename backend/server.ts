@@ -306,7 +306,7 @@ function requireAdmin(req: Request, res: Response) {
 
 // POST /api/auth/register
 // body: { name: string, email: string, password: string }
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";;
 
 app.post("/api/auth/register", async (req, res) => {
   try {
