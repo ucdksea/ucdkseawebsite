@@ -379,35 +379,65 @@ app.post("/api/auth/register", async (req, res) => {
 // ──────────────────────────────────────────────
 // Mail helpers (Nodemailer) — uses your .env keys
 // ─────────────────────────────────────────────-
+
+// === replace mailer + sendMail start ===
 import nodemailer from "nodemailer";
 
-const mailer = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "smtp.gmail.com",
-  port: 587,                 // ✅ 587
-  secure: false,             // ✅ STARTTLS
-  auth: {
-    user: process.env.SMTP_USER!,
-    pass: process.env.SMTP_PASS!,
-  },
-  requireTLS: true,          // ✅ 반드시 TLS 업그레이드
-  tls: {
-    minVersion: "TLSv1.2",
-    rejectUnauthorized: true,
-    servername: "smtp.gmail.com",
-  },
-  connectionTimeout: 15000,  // ⏱ 여유 타임아웃
-  greetingTimeout: 10000,
-  socketTimeout: 20000,
-  pool: true,                // 연결 풀로 재사용
-  maxConnections: 2,
-  family: 4,                 // ✅ IPv4 강제 (IPv6 이슈 회피)
-});
+const useResend = !!process.env.RESEND_API_KEY;
 
+let smtpTransport: nodemailer.Transporter | null = null;
+if (!useResend) {
+  // Gmail SMTP가 가능한 경우에만 사용(네트워크 막히면 폴백됨)
+  smtpTransport = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || "smtp.gmail.com",
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: false,            // STARTTLS
+    auth: {
+      user: process.env.SMTP_USER!,
+      pass: process.env.SMTP_PASS!,
+    },
+    requireTLS: true,
+    tls: { minVersion: "TLSv1.2", servername: "smtp.gmail.com", rejectUnauthorized: true },
+    family: 4,                // IPv4 강제 (IPv6 이슈 회피)
+    connectionTimeout: 10000,
+    greetingTimeout: 8000,
+    socketTimeout: 15000,
+    pool: true,
+    maxConnections: 2,
+  });
+}
 
 async function sendMail(opts: { to: string; subject: string; html: string; text?: string }) {
+  const fallbackToResend = async () => {
+    const { Resend } = await import("resend");
+    const resend = new Resend(process.env.RESEND_API_KEY!);
+    const from = process.env.RESEND_FROM || "onboarding@resend.dev";
+    await resend.emails.send({
+      from,
+      to: opts.to,
+      subject: opts.subject,
+      html: opts.html,
+      text: opts.text,
+      reply_to: process.env.FROM_EMAIL || undefined,
+    });
+  };
+
+  // 1) RESEND 우선 사용 (키 있으면 바로 HTTP API로 발송)
+  if (useResend) return fallbackToResend();
+
+  // 2) SMTP 시도 → 실패 시 자동 RESEND 폴백
   const from = process.env.FROM_EMAIL || `${process.env.APP_NAME || "App"} <no-reply@local>`;
-  await mailer.sendMail({ from, ...opts });
+  try {
+    if (!smtpTransport) throw new Error("SMTP transport missing");
+    await smtpTransport.sendMail({ from, ...opts });
+  } catch (err) {
+    console.error("[MAIL][smtp] failed, fallback to Resend:", err);
+    if (process.env.RESEND_API_KEY) return fallbackToResend();
+    throw err;
+  }
 }
+// === replace mailer + sendMail end ===
+
 
 // 이미 있는 nodemailer 설정/ sendMail 활용
 async function sendApplicantReceipt(to: string, name?: string) {
