@@ -418,7 +418,7 @@ async function sendMail(opts: { to: string; subject: string; html: string; text?
       subject: opts.subject,
       html: opts.html,
       text: opts.text,
-      reply_to: process.env.FROM_EMAIL || undefined,
+      replyTo: process.env.FROM_EMAIL || undefined,
     });
   };
 
