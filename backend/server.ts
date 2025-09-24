@@ -304,9 +304,72 @@ function requireAdmin(req: Request, res: Response) {
   return true;
 }
 
-// 사용
-app.post("/api/admin/posts", (req,res,next)=> requireAdmin(req,res) ? next() : undefined, async (req,res)=>{ /* ... */});
-app.delete("/api/admin/posts/:id", (req,res,next)=> requireAdmin(req,res) ? next() : undefined, async (req,res)=>{ /* ... */});
+// POST /api/auth/register
+// body: { name: string, email: string, password: string }
+import bcrypt from "bcrypt";
+
+app.post("/api/auth/register", async (req, res) => {
+  try {
+    const { name, email, password } = req.body || {};
+
+    // 1) 입력 검증
+    if (typeof name !== "string" || !name.trim()) {
+      return res.status(400).json({ error: "name is required" });
+    }
+    if (typeof email !== "string" || !email.trim()) {
+      return res.status(400).json({ error: "email is required" });
+    }
+    if (typeof password !== "string" || password.length < 8) {
+      return res.status(400).json({ error: "password must be at least 8 characters" });
+    }
+
+    const emailNorm = email.trim().toLowerCase();
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNorm);
+    if (!emailOk) {
+      return res.status(400).json({ error: "invalid email" });
+    }
+
+    // 2) (선택) 도메인 제한
+    const allowedDomain = "ucdavis.edu";
+    const domain = (emailNorm.split("@")[1] || "").toLowerCase();
+    if (domain !== allowedDomain) {
+      return res.status(400).json({ error: "Please use your @ucdavis.edu email." });
+    }
+
+    // 3) 중복 이메일 체크
+    const exists = await prisma.user.findUnique({ where: { email: emailNorm } });
+    if (exists) {
+      return res.status(409).json({ error: "Email already registered" });
+    }
+
+    // 4) 비밀번호 해시 + 생성
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = await prisma.user.create({
+      data: {
+        email: emailNorm,
+        name: name.trim(),
+        passwordHash,       // ← 스키마와 일치
+        isApproved: false,  // 최초 가입은 보류 (관리자 승인 필요)
+      },
+      select: { id: true, email: true, name: true, isApproved: true, createdAt: true },
+    });
+
+    // 5) 응답
+    return res.status(201).json({
+      ok: true,
+      user,
+      message: "Registration submitted. Await admin approval.",
+    });
+  } catch (e: any) {
+    // Prisma unique 등
+    if (e?.code === "P2002") {
+      return res.status(409).json({ error: "Email already registered" });
+    }
+    console.error("[POST /api/auth/register] ERR", e);
+    return res.status(500).json({ error: e?.message || "Server error" });
+  }
+});
+
 
 // Listen
 const PORT = Number(process.env.PORT || 4000);
