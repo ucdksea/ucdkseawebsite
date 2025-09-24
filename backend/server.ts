@@ -11,7 +11,8 @@ import adminUsersRouter from "./routes/admin-users";
 import multer from "multer";
 import { prisma } from "./lib/prisma";
 import type { Request, Response } from "express";
-import * as ExpressNS from "express";
+
+
 
 
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
@@ -21,15 +22,56 @@ attachAuditMiddleware();
 
 const app = express();
 
-// server.ts (가장 위쪽 import 아래, 라우트 등록보다 "먼저")
-const ALLOWED = new Set(
-  (process.env.ALLOWED_ORIGINS || "")
-    .split(",")
-    .map(s => s.trim())
-    .filter(Boolean)
-    // 안전하게 기본값도 포함
-    .concat(["https://www.ucdksea.com", "https://ucdksea.com"])
-);
+const BUILD_TAG = `upload-v1-${Date.now()}`;
+console.log("[BOOT]", BUILD_TAG);
+app.get("/__sig", (_req, res) => res.type("text/plain").send(BUILD_TAG));
+
+// 디버그용: 임시로 GET 응답 열어 “살아있음” 표시
+app.get("/api/upload", (_req, res) => res.status(200).send("upload GET alive"));
+
+
+// ==== CORS: allowlist 구성 ====
+const envAllowed = (process.env.ALLOWED_ORIGINS || "")
+  .split(",")
+  .map(s => s.trim())
+  .filter(Boolean);
+
+// 필수 도메인 fallback 포함
+const ALLOWED = new Set([
+  ...envAllowed,
+  "https://www.ucdksea.com",
+  "https://ucdksea.com",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+]);
+
+// ==== 강제 CORS 미들웨어 (전역, 라우터보다 먼저) ====
+app.use((req, res, next) => {
+  const origin = req.headers.origin as string | undefined;
+
+  if (origin && ALLOWED.has(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+  }
+  res.setHeader("Vary", "Origin");
+
+  if (req.method === "OPTIONS") {
+    // 브라우저가 보낸 값 존중(없으면 기본값)
+    const reqHeaders =
+      (req.headers["access-control-request-headers"] as string) ||
+      "Content-Type, Authorization, X-Requested-With";
+    const reqMethod =
+      (req.headers["access-control-request-method"] as string) ||
+      "GET,POST,PUT,PATCH,DELETE,OPTIONS";
+    res.setHeader("Access-Control-Allow-Headers", reqHeaders);
+    res.setHeader("Access-Control-Allow-Methods", reqMethod);
+    return res.sendStatus(204);
+  }
+
+  next();
+});
+
+
 
 app.use((req, res, next) => {
   const origin = req.headers.origin as string | undefined;
@@ -280,18 +322,19 @@ function isAdminByToken(req: express.Request) {
 
 
 // GET은 노출 안 함(의도적으로). 필요시 405 반환
-app.get("/api/upload", (_req, res) => res.sendStatus(405));
+app.get("/api/upload", (_req, res) => res.status(200).send("upload GET alive"));
 
+type ReqWithFile = Request & { file?: Express.Multer.File };
 app.post(
   "/api/upload",
   upload.single("file"),
-  async (req: Request & { file?: ExpressNS.Multer.File }, res: Response) => {
+  async (req: ReqWithFile, res: Response) => {
     const admin = isAdminByToken(req);
     let approved = false;
     if (!admin) approved = await isApprovedByCookie(req);
     if (!(admin || approved)) return res.status(401).json({ error: "Unauthorized" });
 
-    const file = req.file; // ✅ 이제 타입 인식됨
+    const file = req.file; // ✅ 타입 인식 OK
     if (!file) return res.status(400).json({ error: "No file" });
 
     const base = process.env.APP_BASE_URL || `${req.protocol}://${req.get("host")}`;
@@ -299,6 +342,7 @@ app.post(
     return res.status(201).json({ url });
   }
 );
+
 
 
 const PORT = Number(process.env.PORT || 4000);

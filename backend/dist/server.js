@@ -17,13 +17,44 @@ const prisma_1 = require("./lib/prisma");
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "../.env") });
 (0, prisma_audit_middleware_1.attachAuditMiddleware)();
 const app = (0, express_1.default)();
-// server.ts (가장 위쪽 import 아래, 라우트 등록보다 "먼저")
-const ALLOWED = new Set((process.env.ALLOWED_ORIGINS || "")
+const BUILD_TAG = `upload-v1-${Date.now()}`;
+console.log("[BOOT]", BUILD_TAG);
+app.get("/__sig", (_req, res) => res.type("text/plain").send(BUILD_TAG));
+// 디버그용: 임시로 GET 응답 열어 “살아있음” 표시
+app.get("/api/upload", (_req, res) => res.status(200).send("upload GET alive"));
+// ==== CORS: allowlist 구성 ====
+const envAllowed = (process.env.ALLOWED_ORIGINS || "")
     .split(",")
     .map(s => s.trim())
-    .filter(Boolean)
-    // 안전하게 기본값도 포함
-    .concat(["https://www.ucdksea.com", "https://ucdksea.com"]));
+    .filter(Boolean);
+// 필수 도메인 fallback 포함
+const ALLOWED = new Set([
+    ...envAllowed,
+    "https://www.ucdksea.com",
+    "https://ucdksea.com",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]);
+// ==== 강제 CORS 미들웨어 (전역, 라우터보다 먼저) ====
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (origin && ALLOWED.has(origin)) {
+        res.setHeader("Access-Control-Allow-Origin", origin);
+        res.setHeader("Access-Control-Allow-Credentials", "true");
+    }
+    res.setHeader("Vary", "Origin");
+    if (req.method === "OPTIONS") {
+        // 브라우저가 보낸 값 존중(없으면 기본값)
+        const reqHeaders = req.headers["access-control-request-headers"] ||
+            "Content-Type, Authorization, X-Requested-With";
+        const reqMethod = req.headers["access-control-request-method"] ||
+            "GET,POST,PUT,PATCH,DELETE,OPTIONS";
+        res.setHeader("Access-Control-Allow-Headers", reqHeaders);
+        res.setHeader("Access-Control-Allow-Methods", reqMethod);
+        return res.sendStatus(204);
+    }
+    next();
+});
 app.use((req, res, next) => {
     const origin = req.headers.origin;
     if (origin && ALLOWED.has(origin)) {
@@ -238,7 +269,7 @@ function isAdminByToken(req) {
     return !!(token && process.env.ADMIN_TOKEN && token === process.env.ADMIN_TOKEN);
 }
 // GET은 노출 안 함(의도적으로). 필요시 405 반환
-app.get("/api/upload", (_req, res) => res.sendStatus(405));
+app.get("/api/upload", (_req, res) => res.status(200).send("upload GET alive"));
 app.post("/api/upload", upload.single("file"), async (req, res) => {
     const admin = isAdminByToken(req);
     let approved = false;
@@ -246,7 +277,7 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
         approved = await isApprovedByCookie(req);
     if (!(admin || approved))
         return res.status(401).json({ error: "Unauthorized" });
-    const file = req.file; // ✅ 이제 타입 인식됨
+    const file = req.file; // ✅ 타입 인식 OK
     if (!file)
         return res.status(400).json({ error: "No file" });
     const base = process.env.APP_BASE_URL || `${req.protocol}://${req.get("host")}`;

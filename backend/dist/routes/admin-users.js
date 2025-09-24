@@ -21,7 +21,7 @@ router.get("/users/action", async (req, res) => {
         // 나중에 DB 반영할 때:
         await prisma_1.prisma.user.update({
             where: { id: user.id },
-            data: { isApproved: action === "approve" }, // ← status 말고 isApproved
+            data: { isApproved: action === "approve" }
         });
         if (action === "approve") {
             await (0, mail_1.sendApprovalEmail)(user.email, user.name, user.email);
