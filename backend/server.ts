@@ -105,7 +105,7 @@ app.get("/api/uploads/recent", (_req, res) => {
   }
 });
 
-pp.get("/api/admin/posts", async (req, res) => {
+app.get("/api/admin/posts", async (req, res) => {
   try {
     const ALLOWED = ["POPUP","EVENT_UPCOMING","EVENT_POLAROID","GM","OFFICER"] as const;
     const type = typeof req.query.type === "string" ? req.query.type : undefined;
@@ -116,7 +116,7 @@ pp.get("/api/admin/posts", async (req, res) => {
     if (type && (ALLOWED as readonly string[]).includes(type)) where.type = type;
     if (onlyActive) where.active = true;
 
-    const rows = await prisma.post.findMany({
+    const rows = await _prisma.post.findMany({
       where,
       orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
       select: {
