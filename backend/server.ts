@@ -86,6 +86,20 @@ app.get("/api/uploads/recent", (_req, res) => {
   }
 });
 
+app.get("/api/uploads/recent", (_req, res) => {
+  try {
+    const ROOT = path.resolve(__dirname, "../public/uploads/posts");
+    const files = fs.readdirSync(ROOT)
+      .filter(f => !f.startsWith("."))
+      .map(f => ({ f, t: fs.statSync(path.join(ROOT, f)).mtimeMs }))
+      .sort((a,b) => b.t - a.t)
+      .slice(0, 10)
+      .map(x => x.f);
+    res.json({ files });
+  } catch (e:any) {
+    res.status(500).json({ ok:false, error: e?.message || "list failed" });
+  }
+});
 
 // Listen
 const PORT = Number(process.env.PORT || 4000);
