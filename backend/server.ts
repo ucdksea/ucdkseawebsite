@@ -63,6 +63,30 @@ app.post("/api/upload", upload.single("file"), async (req: ReqWithFile, res: Res
   }
 });
 
+import os from "os"; // 파일 상단 import들 사이에 추가해도 되고 안 써도 됨 (무시해도 OK)
+
+// 최근 업로드 목록
+app.get("/api/uploads/recent", (_req, res) => {
+  try {
+    const ROOT = path.resolve(__dirname, "../public/uploads/posts");
+    const entries = fs.readdirSync(ROOT)
+      .filter(f => !f.startsWith("."))
+      .map(f => {
+        const st = fs.statSync(path.join(ROOT, f));
+        return { file: f, mtime: st.mtimeMs };
+      })
+      .sort((a, b) => b.mtime - a.mtime)
+      .slice(0, 10)
+      .map(x => x.file);
+
+    res.json({ files: entries });
+  } catch (e: any) {
+    console.error("[RECENT_ERR]", e);
+    res.status(500).json({ ok: false, error: e?.message || "list failed" });
+  }
+});
+
+
 // Listen
 const PORT = Number(process.env.PORT || 4000);
 app.listen(PORT, "0.0.0.0", () => console.log("API up on", PORT));
