@@ -14,22 +14,26 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ ok: false, error: "Missing fields" });
     }
 
-    // (선택) 도메인 제한
+    // (옵션) 도메인 제한
     const allowed = (process.env.ALLOWED_EMAIL_DOMAINS || "")
-      .split(",").map(s => s.trim()).filter(Boolean);
-    if (allowed.length && !allowed.some(d => email.toLowerCase().endsWith(`@${d}`))) {
-      return res.status(400).json({ ok: false, error: "Please use your organization email." });
+      .split(",")
+      .map(s => s.trim().toLowerCase())
+      .filter(Boolean);
+    const domain = (email.split("@")[1] || "").toLowerCase();
+    if (allowed.length && !allowed.includes(domain)) {
+      return res.status(400).json({ ok: false, error: "Please use allowed email domain" });
     }
 
-    // 중복 검사
-    const existing = await prisma.user.findUnique({ where: { email }});
-    if (existing) {
+    // 중복 체크
+    const dup = await prisma.user.findUnique({ where: { email } });
+    if (dup) {
       return res.status(409).json({ ok: false, error: "Email already registered" });
     }
 
+    // 패스워드 해시
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // ✅ DB에 "대기" 유저 생성 (isApproved=false)
+    // ✨ DB에 "승인 대기" 상태로 사용자 생성
     const created = await prisma.user.create({
       data: {
         email,
@@ -40,7 +44,7 @@ router.post("/register", async (req, res) => {
       select: { id: true, name: true, email: true }
     });
 
-    // ✅ 메일 토큰에 DB의 진짜 id를 담아 보냄
+    // 운영진에게 승인/거절 메일 전송 (토큰에 created.id 포함)
     const admins = process.env.ADMIN_EMAILS || process.env.SMTP_USER || "";
     await sendAdminNewRegistration(admins, created);
 
@@ -51,7 +55,7 @@ router.post("/register", async (req, res) => {
 });
 
 router.post("/login", async (_req, res) => {
-  // TODO: 승인/비승인 체크 후 로그인 처리
+  // TODO: 로그인 구현 (isApproved 체크 포함)
   res.json({ ok: true });
 });
 

@@ -3,8 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// routes/auth.ts
 const express_1 = __importDefault(require("express"));
-const crypto_1 = __importDefault(require("crypto"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const prisma_1 = require("../lib/prisma");
 const mail_1 = require("../lib/mail");
@@ -15,29 +15,43 @@ router.post("/register", async (req, res) => {
         if (!email || !password || !name) {
             return res.status(400).json({ ok: false, error: "Missing fields" });
         }
-        // 이미 존재하면 에러
+        // (옵션) 도메인 제한
+        const allowed = (process.env.ALLOWED_EMAIL_DOMAINS || "")
+            .split(",")
+            .map(s => s.trim().toLowerCase())
+            .filter(Boolean);
+        const domain = (email.split("@")[1] || "").toLowerCase();
+        if (allowed.length && !allowed.includes(domain)) {
+            return res.status(400).json({ ok: false, error: "Please use allowed email domain" });
+        }
+        // 중복 체크
         const dup = await prisma_1.prisma.user.findUnique({ where: { email } });
-        if (dup)
+        if (dup) {
             return res.status(409).json({ ok: false, error: "Email already registered" });
-        const id = crypto_1.default.randomUUID();
+        }
+        // 패스워드 해시
         const passwordHash = await bcryptjs_1.default.hash(password, 10);
-        // DB에 "승인대기"로 저장
-        await prisma_1.prisma.user.create({
+        // ✨ DB에 "승인 대기" 상태로 사용자 생성
+        const created = await prisma_1.prisma.user.create({
             data: {
-                id,
                 email,
                 name,
                 passwordHash,
                 isApproved: false,
             },
+            select: { id: true, name: true, email: true }
         });
-        // 운영진 알림 메일
+        // 운영진에게 승인/거절 메일 전송 (토큰에 created.id 포함)
         const admins = process.env.ADMIN_EMAILS || process.env.SMTP_USER || "";
-        await (0, mail_1.sendAdminNewRegistration)(admins, { id, name, email });
+        await (0, mail_1.sendAdminNewRegistration)(admins, created);
         return res.json({ ok: true, message: "Registration submitted" });
     }
     catch (e) {
         return res.status(500).json({ ok: false, error: e?.message || "Internal error" });
     }
+});
+router.post("/login", async (_req, res) => {
+    // TODO: 로그인 구현 (isApproved 체크 포함)
+    res.json({ ok: true });
 });
 exports.default = router;
