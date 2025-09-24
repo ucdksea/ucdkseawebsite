@@ -65,6 +65,7 @@ app.post(
   )
 );
 
+app.get("/healthz", (_req, res) => res.send("ok"));
 app.get("/api/ping", (_req, res) => res.json({ ok: true }));
 
 app.get("/healthz", (_req, res) => res.send("ok"));
