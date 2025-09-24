@@ -409,18 +409,35 @@ if (!useResend) {
 
 async function sendMail(opts: { to: string; subject: string; html: string; text?: string }) {
   const fallbackToResend = async () => {
-    const { Resend } = await import("resend");
-    const resend = new Resend(process.env.RESEND_API_KEY!);
-    const from = process.env.RESEND_FROM || "onboarding@resend.dev";
-    await resend.emails.send({
-      from,
-      to: opts.to,
-      subject: opts.subject,
-      html: opts.html,
-      text: opts.text,
-      replyTo: process.env.FROM_EMAIL || undefined,
-    });
-  };
+// (중략) sendMail 함수 내부 Resend 분기
+  const { Resend } = await import("resend");
+  const resend = new Resend(process.env.RESEND_API_KEY!);
+  const from = process.env.RESEND_FROM || "onboarding@resend.dev";
+
+  const { data, error } = await resend.emails.send({
+    from,
+    to: opts.to,                 // 문자열 또는 string[] OK
+    subject: opts.subject,
+    html: opts.html,
+    text: opts.text,
+    replyTo: process.env.FROM_EMAIL || undefined, // ← replyTo (카멜케이스)
+  });
+
+  if (error) {
+    console.error("[MAIL][resend] error", error);
+    throw error;
+  }
+  console.log("[MAIL][resend] id:", data?.id);   // ✅ 로그로 남김
+  return data?.id || null;                        // ✅ 호출자에게 id 반환
+      await resend.emails.send({
+        from,
+        to: opts.to,
+        subject: opts.subject,
+        html: opts.html,
+        text: opts.text,
+        replyTo: process.env.FROM_EMAIL || undefined,
+      });
+    };
 
   // 1) RESEND 우선 사용 (키 있으면 바로 HTTP API로 발송)
   if (useResend) return fallbackToResend();
@@ -570,13 +587,13 @@ app.get("/api/admin/users/action", async (req, res) => {
         select: { email: true, name: true }
       });
       try { await sendApprovalEmail(updated.email, updated.name ?? updated.email, updated.email); } catch (e) { console.error("[MAIL][approve]", e); }
-      return res.status(200).send("Approved ✓ The user has been granted access.");
+      return res.status(200).send("Approved The user has been granted access.");
     }
 
     // decline: 관련 데이터 정리 후 삭제
     await prisma.quote.deleteMany({ where: { userId: user.id } }).catch(()=>{});
     await prisma.user.delete({ where: { id: user.id } });
-    return res.status(200).send("Declined ✗ The registration has been removed.");
+    return res.status(200).send("Declined The registration has been removed.");
   } catch (e) {
     console.error("[ACTION] error", e);
     return res.status(500).send("Server error.");
@@ -602,19 +619,20 @@ app.get("/__mail_test", async (req, res) => {
     const to = String(req.query.to || process.env.ADMIN_EMAILS || "").trim();
     if (!to) return res.status(400).json({ error: "no 'to' given" });
 
-    await sendMail({
+    const id = await sendMail({
       to,
       subject: "[UCD KSEA] MAIL TEST",
       text: "This is a mail test via current backend config.",
       html: "<p>This is a <b>mail test</b> via current backend config.</p>",
     });
 
-    return res.json({ ok: true });
+    return res.json({ ok: true, id }); // ← id 포함
   } catch (e: any) {
     console.error("[MAILTEST] error:", e?.message || e);
     return res.status(500).json({ ok: false, error: e?.message || "send failed" });
   }
 });
+
 
 // Listen
 const PORT = Number(process.env.PORT || 4000);
