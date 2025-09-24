@@ -17,11 +17,11 @@ const prisma_1 = require("./lib/prisma");
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "../.env") });
 (0, prisma_audit_middleware_1.attachAuditMiddleware)();
 const app = (0, express_1.default)();
+// server.ts 상단 import 아래
 const BUILD_TAG = `upload-v1-${Date.now()}`;
 console.log("[BOOT]", BUILD_TAG);
 app.get("/__sig", (_req, res) => res.type("text/plain").send(BUILD_TAG));
-// 디버그용: 임시로 GET 응답 열어 “살아있음” 표시
-app.get("/api/upload", (_req, res) => res.status(200).send("upload GET alive"));
+app.get("/api/upload", (_req, res) => res.status(200).send("upload GET alive")); // 임시
 // ==== CORS: allowlist 구성 ====
 const envAllowed = (process.env.ALLOWED_ORIGINS || "")
     .split(",")
