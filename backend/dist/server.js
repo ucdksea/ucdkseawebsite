@@ -56,6 +56,7 @@ app.post("/api/admin/posts", (0, withAudit_1.withAudit)(async (req, res) => {
     title: (r) => r?.title,
     summary: () => "Post created"
 }));
+app.get("/healthz", (_req, res) => res.send("ok"));
 app.get("/api/ping", (_req, res) => res.json({ ok: true }));
 app.get("/healthz", (_req, res) => res.send("ok"));
 app.get("/api/dev/env", (_req, res) => {
