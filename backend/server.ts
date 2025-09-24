@@ -70,29 +70,6 @@ app.post("/api/upload", upload.single("file"), async (req: ReqWithFile, res: Res
   }
 });
 
-import os from "os"; // 파일 상단 import들 사이에 추가해도 되고 안 써도 됨 (무시해도 OK)
-
-// 최근 업로드 목록
-app.get("/api/uploads/recent", (_req, res) => {
-  try {
-    const ROOT = path.resolve(__dirname, "../public/uploads/posts");
-    const entries = fs.readdirSync(ROOT)
-      .filter(f => !f.startsWith("."))
-      .map(f => {
-        const st = fs.statSync(path.join(ROOT, f));
-        return { file: f, mtime: st.mtimeMs };
-      })
-      .sort((a, b) => b.mtime - a.mtime)
-      .slice(0, 10)
-      .map(x => x.file);
-
-    res.json({ files: entries });
-  } catch (e: any) {
-    console.error("[RECENT_ERR]", e);
-    res.status(500).json({ ok: false, error: e?.message || "list failed" });
-  }
-});
-
 app.get("/api/uploads/recent", (_req, res) => {
   try {
     const ROOT = path.resolve(__dirname, "../public/uploads/posts");
@@ -189,6 +166,147 @@ app.get("/api/debug/posts/summary", async (_req, res) => {
     res.status(500).json({ ok: false, error: e?.message || "debug failed" });
   }
 });
+
+// ✅ Express: POST /api/admin/posts
+app.post("/api/admin/posts", async (req, res) => {
+  try {
+    const ALLOWED = ["POPUP","EVENT_UPCOMING","EVENT_POLAROID","GM","OFFICER"] as const;
+    type PostType = typeof ALLOWED[number];
+
+    const body = req.body || {};
+    const type: PostType | undefined = ALLOWED.includes(body.type) ? body.type : undefined;
+    if (!type) return res.status(400).json({ error: `type must be one of ${ALLOWED.join("|")}` });
+
+    if (!body.imageUrl) return res.status(400).json({ error: "imageUrl required" });
+    if ((type === "POPUP" || type === "EVENT_UPCOMING") && !body.linkUrl) {
+      return res.status(400).json({ error: "linkUrl required for POPUP/EVENT_UPCOMING" });
+    }
+    if (type === "EVENT_POLAROID" && !body.title) {
+      return res.status(400).json({ error: "title required for EVENT_POLAROID" });
+    }
+
+    // Quarter/Year 정규화 (GM, EVENT_POLAROID 용)
+    const seasonAliases: Record<string,string> = {
+      fall:"Fall", f:"Fall", autumn:"Fall", "1":"Fall", q1:"Fall",
+      winter:"Winter", w:"Winter", "2":"Winter", q2:"Winter",
+      spring:"Spring", s:"Spring", "3":"Spring", q3:"Spring",
+    };
+    const normYear = typeof body.year === "number" ? String(body.year)
+                   : typeof body.year === "string" ? body.year.trim() : "";
+    const qRaw = body.quarter ?? "";
+    const qStr = typeof qRaw === "number" ? String(qRaw)
+               : typeof qRaw === "string" ? qRaw.trim().replace(/^q/i,"") : "";
+    const qAlias = seasonAliases[qStr.toLowerCase().replace(/\s+/g,"")] ?? "";
+
+    if (type === "GM" || type === "EVENT_POLAROID") {
+      if (!normYear)  return res.status(400).json({ error: `Year required for ${type}` });
+      if (!qStr)      return res.status(400).json({ error: `Quarter required for ${type}` });
+      if (!qAlias)    return res.status(400).json({ error: "Quarter must be one of Fall / Winter / Spring" });
+    }
+
+    // meta 병합
+    const meta: any = {};
+    const posterUrl = body.posterUrl ?? body?.meta?.posterUrl ?? body.imageUrl;
+    if (posterUrl) meta.posterUrl = posterUrl;
+    if (body.formUrl ?? body?.meta?.formUrl) meta.formUrl = body.formUrl ?? body?.meta?.formUrl;
+    if (body.instagramUrl ?? body?.meta?.instagramUrl) meta.instagramUrl = body.instagramUrl ?? body?.meta?.instagramUrl;
+
+    const data: any = {
+      type,
+      imageUrl: body.imageUrl,
+      active: true,
+      meta: Object.keys(meta).length ? meta : null,
+    };
+
+    if (type === "OFFICER") {
+      data.title   = (body.enName   ?? "").trim();
+      data.descKo  = (body.koName   ?? "").trim();
+      data.descEn  = (body.role     ?? "").trim();
+      data.linkUrl = (body.linkedin ?? "").trim() || null;
+      data.date    = null;
+      data.year    = null;
+      data.quarter = null;
+      if (!data.title || !data.descKo || !data.descEn) {
+        return res.status(400).json({ error: "enName/koName/role required for OFFICER" });
+      }
+    } else if (type === "GM") {
+      data.title   = null;
+      data.descKo  = body.descKo ?? null;
+      data.descEn  = body.descEn ?? null;
+      data.linkUrl = body.linkUrl ?? null;
+      data.date    = null;
+      data.year    = normYear;
+      data.quarter = qAlias;
+    } else if (type === "EVENT_POLAROID") {
+      data.title   = body.title ?? null;
+      data.descKo  = body.descKo ?? null;
+      data.descEn  = body.descEn ?? null;
+      data.linkUrl = body.linkUrl ?? null;
+      data.date    = body.date ? new Date(body.date) : null;
+      data.year    = normYear;
+      data.quarter = qAlias;
+    } else {
+      data.title   = body.title ?? null;
+      data.descKo  = body.descKo ?? null;
+      data.descEn  = body.descEn ?? null;
+      data.linkUrl = body.linkUrl ?? null;
+      data.date    = body.date ? new Date(body.date) : null;
+      data.year    = null;
+      data.quarter = null;
+    }
+
+    const post = await prisma.post.create({ data });
+    return res.json({ ok: true, post });
+  } catch (e: any) {
+    console.error("[POST /api/admin/posts] ERR", e);
+    return res.status(500).json({ error: e?.message || "Create failed" });
+  }
+});
+
+// ✅ Express: DELETE /api/admin/posts/:id?hard=1
+app.delete("/api/admin/posts/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const hard = String(req.query.hard || "") === "1";
+
+    const before = await prisma.post.findUnique({
+      where: { id },
+      select: { id: true, active: true, type: true }
+    });
+    if (!before) return res.status(404).json({ error: "Not found" });
+
+    if (hard) {
+      await prisma.post.delete({ where: { id } });
+      return res.json({ ok: true, mode: "hard", before, after: null });
+    }
+
+    if (before.active === false) {
+      return res.json({ ok: true, mode: "soft", before, after: before, noChange: true });
+    }
+    const after = await prisma.post.update({
+      where: { id },
+      data: { active: false },
+      select: { id: true, active: true, type: true }
+    });
+    return res.json({ ok: true, mode: "soft", before, after });
+  } catch (e: any) {
+    console.error("[DELETE /api/admin/posts/:id] ERR", e);
+    return res.status(500).json({ error: e?.message || "Server error" });
+  }
+});
+
+function requireAdmin(req: Request, res: Response) {
+  const h = req.header("x-admin-token") || req.header("authorization")?.replace(/^Bearer\s+/i,"");
+  if (!process.env.ADMIN_TOKEN || h !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: "Unauthorized" });
+    return false;
+  }
+  return true;
+}
+
+// 사용
+app.post("/api/admin/posts", (req,res,next)=> requireAdmin(req,res) ? next() : undefined, async (req,res)=>{ /* ... */});
+app.delete("/api/admin/posts/:id", (req,res,next)=> requireAdmin(req,res) ? next() : undefined, async (req,res)=>{ /* ... */});
 
 // Listen
 const PORT = Number(process.env.PORT || 4000);
