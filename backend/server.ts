@@ -382,14 +382,27 @@ app.post("/api/auth/register", async (req, res) => {
 import nodemailer from "nodemailer";
 
 const mailer = nodemailer.createTransport({
-  host: process.env.SMTP_HOST!,
-  port: Number(process.env.SMTP_PORT || 587),
-  secure: String(process.env.SMTP_PORT || "").trim() === "465", // Gmail: 465=true
+  host: process.env.SMTP_HOST || "smtp.gmail.com",
+  port: 587,                 // ✅ 587
+  secure: false,             // ✅ STARTTLS
   auth: {
     user: process.env.SMTP_USER!,
     pass: process.env.SMTP_PASS!,
   },
+  requireTLS: true,          // ✅ 반드시 TLS 업그레이드
+  tls: {
+    minVersion: "TLSv1.2",
+    rejectUnauthorized: true,
+    servername: "smtp.gmail.com",
+  },
+  connectionTimeout: 15000,  // ⏱ 여유 타임아웃
+  greetingTimeout: 10000,
+  socketTimeout: 20000,
+  pool: true,                // 연결 풀로 재사용
+  maxConnections: 2,
+  family: 4,                 // ✅ IPv4 강제 (IPv6 이슈 회피)
 });
+
 
 async function sendMail(opts: { to: string; subject: string; html: string; text?: string }) {
   const from = process.env.FROM_EMAIL || `${process.env.APP_NAME || "App"} <no-reply@local>`;
