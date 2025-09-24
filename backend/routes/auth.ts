@@ -1,8 +1,23 @@
+///Users/stephanie/Desktop/ucdksea-website/backend/routes/auth.ts
 import express from "express";
 import crypto from "crypto";
 import { sendAdminNewRegistration } from "../lib/mail.js";
 
 const router = express.Router();
+
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET is not set in environment variables");
+}
+
+export type JwtPayload = { uid: string; email: string };
+
+export function signToken(payload: JwtPayload) {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+}
+
 
 router.post("/register", async (req, res) => {
   try {

@@ -10,10 +10,12 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const withAudit_1 = require("./lib/withAudit");
 const prisma_audit_middleware_1 = require("./lib/prisma-audit-middleware");
 const mail_1 = require("./lib/mail");
-const auth_1 = __importDefault(require("./routes/auth"));
+const dotenv_1 = __importDefault(require("dotenv"));
+const path_1 = __importDefault(require("path"));
+dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "../.env") });
 (0, prisma_audit_middleware_1.attachAuditMiddleware)();
 const app = (0, express_1.default)();
-app.use("/api/auth", auth_1.default);
+// 먼저 body/cookie 미들웨어
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
 // CORS 설정
@@ -26,7 +28,7 @@ app.use((0, cors_1.default)({
     ],
     credentials: true,
 }));
-// Preflight(OPTIONS) 요청에 대한 응답도 반드시 있어야 함
+// Preflight 허용
 app.options("*", (0, cors_1.default)({
     origin: [
         "https://ucdksea.com",
@@ -36,9 +38,12 @@ app.options("*", (0, cors_1.default)({
     ],
     credentials: true,
 }));
-// -------- dev: 메일 테스트 --------
+// ✅ 라우터는 그 다음에
+const auth_1 = __importDefault(require("./routes/auth"));
 const dev_1 = __importDefault(require("./routes/dev"));
+app.use("/api/auth", auth_1.default);
 app.use("/api/dev", dev_1.default);
+// -------- dev: 메일 테스트 --------
 app.get("/api/dev/test-email", async (_req, res) => {
     try {
         const info = await mail_1.mailer.sendMail({

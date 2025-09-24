@@ -5,14 +5,18 @@ import cookieParser from "cookie-parser";
 import { withAudit } from "./lib/withAudit";
 import { attachAuditMiddleware } from "./lib/prisma-audit-middleware";
 import { mailer } from "./lib/mail";
-import authRoutes from "./routes/auth";
+import dotenv from "dotenv";
+import path from "path";
+
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
+
 
 
 attachAuditMiddleware();
 
 const app = express();
 
-app.use("/api/auth", authRoutes); 
+// 먼저 body/cookie 미들웨어
 app.use(express.json());
 app.use(cookieParser());
 
@@ -29,7 +33,7 @@ app.use(
   })
 );
 
-// Preflight(OPTIONS) 요청에 대한 응답도 반드시 있어야 함
+// Preflight 허용
 app.options("*", cors({
   origin: [
     "https://ucdksea.com",
@@ -40,10 +44,16 @@ app.options("*", cors({
   credentials: true,
 }));
 
-// -------- dev: 메일 테스트 --------
+// ✅ 라우터는 그 다음에
+import authRouter from "./routes/auth";
 import devRouter from "./routes/dev";
 
+app.use("/api/auth", authRouter);
 app.use("/api/dev", devRouter);
+
+
+// -------- dev: 메일 테스트 --------
+
 app.get("/api/dev/test-email", async (_req, res) => {
   try {
     const info = await mailer.sendMail({

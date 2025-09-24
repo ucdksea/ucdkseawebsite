@@ -3,10 +3,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.signToken = signToken;
+///Users/stephanie/Desktop/ucdksea-website/backend/routes/auth.ts
 const express_1 = __importDefault(require("express"));
 const crypto_1 = __importDefault(require("crypto"));
 const mail_js_1 = require("../lib/mail.js");
 const router = express_1.default.Router();
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    throw new Error("JWT_SECRET is not set in environment variables");
+}
+function signToken(payload) {
+    return jsonwebtoken_1.default.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+}
 router.post("/register", async (req, res) => {
     try {
         const { email, password, name } = req.body || {};
