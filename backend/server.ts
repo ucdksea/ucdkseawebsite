@@ -26,6 +26,9 @@ app.use(
 );
 
 // -------- dev: 메일 테스트 --------
+import devRouter from "./routes/dev";
+
+app.use("/api/dev", devRouter);
 app.get("/api/dev/test-email", async (_req, res) => {
   try {
     const info = await mailer.sendMail({
