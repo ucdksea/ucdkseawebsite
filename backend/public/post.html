@@ -197,7 +197,8 @@
         ? (location.port === "3000" ? "" : "http://localhost:3000")
         : "";
         const API_BASE = "https://api.ucdksea.com";  // 절대경로!
-        fetch(`${API_BASE}/api/ping`, { credentials: "include" });
+        const API = API_BASE;  
+        fetch(`${API}/api/ping`, { credentials: "include" });
         const $ = (id) => document.getElementById(id);
   
     // ----- (선택) 캐시 회피 쿼리 -----
@@ -598,8 +599,8 @@
       alert(res.ok ? "Saved" : `${json?.error || "Publish failed"} (status ${res.status})`);
       
 
-      if (!res.ok || j?.error) {
-        throw new Error(j?.error || `Publish failed (${res.status})`);
+      if (!res.ok || json?.error) {
+        throw new Error(json?.error || `Publish failed (${res.status})`);
       }
 
       document.getElementById("publishMsg").textContent = "Published ✓";

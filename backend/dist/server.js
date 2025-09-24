@@ -16,6 +16,34 @@ const admin_users_1 = __importDefault(require("./routes/admin-users"));
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "../.env") });
 (0, prisma_audit_middleware_1.attachAuditMiddleware)();
 const app = (0, express_1.default)();
+// server.ts (가장 위쪽 import 아래, 라우트 등록보다 "먼저")
+const ALLOWED = new Set((process.env.ALLOWED_ORIGINS || "")
+    .split(",")
+    .map(s => s.trim())
+    .filter(Boolean)
+    // 안전하게 기본값도 포함
+    .concat(["https://www.ucdksea.com", "https://ucdksea.com"]));
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (origin && ALLOWED.has(origin)) {
+        res.setHeader("Access-Control-Allow-Origin", origin);
+        res.setHeader("Access-Control-Allow-Credentials", "true");
+    }
+    // 캐시/프록시 친화적
+    res.setHeader("Vary", "Origin");
+    if (req.method === "OPTIONS") {
+        // 브라우저가 요청한 헤더/메서드를 그대로 허용(없으면 기본 세트)
+        const reqHeaders = req.headers["access-control-request-headers"] ||
+            "Content-Type, Authorization";
+        const reqMethod = req.headers["access-control-request-method"] ||
+            "GET,POST,PUT,PATCH,DELETE,OPTIONS";
+        res.setHeader("Access-Control-Allow-Methods", reqMethod);
+        res.setHeader("Access-Control-Allow-Headers", reqHeaders);
+        // 프리플라이트는 바디 없이 204로 즉시 끝내야 프록시가 안 틀어짐
+        return res.sendStatus(204);
+    }
+    next();
+});
 // 먼저 body/cookie 미들웨어
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
@@ -122,6 +150,73 @@ app.get("/api/dev/env", (_req, res) => {
             APP_BASE_URL: process.env.APP_BASE_URL,
             APP_LOGIN_URL: process.env.APP_LOGIN_URL,
         },
+    });
+});
+// 맨 위 import들 아래에 추가
+const fs_1 = __importDefault(require("fs"));
+// (A) 현재 dist/routes 안에 뭐가 있는지 보기
+app.get("/__dist", (_req, res) => {
+    const dir = path_1.default.join(__dirname, "routes");
+    const files = fs_1.default.existsSync(dir) ? fs_1.default.readdirSync(dir) : [];
+    res.json({ __dirname, dir, files });
+});
+// (B) 실제로 등록된 모든 라우트 나열 (문자열)
+app.get("/__routes", (_req, res) => {
+    const out = [];
+    // @ts-ignore
+    app._router?.stack?.forEach((layer) => {
+        if (layer.route && layer.route.path) {
+            const methods = Object.keys(layer.route.methods)
+                .filter((m) => layer.route.methods[m])
+                .map((m) => m.toUpperCase());
+            out.push(`${methods.join(",")} ${layer.route.path}`);
+        }
+        else if (layer.name === "router" && layer.handle?.stack) {
+            // 프리픽스 추출
+            const prefix = layer.regexp?.fast_slash
+                ? "/"
+                : (layer.regexp?.toString().match(/^\/\^\\\/(.+?)\\\/\?\$\//)?.[1] || "")
+                    .replace(/\\\//g, "/");
+            layer.handle.stack.forEach((r) => {
+                if (r.route?.path) {
+                    const methods = Object.keys(r.route.methods)
+                        .filter((m) => r.route.methods[m])
+                        .map((m) => m.toUpperCase());
+                    out.push(`${methods.join(",")} /${prefix}${r.route.path}`.replace(/\/+/g, "/"));
+                }
+            });
+        }
+    });
+    res.type("text/plain").send(out.sort().join("\n"));
+});
+// (C) 최소 환경변수 확인
+app.get("/__env", (_req, res) => {
+    res.json({
+        PORT: process.env.PORT,
+        ADMIN_ACTION_BASE: process.env.ADMIN_ACTION_BASE,
+        APP_BASE_URL: process.env.APP_BASE_URL,
+    });
+});
+// --- DEBUG: 현재 서버가 읽은 DATABASE_URL 확인 ---
+app.get("/__env/db", (_req, res) => {
+    const raw = process.env.DATABASE_URL || "";
+    let parsed = {};
+    try {
+        const u = new URL(raw);
+        parsed = {
+            protocol: u.protocol,
+            host: u.host, // ← 여기 host가 'localhost:5432'로 나오면 문제 확정
+            hostname: u.hostname,
+            port: u.port,
+            database: u.pathname,
+            sslmode: u.searchParams.get("sslmode"),
+        };
+    }
+    catch { }
+    res.json({
+        hasEnv: Boolean(raw),
+        raw: raw.replace(/:[^:@/]+@/, "://***:***@"), // 비번 가리기
+        parsed,
     });
 });
 const PORT = Number(process.env.PORT || 4000);

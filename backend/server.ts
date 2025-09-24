@@ -230,6 +230,27 @@ app.get("/__env", (_req, res) => {
   });
 });
 
+// --- DEBUG: 현재 서버가 읽은 DATABASE_URL 확인 ---
+app.get("/__env/db", (_req, res) => {
+  const raw = process.env.DATABASE_URL || "";
+  let parsed = {};
+  try {
+    const u = new URL(raw);
+    parsed = {
+      protocol: u.protocol,
+      host: u.host,     // ← 여기 host가 'localhost:5432'로 나오면 문제 확정
+      hostname: u.hostname,
+      port: u.port,
+      database: u.pathname,
+      sslmode: u.searchParams.get("sslmode"),
+    };
+  } catch {}
+  res.json({
+    hasEnv: Boolean(raw),
+    raw: raw.replace(/:[^:@/]+@/, "://***:***@"), // 비번 가리기
+    parsed,
+  });
+});
 
 const PORT = Number(process.env.PORT || 4000);
 app.listen(PORT, () => console.log("API up on", PORT));
