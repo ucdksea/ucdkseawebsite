@@ -13,11 +13,49 @@ import adminUsersRouter from "./routes/admin-users";
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 
-
-
 attachAuditMiddleware();
 
 const app = express();
+
+// server.ts (가장 위쪽 import 아래, 라우트 등록보다 "먼저")
+const ALLOWED = new Set(
+  (process.env.ALLOWED_ORIGINS || "")
+    .split(",")
+    .map(s => s.trim())
+    .filter(Boolean)
+    // 안전하게 기본값도 포함
+    .concat(["https://www.ucdksea.com", "https://ucdksea.com"])
+);
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin as string | undefined;
+
+  if (origin && ALLOWED.has(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+  }
+  // 캐시/프록시 친화적
+  res.setHeader("Vary", "Origin");
+
+  if (req.method === "OPTIONS") {
+    // 브라우저가 요청한 헤더/메서드를 그대로 허용(없으면 기본 세트)
+    const reqHeaders =
+      (req.headers["access-control-request-headers"] as string) ||
+      "Content-Type, Authorization";
+    const reqMethod =
+      (req.headers["access-control-request-method"] as string) ||
+      "GET,POST,PUT,PATCH,DELETE,OPTIONS";
+
+    res.setHeader("Access-Control-Allow-Methods", reqMethod);
+    res.setHeader("Access-Control-Allow-Headers", reqHeaders);
+
+    // 프리플라이트는 바디 없이 204로 즉시 끝내야 프록시가 안 틀어짐
+    return res.sendStatus(204);
+  }
+
+  next();
+});
+
 
 // 먼저 body/cookie 미들웨어
 app.use(express.json());
