@@ -65,8 +65,25 @@ app.post(
   )
 );
 
-app.get("/healthz", (_req, res) => res.send("ok"));
 app.get("/api/ping", (_req, res) => res.json({ ok: true }));
+
+app.get("/healthz", (_req, res) => res.send("ok"));
+app.get("/api/dev/env", (_req, res) => {
+  res.json({
+    ok: true,
+    env: {
+      NODE_ENV: process.env.NODE_ENV,
+      PORT: process.env.PORT,
+      SMTP_HOST: process.env.SMTP_HOST,
+      SMTP_PORT: process.env.SMTP_PORT,
+      SMTP_USER: process.env.SMTP_USER ? "(set)" : "",
+      FROM_EMAIL: process.env.FROM_EMAIL,
+      APP_BASE_URL: process.env.APP_BASE_URL,
+      APP_LOGIN_URL: process.env.APP_LOGIN_URL,
+    },
+  });
+});
+
 
 const PORT = Number(process.env.PORT || 4000);
 app.listen(PORT, () => console.log("API up on", PORT));
