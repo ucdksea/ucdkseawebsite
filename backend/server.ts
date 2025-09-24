@@ -5,10 +5,14 @@ import cookieParser from "cookie-parser";
 import { withAudit } from "./lib/withAudit";
 import { attachAuditMiddleware } from "./lib/prisma-audit-middleware";
 import { mailer } from "./lib/mail";
+import authRoutes from "./routes/auth";
+
 
 attachAuditMiddleware();
 
 const app = express();
+
+app.use("/api/auth", authRoutes); 
 app.use(express.json());
 app.use(cookieParser());
 
