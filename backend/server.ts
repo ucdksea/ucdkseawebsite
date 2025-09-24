@@ -5,6 +5,7 @@ import path from "path";
 import fs from "fs";
 import multer from "multer";
 import { prisma } from "./lib/prisma";
+import type { PrismaClient } from "@prisma/client";
 
 
 const app = express();
@@ -145,6 +146,47 @@ app.get("/api/admin/posts", async (req, res) => {
   } catch (e: any) {
     console.error("[GET /api/admin/posts] ERR", e);
     res.status(500).json({ error: e?.message || "Server error" });
+  }
+});
+const getPrisma = async () => {
+  const m = await import("@prisma/client");
+  return new m.PrismaClient() as PrismaClient;
+};
+
+app.get("/api/debug/posts/summary", async (_req, res) => {
+  try {
+    const prisma = await getPrisma();
+    const total = await prisma.post.count();
+    const byType = await prisma.post.groupBy({
+      by: ["type"],
+      _count: { _all: true },
+    });
+    const latest = await prisma.post.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      select: { id: true, type: true, active: true, createdAt: true, title: true },
+    });
+
+    const dbUrl = process.env.DATABASE_URL || "";
+    const masked =
+      dbUrl.replace(/:[^:@/]+@/, ":***@") // 패스워드 마스킹
+           .replace(/\?.*$/, ""); // 쿼리스트링 제거
+
+    res.json({
+      ok: true,
+      env: {
+        NODE_ENV: process.env.NODE_ENV,
+        APP_BASE_URL: process.env.APP_BASE_URL,
+        DATABASE_URL: masked,
+      },
+      counts: {
+        total,
+        byType: byType.map(x => ({ type: x.type, count: x._count._all })),
+      },
+      latest,
+    });
+  } catch (e: any) {
+    res.status(500).json({ ok: false, error: e?.message || "debug failed" });
   }
 });
 

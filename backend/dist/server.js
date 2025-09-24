@@ -9,6 +9,7 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 const multer_1 = __importDefault(require("multer"));
+const prisma_1 = require("./lib/prisma");
 const app = (0, express_1.default)();
 const corsOpts = { origin: ["https://www.ucdksea.com", "https://ucdksea.com"], credentials: true };
 // Middlewares
@@ -108,7 +109,7 @@ app.get("/api/admin/posts", async (req, res) => {
             where.type = type;
         if (onlyActive)
             where.active = true;
-        const rows = await _prisma.post.findMany({
+        const rows = await prisma_1.prisma.post.findMany({
             where,
             orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
             select: {
