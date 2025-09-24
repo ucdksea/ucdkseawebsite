@@ -6,15 +6,19 @@ import fs from "fs";
 import multer from "multer";
 
 const app = express();
+const corsOpts = { origin: ["https://www.ucdksea.com","https://ucdksea.com"], credentials: true };
+
+// Middlewares
+app.use(cors({ origin: true, credentials: true }));
+app.use((_, res, next) => { res.setHeader("Vary","Origin"); next(); });
+app.options("*", cors(corsOpts));
+app.use(express.json());
+app.use(cookieParser());
 
 // Health & ping
 app.get("/__health", (_req, res) => res.status(200).send("ok"));
 app.get("/api/ping", (_req, res) => res.json({ ok: true }));
 
-// Middlewares
-app.use(cors({ origin: true, credentials: true }));
-app.use(express.json());
-app.use(cookieParser());
 
 // Static
 const PUBLIC_ROOT = path.resolve(__dirname, "../public");
@@ -99,6 +103,16 @@ app.get("/api/uploads/recent", (_req, res) => {
   } catch (e:any) {
     res.status(500).json({ ok:false, error: e?.message || "list failed" });
   }
+});
+
+app.post("/api/admin/posts", (req, res) => {
+  // TODO: 실제 구현 전까지는 임시 응답만 반환
+  console.log("[ADMIN_POSTS]", req.body);
+  res.status(201).json({
+    ok: true,
+    id: Date.now().toString(),
+    received: req.body || null,
+  });
 });
 
 // Listen
