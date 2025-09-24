@@ -584,6 +584,38 @@ app.get("/api/admin/users/action", async (req, res) => {
 });
 
 
+/* ────────────── MAIL QUICK DIAG ────────────── */
+// 환경 확인용
+app.get("/__mail_env", (_req, res) => {
+  res.json({
+    mode: process.env.RESEND_API_KEY ? "resend" : "smtp",
+    has_resend_key: !!process.env.RESEND_API_KEY,
+    resend_from: process.env.RESEND_FROM || "onboarding@resend.dev",
+    from_email: process.env.FROM_EMAIL || null,
+    admin_emails: process.env.ADMIN_EMAILS || null,
+  });
+});
+
+// 실제 발송 테스트
+app.get("/__mail_test", async (req, res) => {
+  try {
+    const to = String(req.query.to || process.env.ADMIN_EMAILS || "").trim();
+    if (!to) return res.status(400).json({ error: "no 'to' given" });
+
+    await sendMail({
+      to,
+      subject: "[UCD KSEA] MAIL TEST",
+      text: "This is a mail test via current backend config.",
+      html: "<p>This is a <b>mail test</b> via current backend config.</p>",
+    });
+
+    return res.json({ ok: true });
+  } catch (e: any) {
+    console.error("[MAILTEST] error:", e?.message || e);
+    return res.status(500).json({ ok: false, error: e?.message || "send failed" });
+  }
+});
+
 // Listen
 const PORT = Number(process.env.PORT || 4000);
 console.log("MAIL_MODE:", process.env.RESEND_API_KEY ? "resend" : "smtp");
