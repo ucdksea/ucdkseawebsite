@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 // server.ts
 const express_1 = __importDefault(require("express"));
-const cors_1 = __importDefault(require("cors"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const withAudit_1 = require("./lib/withAudit");
 const prisma_audit_middleware_1 = require("./lib/prisma-audit-middleware");
@@ -13,6 +12,8 @@ const mail_1 = require("./lib/mail");
 const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
 const admin_users_1 = __importDefault(require("./routes/admin-users"));
+const multer_1 = __importDefault(require("multer"));
+const prisma_1 = require("./lib/prisma");
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "../.env") });
 (0, prisma_audit_middleware_1.attachAuditMiddleware)();
 const app = (0, express_1.default)();
@@ -47,16 +48,6 @@ app.use((req, res, next) => {
 // 먼저 body/cookie 미들웨어
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
-// CORS 설정
-app.use((0, cors_1.default)({
-    origin: [
-        "https://ucdksea.com",
-        "https://www.ucdksea.com",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ],
-    credentials: true,
-}));
 // 디버그: 현재 등록된 모든 라우트를 문자열로 반환
 app.get("/__routes", (_req, res) => {
     const routes = [];
@@ -86,16 +77,6 @@ app.get("/__routes", (_req, res) => {
     app._router.stack.forEach(print.bind(null, []));
     res.json({ routes });
 });
-// Preflight 허용
-app.options("*", (0, cors_1.default)({
-    origin: [
-        "https://ucdksea.com",
-        "https://www.ucdksea.com",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ],
-    credentials: true,
-}));
 // ✅ 라우터는 그 다음에
 app.use("/api/admin", admin_users_1.default);
 const auth_1 = __importDefault(require("./routes/auth"));
@@ -200,24 +181,77 @@ app.get("/__env", (_req, res) => {
 // --- DEBUG: 현재 서버가 읽은 DATABASE_URL 확인 ---
 app.get("/__env/db", (_req, res) => {
     const raw = process.env.DATABASE_URL || "";
-    let parsed = {};
+    let host = "", port = "", db = "", sslmode = "";
     try {
         const u = new URL(raw);
-        parsed = {
-            protocol: u.protocol,
-            host: u.host, // ← 여기 host가 'localhost:5432'로 나오면 문제 확정
-            hostname: u.hostname,
-            port: u.port,
-            database: u.pathname,
-            sslmode: u.searchParams.get("sslmode"),
-        };
+        host = u.hostname;
+        port = u.port;
+        db = u.pathname;
+        sslmode = u.searchParams.get("sslmode") || "";
     }
     catch { }
     res.json({
-        hasEnv: Boolean(raw),
-        raw: raw.replace(/:[^:@/]+@/, "://***:***@"), // 비번 가리기
-        parsed,
+        hasEnv: !!raw,
+        host, port, db, sslmode,
+        raw: raw.replace(/:[^:@/]+@/, "://***:***@") // 비번 마스킹
     });
+});
+// 빌드 후 기준: __dirname = dist
+const PUBLIC_ROOT = path_1.default.resolve(__dirname, "../public");
+// 정적 파일(업로드된 이미지) 서빙
+app.use("/uploads", express_1.default.static(path_1.default.join(PUBLIC_ROOT, "uploads"), {
+    maxAge: "1y",
+    etag: true,
+}));
+const UPLOAD_DIR = path_1.default.join(PUBLIC_ROOT, "uploads", "posts");
+fs_1.default.mkdirSync(UPLOAD_DIR, { recursive: true });
+const storage = multer_1.default.diskStorage({
+    destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
+    filename: (_req, file, cb) => {
+        const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
+        cb(null, `${Date.now()}_${safe}`);
+    }
+});
+const upload = (0, multer_1.default)({
+    storage,
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+    fileFilter: (_req, file, cb) => {
+        if (!file.mimetype.startsWith("image/"))
+            return cb(new Error("Only image files are allowed"));
+        cb(null, true);
+    }
+});
+async function isApprovedByCookie(req) {
+    const uid = req.cookies?.uid;
+    if (!uid)
+        return false;
+    try {
+        const me = await prisma_1.prisma.user.findUnique({ where: { id: uid }, select: { isApproved: true } });
+        return !!me?.isApproved;
+    }
+    catch {
+        return false;
+    }
+}
+function isAdminByToken(req) {
+    const token = req.get("x-admin-token") || (req.get("authorization") || "").replace(/^Bearer\s+/i, "");
+    return !!(token && process.env.ADMIN_TOKEN && token === process.env.ADMIN_TOKEN);
+}
+// GET은 노출 안 함(의도적으로). 필요시 405 반환
+app.get("/api/upload", (_req, res) => res.sendStatus(405));
+app.post("/api/upload", upload.single("file"), async (req, res) => {
+    const admin = isAdminByToken(req);
+    let approved = false;
+    if (!admin)
+        approved = await isApprovedByCookie(req);
+    if (!(admin || approved))
+        return res.status(401).json({ error: "Unauthorized" });
+    const file = req.file; // ✅ 이제 타입 인식됨
+    if (!file)
+        return res.status(400).json({ error: "No file" });
+    const base = process.env.APP_BASE_URL || `${req.protocol}://${req.get("host")}`;
+    const url = `${base}/uploads/posts/${file.filename}`;
+    return res.status(201).json({ url });
 });
 const PORT = Number(process.env.PORT || 4000);
 app.listen(PORT, () => console.log("API up on", PORT));

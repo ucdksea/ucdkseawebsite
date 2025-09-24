@@ -8,6 +8,10 @@ import { mailer } from "./lib/mail";
 import dotenv from "dotenv";
 import path from "path";
 import adminUsersRouter from "./routes/admin-users";
+import multer from "multer";
+import { prisma } from "./lib/prisma";
+import type { Request, Response } from "express";
+import * as ExpressNS from "express";
 
 
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
@@ -62,18 +66,6 @@ app.use(express.json());
 app.use(cookieParser());
 
 
-// CORS 설정
-app.use(
-  cors({
-    origin: [
-      "https://ucdksea.com",
-      "https://www.ucdksea.com",
-      "http://localhost:3000",
-      "http://127.0.0.1:3000",
-    ],
-    credentials: true,
-  })
-);
 
 
 // 디버그: 현재 등록된 모든 라우트를 문자열로 반환
@@ -102,16 +94,6 @@ app.get("/__routes", (_req, res) => {
   res.json({ routes });
 });
 
-// Preflight 허용
-app.options("*", cors({
-  origin: [
-    "https://ucdksea.com",
-    "https://www.ucdksea.com",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-  ],
-  credentials: true,
-}));
 
 // ✅ 라우터는 그 다음에
 app.use("/api/admin", adminUsersRouter);
@@ -247,6 +229,76 @@ app.get("/__env/db", (_req, res) => {
     raw: raw.replace(/:[^:@/]+@/, "://***:***@") // 비번 마스킹
   });
 });
+
+
+// 빌드 후 기준: __dirname = dist
+const PUBLIC_ROOT = path.resolve(__dirname, "../public");
+
+// 정적 파일(업로드된 이미지) 서빙
+app.use("/uploads", express.static(path.join(PUBLIC_ROOT, "uploads"), {
+  maxAge: "1y",
+  etag: true,
+}));
+
+
+const UPLOAD_DIR = path.join(PUBLIC_ROOT, "uploads", "posts");
+fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
+  filename: (_req, file, cb) => {
+    const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
+    cb(null, `${Date.now()}_${safe}`);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  fileFilter: (_req, file, cb) => {
+    if (!file.mimetype.startsWith("image/")) return cb(new Error("Only image files are allowed"));
+    cb(null, true);
+  }
+});
+
+
+async function isApprovedByCookie(req: express.Request) {
+  const uid = req.cookies?.uid;
+  if (!uid) return false;
+  try {
+    const me = await prisma.user.findUnique({ where: { id: uid }, select: { isApproved: true } });
+    return !!me?.isApproved;
+  } catch {
+    return false;
+  }
+}
+
+function isAdminByToken(req: express.Request) {
+  const token = req.get("x-admin-token") || (req.get("authorization") || "").replace(/^Bearer\s+/i, "");
+  return !!(token && process.env.ADMIN_TOKEN && token === process.env.ADMIN_TOKEN);
+}
+
+
+// GET은 노출 안 함(의도적으로). 필요시 405 반환
+app.get("/api/upload", (_req, res) => res.sendStatus(405));
+
+app.post(
+  "/api/upload",
+  upload.single("file"),
+  async (req: Request & { file?: ExpressNS.Multer.File }, res: Response) => {
+    const admin = isAdminByToken(req);
+    let approved = false;
+    if (!admin) approved = await isApprovedByCookie(req);
+    if (!(admin || approved)) return res.status(401).json({ error: "Unauthorized" });
+
+    const file = req.file; // ✅ 이제 타입 인식됨
+    if (!file) return res.status(400).json({ error: "No file" });
+
+    const base = process.env.APP_BASE_URL || `${req.protocol}://${req.get("host")}`;
+    const url = `${base}/uploads/posts/${file.filename}`;
+    return res.status(201).json({ url });
+  }
+);
 
 
 const PORT = Number(process.env.PORT || 4000);

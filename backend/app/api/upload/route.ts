@@ -7,13 +7,16 @@ import path from "path";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 
-const ALLOWED = (process.env.ALLOWED_ORIGINS ?? "http://127.0.0.1:5501,http://localhost:5501")
-  .split(",").map(s => s.trim()).filter(Boolean);
+const ALLOWED = (process.env.ALLOWED_ORIGINS ?? "")
+  .split(",")
+  .map(s => s.trim().replace(/\/+$/,""))
+  .filter(Boolean);
 
 function cors(origin: string | null) {
   const h: Record<string,string> = {
     "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Admin-Token",
+    "Access-Control-Max-Age": "600",
     "Vary": "Origin",
   };
   if (origin && ALLOWED.includes(origin)) {
@@ -24,20 +27,33 @@ function cors(origin: string | null) {
 }
 
 export async function OPTIONS(req: Request) {
-  const origin = req.headers.get("origin");
+  const origin = req.headers.get("origin")?.replace(/\/+$/,"") || null;
   return new NextResponse(null, { status: 204, headers: cors(origin) });
 }
 
 export async function POST(req: Request) {
-  const origin = req.headers.get("origin");
+  const origin = req.headers.get("origin")?.replace(/\/+$/,"") || null;
   const headers = cors(origin);
 
   // 간단 인증: 승인된 사용자만
-  const uid = cookies().get("uid")?.value || null;
-  if (!uid) return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers });
-  const me = await prisma.user.findUnique({ where: { id: uid }, select: { isApproved: true } });
-  if (!me?.isApproved) return NextResponse.json({ error: "Forbidden" }, { status: 403, headers });
+  const adminToken = req.headers.get("x-admin-token") || req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+  const isAdmin = !!(adminToken && process.env.ADMIN_TOKEN && adminToken === process.env.ADMIN_TOKEN);
 
+  let approved = false;
+  try {
+    const uid = cookies().get("uid")?.value || null;
+    if (uid) {
+      const me = await prisma.user.findUnique({ where: { id: uid }, select: { isApproved: true } });
+      approved = !!me?.isApproved;
+    }
+  } catch (e) {
+    // DB 불가 시에도 업로드 자체는 막지 말고, admin 토큰만 허용
+  }
+
+  if (!(approved || isAdmin)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers });
+  }
+  
   const form = await req.formData();
   const file = form.get("file") as File | null;
   if (!file) return NextResponse.json({ error: "No file" }, { status: 400, headers });

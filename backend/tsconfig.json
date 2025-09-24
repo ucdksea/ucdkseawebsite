@@ -8,7 +8,7 @@
     "paths": {
       "@/*": ["*"]
     },
-    "types": ["node"],
+    "types": ["node", "multer"],
     "outDir": "dist",
     "rootDir": ".",
     "esModuleInterop": true,

@@ -2,8 +2,27 @@ import express from "express";
 import cors from "cors";
 import devRouter from "./routes/dev";
 
-const app = express();
 app.use(express.json());
+
+// server.js
+const express = require('express');
+const next = require('next');
+
+const dev = process.env.NODE_ENV !== 'production';
+const app = next({ dev });
+const handle = app.getRequestHandler();
+
+app.prepare().then(()=>{
+  const server = express();
+
+  // (선택) 아주 특수한 커스텀 라우트만 여기서 처리하고…
+
+  // ✅ 나머지 전부 Next에 위임 (API 라우트 포함)
+  server.all('*', (req, res) => handle(req, res));
+
+  const port = process.env.PORT || 3000;
+  server.listen(port, () => console.log(`> Ready on http://localhost:${port}`));
+});
 
 app.use(cors({
   origin: ["https://ucdksea.com", "https://www.ucdksea.com"],

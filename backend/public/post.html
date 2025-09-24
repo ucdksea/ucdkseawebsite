@@ -300,7 +300,7 @@
 
       $("uploadStatus2").textContent = "Uploading...";
       try {
-        const r = await fetch(`${API}/api/upload`, { method: "POST", body: fd, credentials: "include" });
+        const r = await fetch(`${API}/api/upload`, { method: "POST", body: fd, credentials: "include", headers: { ...window.extraAuthHeaders },});
         if (!r.ok) throw new Error(`Upload failed (${r.status})`);
         const { url } = await r.json();
         if (!url) throw new Error("No URL returned from upload API");
@@ -642,7 +642,7 @@
 
     document.getElementById("uploadStatus").textContent = "Uploading...";
     try {
-      const r = await fetch(`${API}/api/upload`, { method: "POST", body: fd, credentials: "include" });
+      const r = await fetch(`${API}/api/upload`, { method: "POST", body: fd, credentials: "include", headers: { ...window.extraAuthHeaders }, });
       const j = await r.json().catch(()=> ({}));
       if (!r.ok) throw new Error(j?.error || `Upload failed (${r.status})`);
 
