@@ -586,4 +586,5 @@ app.get("/api/admin/users/action", async (req, res) => {
 
 // Listen
 const PORT = Number(process.env.PORT || 4000);
+console.log("MAIL_MODE:", process.env.RESEND_API_KEY ? "resend" : "smtp");
 app.listen(PORT, "0.0.0.0", () => console.log("API up on", PORT));
