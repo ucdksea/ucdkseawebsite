@@ -1,3 +1,4 @@
+///Users/stephanie/Desktop/ucdksea-website/backend/server.ts
 import express, { Request, Response } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -6,6 +7,7 @@ import fs from "fs";
 import multer from "multer";
 import { prisma } from "./lib/prisma";
 import type { PrismaClient } from "@prisma/client";
+import jwt from "jsonwebtoken";
 
 
 const app = express();
@@ -342,29 +344,33 @@ app.post("/api/auth/register", async (req, res) => {
       return res.status(409).json({ error: "Email already registered" });
     }
 
-    // 4) 비밀번호 해시 + 생성
+    // 4) 비밀번호 해시 + 유저 생성
     const passwordHash = await bcrypt.hash(password, 10);
+
     const user = await prisma.user.create({
-      data: {
-        email: emailNorm,
-        name: name.trim(),
-        passwordHash,       // ← 스키마와 일치
-        isApproved: false,  // 최초 가입은 보류 (관리자 승인 필요)
-      },
+      data: { email: emailNorm, name: name.trim(), passwordHash, isApproved: false },
       select: { id: true, email: true, name: true, isApproved: true, createdAt: true },
     });
 
-    // 5) 응답
+
+    // 5) 메일 2통 (신청자 / 관리자)
+    try { await sendApplicantReceipt(user.email, user.name ?? user.email); }
+    catch (e) { console.error("[MAIL][receipt]", e); }
+
+    try {
+      await sendAdminNewRegistration(process.env.ADMIN_EMAILS || "", {
+        id: user.id, name: user.name ?? user.email, email: user.email,
+      });
+    } catch (e) { console.error("[MAIL][admin]", e); }
+
+    // 6) ✅ 최종 응답
     return res.status(201).json({
       ok: true,
       user,
       message: "Registration submitted. Await admin approval.",
     });
   } catch (e: any) {
-    // Prisma unique 등
-    if (e?.code === "P2002") {
-      return res.status(409).json({ error: "Email already registered" });
-    }
+    if (e?.code === "P2002") return res.status(409).json({ error: "Email already registered" });
     console.error("[POST /api/auth/register] ERR", e);
     return res.status(500).json({ error: e?.message || "Server error" });
   }
@@ -388,6 +394,60 @@ const mailer = nodemailer.createTransport({
 async function sendMail(opts: { to: string; subject: string; html: string; text?: string }) {
   const from = process.env.FROM_EMAIL || `${process.env.APP_NAME || "App"} <no-reply@local>`;
   await mailer.sendMail({ from, ...opts });
+}
+
+// 이미 있는 nodemailer 설정/ sendMail 활용
+async function sendApplicantReceipt(to: string, name?: string) {
+  const appName = process.env.APP_NAME || "UCD KSEA";
+  const loginUrl = process.env.APP_LOGIN_URL || "/";
+  await sendMail({
+    to,
+    subject: `[${appName}] Registration received`,
+    text: `Hello ${name || to}
+
+We received your officer registration. An admin will review it soon.
+You can sign in after approval: ${loginUrl}
+`,
+    html: `<p>Hello ${name || to},</p>
+           <p>We received your officer registration. An admin will review it soon.</p>
+           <p>After approval, sign in here: <a href="${loginUrl}">${loginUrl}</a></p>`
+  });
+}
+
+function signAdminActionToken(uid: string, action: "approve"|"decline") {
+  const secret = process.env.ADMIN_ACTION_SECRET!;
+  return jwt.sign({ uid, action }, secret, { expiresIn: "30m" });
+}
+
+async function sendAdminNewRegistration(
+  listCsv: string,
+  user: { id: string; name: string; email: string }
+) {
+  const to = listCsv.split(",").map(s => s.trim()).filter(Boolean);
+  if (!to.length) return;
+
+  const actionBase =
+    process.env.ADMIN_ACTION_BASE ||  // << 반드시 https://api.ucdksea.com
+    process.env.APP_BASE_URL ||
+    "http://localhost:4000";
+
+  const approveUrl = `${actionBase}/api/admin/users/action?token=${encodeURIComponent(signAdminActionToken(user.id,"approve"))}`;
+  const declineUrl = `${actionBase}/api/admin/users/action?token=${encodeURIComponent(signAdminActionToken(user.id,"decline"))}`;
+
+  const appName = process.env.APP_NAME || "UCD KSEA";
+  const subject = `[${appName}] New officer registration pending`;
+  const profile = `${user.name} <${user.email}>`;
+
+  await sendMail({
+    to: to.join(","),
+    subject,
+    text: `New registration: ${profile}
+Approve: ${approveUrl}
+Decline: ${declineUrl}
+`,
+    html: `<p>New registration: <b>${profile}</b></p>
+           <p><a href="${approveUrl}">Approve</a> | <a href="${declineUrl}">Decline</a></p>`
+  });
 }
 
 export async function sendApprovalEmail(to: string, name?: string, loginEmail?: string) {
@@ -444,6 +504,42 @@ app.post(
     }
   }
 );
+
+app.get("/api/admin/users/action", async (req, res) => {
+  try {
+    const token = String(req.query.token || "");
+    if (!token) return res.status(400).send("Missing token.");
+
+    let payload: { uid: string; action: "approve" | "decline"; iat: number; exp: number };
+    try {
+      payload = jwt.verify(token, process.env.ADMIN_ACTION_SECRET!) as any;
+    } catch {
+      return res.status(400).send("Invalid or expired link.");
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: payload.uid } });
+    if (!user) return res.status(404).send("User not found (already processed?).");
+
+    if (payload.action === "approve") {
+      const updated = await prisma.user.update({
+        where: { id: user.id },
+        data: { isApproved: true },
+        select: { email: true, name: true }
+      });
+      try { await sendApprovalEmail(updated.email, updated.name ?? updated.email, updated.email); } catch (e) { console.error("[MAIL][approve]", e); }
+      return res.status(200).send("Approved ✓ The user has been granted access.");
+    }
+
+    // decline: 관련 데이터 정리 후 삭제
+    await prisma.quote.deleteMany({ where: { userId: user.id } }).catch(()=>{});
+    await prisma.user.delete({ where: { id: user.id } });
+    return res.status(200).send("Declined ✗ The registration has been removed.");
+  } catch (e) {
+    console.error("[ACTION] error", e);
+    return res.status(500).send("Server error.");
+  }
+});
+
 
 // Listen
 const PORT = Number(process.env.PORT || 4000);

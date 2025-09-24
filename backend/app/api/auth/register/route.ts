@@ -1,20 +1,17 @@
 // app/api/auth/register/route.ts
 import { NextResponse } from "next/server";
-import bcrypt from "bcryptjs"; // ← bcryptjs 사용
+import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { registerSchema, type RegisterPayload } from "@/lib/validations";
-import { sendAdminNewRegistration } from "@/lib/mail";
+// ✅ mail 유틸에서 두 함수만 씁니다
+import { sendAdminNewRegistration, sendApplicantReceipt } from "@/lib/mail";
+
 
 export const runtime = "nodejs";
 
-/* ───────────────────── CORS ─────────────────────
-   .env:
-   ALLOWED_ORIGINS="https://ucdksea.com,https://www.ucdksea.com"
-*/
+/* CORS */
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? "http://127.0.0.1:5501")
-  .split(",")
-  .map(s => s.trim())
-  .filter(Boolean);
+  .split(",").map(s => s.trim()).filter(Boolean);
 
 function corsHeaders(origin: string | null) {
   const h: Record<string, string> = {
@@ -33,11 +30,6 @@ export async function OPTIONS(req: Request) {
   return new NextResponse(null, { status: 204, headers: corsHeaders(req.headers.get("origin")) });
 }
 
-/* ─────────────── Register ───────────────
-   .env:
-   ALLOWED_EMAIL_DOMAINS="ucdavis.edu"
-   ADMIN_EMAILS="bjiwon766@gmail.com"
-*/
 export async function POST(req: Request) {
   const origin = req.headers.get("origin");
   const headers = corsHeaders(origin);
@@ -54,13 +46,14 @@ export async function POST(req: Request) {
 
     const { email, password, name }: RegisterPayload = parsed.data;
 
+    // ✅ 이메일 정규화
+    const emailNorm = email.trim().toLowerCase();
+
     // (옵션) 이메일 도메인 제한
     const allowed = (process.env.ALLOWED_EMAIL_DOMAINS ?? "")
-      .split(",")
-      .map(s => s.trim().toLowerCase())
-      .filter(Boolean);
+      .split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
     if (allowed.length) {
-      const domain = String(email).split("@")[1]?.toLowerCase() ?? "";
+      const domain = emailNorm.split("@")[1] ?? "";
       if (!allowed.includes(domain)) {
         return NextResponse.json(
           { error: `Please use your @${allowed[0]} email.` },
@@ -71,24 +64,28 @@ export async function POST(req: Request) {
 
     // 중복 체크
     const exists = await prisma.user.findUnique({
-      where: { email },
+      where: { email: emailNorm },
       select: { id: true },
     });
     if (exists) {
-      return NextResponse.json(
-        { error: "Email already in use." },
-        { status: 409, headers }
-      );
+      return NextResponse.json({ error: "Email already in use." }, { status: 409, headers });
     }
 
     // 해시 & 생성
     const passwordHash = await bcrypt.hash(password, 12);
     const user = await prisma.user.create({
-      data: { email, name, passwordHash, isApproved: false },
+      data: { email: emailNorm, name, passwordHash, isApproved: false },
       select: { id: true, email: true, name: true, isApproved: true, createdAt: true },
     });
 
-    // 관리자 알림 (한 번만)
+    // ✅ 가입자에게 접수 확인 메일
+    try {
+      await sendApplicantReceipt(user.email, user.name ?? user.email);
+    } catch (e) {
+      console.error("[MAIL][receipt] error:", e);
+    }
+
+    // ✅ 운영진에게 신규 가입 알림 메일
     try {
       const admins = process.env.ADMIN_EMAILS || "";
       if (admins.trim()) {
@@ -103,11 +100,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json(
-      {
-        ok: true,
-        user,
-        message: "Registration submitted. Await admin approval.",
-      },
+      { ok: true, user, message: "Registration submitted. Await admin approval." },
       { status: 201, headers }
     );
   } catch (err) {
