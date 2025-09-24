@@ -105,14 +105,45 @@ app.get("/api/uploads/recent", (_req, res) => {
   }
 });
 
-app.post("/api/admin/posts", (req, res) => {
-  // TODO: 실제 구현 전까지는 임시 응답만 반환
-  console.log("[ADMIN_POSTS]", req.body);
-  res.status(201).json({
-    ok: true,
-    id: Date.now().toString(),
-    received: req.body || null,
-  });
+pp.get("/api/admin/posts", async (req, res) => {
+  try {
+    const ALLOWED = ["POPUP","EVENT_UPCOMING","EVENT_POLAROID","GM","OFFICER"] as const;
+    const type = typeof req.query.type === "string" ? req.query.type : undefined;
+    const activeParam = typeof req.query.active === "string" ? req.query.active : "1";
+    const onlyActive = activeParam === "0" ? false : true;
+
+    const where: any = {};
+    if (type && (ALLOWED as readonly string[]).includes(type)) where.type = type;
+    if (onlyActive) where.active = true;
+
+    const rows = await prisma.post.findMany({
+      where,
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+      select: {
+        id: true, type: true, active: true, createdAt: true,
+        imageUrl: true, linkUrl: true, title: true, date: true,
+        descKo: true, descEn: true, year: true, quarter: true, meta: true,
+      },
+    });
+
+    // OFFICER는 프론트가 기대하는 형태로 매핑
+    const posts = rows.map(p =>
+      p.type === "OFFICER"
+        ? {
+            ...p,
+            enName:   p.title   ?? null,
+            koName:   p.descKo  ?? null,
+            role:     p.descEn  ?? null,
+            linkedin: p.linkUrl ?? null,
+          }
+        : p
+    );
+
+    res.json({ posts });
+  } catch (e: any) {
+    console.error("[GET /api/admin/posts] ERR", e);
+    res.status(500).json({ error: e?.message || "Server error" });
+  }
 });
 
 // Listen
