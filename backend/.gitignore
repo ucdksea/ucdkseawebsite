@@ -1,5 +1,6 @@
 # dependencies
 /node_modules
+node_modules/
 
 # Next.js build output
 /.next
@@ -23,3 +24,8 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Backend build + deps
+backend/node_modules/
+backend/dist/
+backend/.env*
