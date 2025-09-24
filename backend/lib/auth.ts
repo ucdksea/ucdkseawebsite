@@ -1,7 +1,6 @@
 // lib/auth.ts
+import type { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { cookies } from "next/headers";
-import { sendAdminNewRegistration } from "../lib/mail"; 
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 export type JwtPayload = { uid: string; email: string };
@@ -18,27 +17,24 @@ export function verifyToken(token: string): JwtPayload | null {
   }
 }
 
-export async function setAuthCookie(token: string) {
-  const jar = await cookies();
-  jar.set("auth", token, {
+/** 쿠키 설정 (Express) */
+export function setAuthCookie(res: Response, token: string) {
+  res.cookie("auth", token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 7, // 7d
+    maxAge: 60 * 60 * 24 * 7 * 1000, // 7d (ms)
   });
 }
 
-export async function getAuthFromCookie(): Promise<JwtPayload | null> {
-  const jar = await cookies();
-  const token = jar.get("auth")?.value;
+/** 쿠키에서 JWT 파싱 (Express) */
+export function getAuthFromCookie(req: Request): JwtPayload | null {
+  const token = req.cookies?.auth as string | undefined;
   if (!token) return null;
   return verifyToken(token);
 }
 
-export async function clearAuthCookie() {
-  const jar = await cookies();
-  // delete 또는 만료로 제거
-  jar.set("auth", "", { path: "/", maxAge: 0 });
-  // or: jar.delete("auth");
+export function clearAuthCookie(res: Response) {
+  res.clearCookie("auth", { path: "/" });
 }

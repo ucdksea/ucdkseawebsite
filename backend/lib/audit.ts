@@ -1,5 +1,5 @@
 // lib/audit.ts
-import { prisma } from "@/lib/prisma";
+import { prisma } from "./prisma";
 import { recordHash } from "./auditHash";
 
 type AuditAction =

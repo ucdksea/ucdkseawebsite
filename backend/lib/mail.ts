@@ -6,18 +6,17 @@ const port = Number(process.env.SMTP_PORT ?? 587);
 export const mailer = nodemailer.createTransport({
   host: process.env.SMTP_HOST!,
   port,
-  secure: port === 465, // 465면 TLS
+  secure: port === 465,
   auth: {
     user: process.env.SMTP_USER!,
-    pass: process.env.SMTP_PASS!,
-  },
+    pass: process.env.SMTP_PASS!
+  }
 });
 
-/* ========== 승인 메일 ========== */
 export async function sendApprovalEmail(to: string, name: string, email: string) {
   const from = process.env.FROM_EMAIL || process.env.SMTP_USER!;
-  const appName = process.env.APP_NAME || "UCD KSEA";
-  const loginUrl = process.env.APP_LOGIN_URL || "https://www.ucdksea.com/login";
+  const appName = process.env.APP_NAME || "Our Service";
+  const loginUrl = process.env.APP_LOGIN_URL || "http://localhost:3000/login";
 
   const subject = `[${appName}] 회원가입 승인 완료 안내`;
   const text = [
@@ -27,7 +26,7 @@ export async function sendApprovalEmail(to: string, name: string, email: string)
     `아래 링크에서 이메일(${email})로 로그인 해주세요.`,
     loginUrl,
     ``,
-    `감사합니다.`,
+    `감사합니다.`
   ].join("\n");
 
   const html = `
@@ -49,7 +48,7 @@ export async function sendApprovalEmail(to: string, name: string, email: string)
   await mailer.sendMail({ from, to, subject, text, html });
 }
 
-/* ========== 관리자 승인/거절 알림(원클릭) ========== */
+/* -------- 관리자 알림 (토큰에 user 통째로) -------- */
 function signAdminActionToken(
   user: { id: string; name: string; email: string },
   action: "approve" | "decline"
@@ -72,7 +71,7 @@ export async function sendAdminNewRegistration(
 ) {
   const from = process.env.FROM_EMAIL || process.env.SMTP_USER!;
   const appName = process.env.APP_NAME || "UCD KSEA";
-  const base = process.env.APP_BASE_URL || "https://api.ucdksea.com";
+  const base = process.env.APP_BASE_URL || "http://127.0.0.1:3000";
 
   const approveToken = signAdminActionToken(user, "approve");
   const declineToken = signAdminActionToken(user, "decline");
@@ -102,13 +101,6 @@ export async function sendAdminNewRegistration(
       <a href="${approveUrl}" style="display:inline-block; padding:10px 14px; margin-right:8px; border-radius:9999px; background:#111827; color:#fff; text-decoration:none; font-weight:600; font-size:14px;">Approve</a>
       <a href="${declineUrl}" style="display:inline-block; padding:10px 14px; border-radius:9999px; border:1px solid #D1D5DB; color:#111827; text-decoration:none; font-weight:600; font-size:14px; background:#fff;">Decline</a>
     </div>
-    <p style="font-size:12px; color:#6B7280; margin-top:18px">
-      If the buttons don’t work, copy and paste these links:<br/>
-      Approve: ${approveUrl}<br/>
-      Decline: ${declineUrl}
-    </p>
-  </div>
-  `;
-
+  </div>`;
   await mailer.sendMail({ from, to: toList, subject, text, html });
 }

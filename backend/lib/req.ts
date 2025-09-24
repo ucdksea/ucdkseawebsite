@@ -1,31 +1,28 @@
 // lib/req.ts
-import { headers, cookies } from "next/headers";
 import crypto from "crypto";
-import { prisma } from "@/lib/prisma";
+import type { Request } from "express";
+import { prisma } from "./prisma";
 
-export function getRequestId() {
-  const h = headers();
-  return h.get("x-request-id") || "req_" + crypto.randomBytes(6).toString("hex");
-}
-
-export function getClientIp() {
-  const h = headers();
+export function getRequestId(req?: Request) {
   return (
-    h.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    h.get("x-real-ip") ||
-    ""
+    (req?.headers["x-request-id"] as string) ||
+    "req_" + crypto.randomBytes(6).toString("hex")
   );
 }
 
-// 🔹 로그인 시 세팅한 uid 쿠키 기준으로 배우자 식별
-export async function getActor(): Promise<string> {
+export function getClientIp(req?: Request) {
+  const fwd = (req?.headers["x-forwarded-for"] as string) || "";
+  const fromFwd = fwd.split(",")[0]?.trim();
+  return fromFwd || (req as any)?.ip || (req as any)?.socket?.remoteAddress || "";
+}
+
+export async function getActor(req?: Request): Promise<string> {
   try {
-    const uid = cookies().get("uid")?.value;
+    const uid = (req as any)?.cookies?.uid;
     if (!uid) return "anonymous";
-    // 이메일을 선호(이력/감사에서 식별이 더 명확)
     const user = await prisma.user.findUnique({
       where: { id: uid },
-      select: { email: true },
+      select: { email: true }
     });
     return user?.email || uid;
   } catch {

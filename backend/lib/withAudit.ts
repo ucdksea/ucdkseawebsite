@@ -1,6 +1,7 @@
 // lib/withAudit.ts
-import { appendAuditEvent } from "@/lib/audit";
-import { getActor, getClientIp, getRequestId } from "@/lib/req";
+import type { Request, Response, NextFunction } from "express";
+import { appendAuditEvent } from "./audit";
+import { getActor, getClientIp, getRequestId } from "./req";
 
 type AuditAction =
   | "LOGIN" | "LOGOUT" | "SIGNUP_REQUEST"
@@ -9,49 +10,51 @@ type AuditAction =
 
 type WithAuditOpts = {
   action: AuditAction;
-  targetType: string; // USER | POST | PRODUCT | QUOTE ...
-  targetId?: (bodyOrRes: any) => string | undefined;
-  title?: (bodyOrRes: any) => string | undefined;
-  summary?: (bodyOrRes: any) => string | undefined;
-  changes?: (bodyOrRes: any) => any; // [{field,kind,to}, ...]
-  severity?: (bodyOrRes: any) => number; // 0~3
+  targetType: string;
+  targetId?: (result: any) => string | undefined;
+  title?: (result: any) => string | undefined;
+  summary?: (result: any) => string | undefined;
+  changes?: (result: any) => any;
+  severity?: (result: any) => number;
 };
 
-// route handler를 감싸서 성공 시 기록, 실패 시 에러로 기록
-export function withAudit(handler: Function, opts: WithAuditOpts) {
-  return async function auditedHandler(req: Request, ...rest: any[]) {
-    const actorId = await getActor();
-    const actorIp = getClientIp();
-    const requestId = getRequestId();
+export function withAudit(
+  handler: (req: Request, res: Response, next: NextFunction) => Promise<any> | any,
+  opts: WithAuditOpts
+) {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    const actorId = await getActor(req);
+    const actorIp = getClientIp(req);
+    const requestId = getRequestId(req);
 
     try {
-      const res = await handler(req, ...rest);
-
-      // 응답 본문/생성 ID를 추출하려면 clone 사용
-      let body: any = null;
-      try { body = await res.clone().json(); } catch {}
+      const result = await handler(req, res, next);
 
       await appendAuditEvent({
-        actorId, actorIp, requestId,
+        actorId,
+        actorIp,
+        requestId,
         action: opts.action,
         targetType: opts.targetType,
-        targetId: opts.targetId?.(body),
-        title: opts.title?.(body),
-        summary: opts.summary?.(body),
-        changes: opts.changes?.(body),
-        severity: opts.severity?.(body) ?? 0,
+        targetId: opts.targetId?.(result),
+        title: opts.title?.(result),
+        summary: opts.summary?.(result),
+        changes: opts.changes?.(result),
+        severity: opts.severity?.(result) ?? 0
       });
 
-      return res;
+      return result;
     } catch (e: any) {
       await appendAuditEvent({
-        actorId, actorIp, requestId,
+        actorId,
+        actorIp,
+        requestId,
         action: opts.action,
         targetType: opts.targetType,
         summary: "FAILED: " + (e?.message || "error"),
-        severity: 3,
+        severity: 3
       });
-      throw e;
+      next(e);
     }
   };
 }
