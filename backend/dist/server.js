@@ -12,6 +12,7 @@ const prisma_audit_middleware_1 = require("./lib/prisma-audit-middleware");
 const mail_1 = require("./lib/mail");
 const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
+const admin_users_1 = __importDefault(require("./routes/admin-users"));
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "../.env") });
 (0, prisma_audit_middleware_1.attachAuditMiddleware)();
 const app = (0, express_1.default)();
@@ -28,6 +29,35 @@ app.use((0, cors_1.default)({
     ],
     credentials: true,
 }));
+// 디버그: 현재 등록된 모든 라우트를 문자열로 반환
+app.get("/__routes", (_req, res) => {
+    const routes = [];
+    function print(path, layer) {
+        if (layer.route) {
+            layer.route.stack.forEach(print.bind(null, path.concat(split(layer.route.path))));
+        }
+        else if (layer.name === 'router' && layer.handle.stack) {
+            layer.handle.stack.forEach(print.bind(null, path.concat(split(layer.regexp))));
+        }
+        else if (layer.method) {
+            routes.push(layer.method.toUpperCase() + ' ' + path.concat(split(layer.regexp)).filter(Boolean).join(''));
+        }
+    }
+    function split(thing) {
+        if (typeof thing === 'string')
+            return thing.split('/');
+        if (thing.fast_slash)
+            return [''];
+        const match = thing.toString()
+            .replace('\\/?', '')
+            .replace('(?=\\/|$)', '$')
+            .match(/^\/\^\\\/(?:(.*))\\\/\?\$\//);
+        return match ? match[1].split('\\/').map((s) => s.replace(/\\(.)/g, '$1')) : [''];
+    }
+    // @ts-ignore
+    app._router.stack.forEach(print.bind(null, []));
+    res.json({ routes });
+});
 // Preflight 허용
 app.options("*", (0, cors_1.default)({
     origin: [
@@ -39,6 +69,7 @@ app.options("*", (0, cors_1.default)({
     credentials: true,
 }));
 // ✅ 라우터는 그 다음에
+app.use("/api/admin", admin_users_1.default);
 const auth_1 = __importDefault(require("./routes/auth"));
 const dev_1 = __importDefault(require("./routes/dev"));
 app.use("/api/auth", auth_1.default);

@@ -22,7 +22,6 @@ const app = express();
 // 먼저 body/cookie 미들웨어
 app.use(express.json());
 app.use(cookieParser());
-app.use("/api/admin", adminUsersRouter);
 
 
 // CORS 설정
@@ -38,6 +37,33 @@ app.use(
   })
 );
 
+
+// 디버그: 현재 등록된 모든 라우트를 문자열로 반환
+app.get("/__routes", (_req, res) => {
+  const routes: string[] = [];
+  function print(path: any, layer: any) {
+    if (layer.route) {
+      layer.route.stack.forEach(print.bind(null, path.concat(split(layer.route.path))));
+    } else if (layer.name === 'router' && layer.handle.stack) {
+      layer.handle.stack.forEach(print.bind(null, path.concat(split(layer.regexp))));
+    } else if (layer.method) {
+      routes.push(layer.method.toUpperCase() + ' ' + path.concat(split(layer.regexp)).filter(Boolean).join(''));
+    }
+  }
+  function split(thing: any) {
+    if (typeof thing === 'string') return thing.split('/');
+    if (thing.fast_slash) return [''];
+    const match = thing.toString()
+      .replace('\\/?', '')
+      .replace('(?=\\/|$)', '$')
+      .match(/^\/\^\\\/(?:(.*))\\\/\?\$\//);
+    return match ? match[1].split('\\/').map((s: string) => s.replace(/\\(.)/g, '$1')) : [''];
+  }
+  // @ts-ignore
+  app._router.stack.forEach(print.bind(null, []));
+  res.json({ routes });
+});
+
 // Preflight 허용
 app.options("*", cors({
   origin: [
@@ -50,6 +76,7 @@ app.options("*", cors({
 }));
 
 // ✅ 라우터는 그 다음에
+app.use("/api/admin", adminUsersRouter);
 import authRouter from "./routes/auth";
 import devRouter from "./routes/dev";
 
@@ -115,6 +142,55 @@ app.get("/api/dev/env", (_req, res) => {
       APP_BASE_URL: process.env.APP_BASE_URL,
       APP_LOGIN_URL: process.env.APP_LOGIN_URL,
     },
+  });
+});
+// 맨 위 import들 아래에 추가
+import fs from "fs";
+
+// (A) 현재 dist/routes 안에 뭐가 있는지 보기
+app.get("/__dist", (_req, res) => {
+  const dir = path.join(__dirname, "routes");
+  const files = fs.existsSync(dir) ? fs.readdirSync(dir) : [];
+  res.json({ __dirname, dir, files });
+});
+
+// (B) 실제로 등록된 모든 라우트 나열 (문자열)
+app.get("/__routes", (_req, res) => {
+  const out: string[] = [];
+  // @ts-ignore
+  app._router?.stack?.forEach((layer: any) => {
+    if (layer.route && layer.route.path) {
+      const methods = Object.keys(layer.route.methods)
+        .filter((m) => layer.route.methods[m])
+        .map((m) => m.toUpperCase());
+      out.push(`${methods.join(",")} ${layer.route.path}`);
+    } else if (layer.name === "router" && layer.handle?.stack) {
+      // 프리픽스 추출
+      const prefix =
+        layer.regexp?.fast_slash
+          ? "/"
+          : (layer.regexp?.toString().match(/^\/\^\\\/(.+?)\\\/\?\$\//)?.[1] || "")
+              .replace(/\\\//g, "/");
+      layer.handle.stack.forEach((r: any) => {
+        if (r.route?.path) {
+          const methods = Object.keys(r.route.methods)
+            .filter((m) => r.route.methods[m])
+            .map((m) => m.toUpperCase());
+          out.push(`${methods.join(",")} /${prefix}${r.route.path}`.replace(/\/+/g, "/"));
+        }
+      });
+    }
+  });
+  res.type("text/plain").send(out.sort().join("\n"));
+});
+
+// (C) 최소 환경변수 확인
+app.get("/__env", (_req, res) => {
+  res.json({
+    NODE_ENV: process.env.NODE_ENV,
+    PORT: process.env.PORT,
+    ADMIN_ACTION_BASE: process.env.ADMIN_ACTION_BASE,
+    APP_BASE_URL: process.env.APP_BASE_URL,
   });
 });
 
