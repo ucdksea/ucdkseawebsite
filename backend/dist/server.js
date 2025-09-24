@@ -25,8 +25,6 @@ console.log("[BOOT]", BUILD_TAG);
 // ---------- APP ----------
 (0, prisma_audit_middleware_1.attachAuditMiddleware)();
 const app = (0, express_1.default)();
-app.use(express_1.default.json());
-app.use((0, cookie_parser_1.default)());
 // ---------- CORS (단일, 확실) ----------
 const allowlist = new Set((process.env.ALLOWED_ORIGINS || "")
     .split(",")
@@ -51,6 +49,8 @@ app.use((_, res, next) => {
     res.setHeader("Vary", "Origin");
     next();
 });
+app.use(express_1.default.json());
+app.use((0, cookie_parser_1.default)());
 // ---------- HEALTH/디버그 ----------
 app.get("/__sig", (_req, res) => res.type("text/plain").send(BUILD_TAG));
 app.get("/__health", (_req, res) => {

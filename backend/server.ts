@@ -27,9 +27,6 @@ console.log("[BOOT]", BUILD_TAG);
 attachAuditMiddleware();
 
 const app = express();
-app.use(express.json());
-app.use(cookieParser());
-
 // ---------- CORS (단일, 확실) ----------
 const allowlist = new Set(
   (process.env.ALLOWED_ORIGINS || "")
@@ -59,6 +56,11 @@ app.use((_, res, next) => {
   res.setHeader("Vary", "Origin");
   next();
 });
+
+app.use(express.json());
+app.use(cookieParser());
+
+
 
 // ---------- HEALTH/디버그 ----------
 app.get("/__sig", (_req, res) => res.type("text/plain").send(BUILD_TAG));
