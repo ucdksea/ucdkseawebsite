@@ -95,7 +95,10 @@ app.get("/api/dev/env", (_req, res) => {
   app.get("/api/dev/test-email", async (_req, res) => {
     try {
       const host = process.env.SMTP_HOST;
-      const port = Number(process.env.SMTP_PORT || 465);
+      const PORT = Number(process.env.PORT || 3000);
+        app.listen(PORT, "0.0.0.0", () => {
+        console.log(`[server] up on ${PORT}`);
+        });
       const user = process.env.SMTP_USER;
       const pass = process.env.SMTP_PASS;
   
@@ -155,7 +158,7 @@ app.use((_req, res) => res.status(404).json({ ok: false, error: "Not Found" }));
 // server.ts or app.ts (Express)
 import devRoutes from "./routes/dev";
 app.use("/api/dev", devRouter);
-app.use(authRoutes);              // ✅ /api/auth/*
+app.use("/api/auth", authRouter);           // ✅ /api/auth/*
 app.use(adminRoutes);             // ✅ /api/admin/*
 
 // 에러 핸들
