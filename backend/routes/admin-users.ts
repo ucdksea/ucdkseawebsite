@@ -1,6 +1,6 @@
 import express from "express";
 import { verifyAdminActionToken, sendApprovalEmail } from "../lib/mail";
-// import { prisma } from "../lib/prisma"; // 나중에 켜기
+import { prisma } from "../lib/prisma"; // 나중에 켜기
 
 const router = express.Router();
 
@@ -19,10 +19,10 @@ router.get("/users/action", async (req, res) => {
     const appUrl = process.env.APP_BASE_URL || "https://www.ucdksea.com";
 
     // 나중에 DB 반영할 때:
-    // await prisma.user.update({
-    //   where: { id: user.id },
-    //   data: { isApproved: action === "approve" }, // ← status 말고 isApproved
-    // });
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { isApproved: action === "approve" }, // ← status 말고 isApproved
+    });
 
     if (action === "approve") {
       await sendApprovalEmail(user.email, user.name, user.email);
