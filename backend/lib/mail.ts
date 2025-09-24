@@ -75,9 +75,16 @@ export async function sendAdminNewRegistration(
 
   const approveToken = signAdminActionToken(user, "approve");
   const declineToken = signAdminActionToken(user, "decline");
+// lib/mail.ts (기존 base 변수 교체)
+const actionBase =
+  process.env.ADMIN_ACTION_BASE  // ← 새 환경변수 (권장)
+  || process.env.API_BASE_URL    // ← 있으면 사용
+  || process.env.APP_BASE_URL    // (기존 값이 www 라면 잘못된 대상)
+  || "http://localhost:4000";
 
-  const approveUrl = `${base}/api/admin/users/action?token=${encodeURIComponent(approveToken)}`;
-  const declineUrl = `${base}/api/admin/users/action?token=${encodeURIComponent(declineToken)}`;
+// 아래 URL 생성부를 이렇게 유지
+const approveUrl = `${actionBase}/api/admin/users/action?token=${encodeURIComponent(approveToken)}`;
+const declineUrl = `${actionBase}/api/admin/users/action?token=${encodeURIComponent(declineToken)}`;
 
   const toList = Array.isArray(to) ? to : to.split(",").map(s => s.trim()).filter(Boolean);
   if (!toList.length) return;
