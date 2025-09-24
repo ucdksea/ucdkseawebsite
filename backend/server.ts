@@ -7,8 +7,11 @@ import { attachAuditMiddleware } from "./lib/prisma-audit-middleware";
 import { mailer } from "./lib/mail";
 import dotenv from "dotenv";
 import path from "path";
+import adminUsersRouter from "./routes/admin-users";
+
 
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
+
 
 
 
@@ -19,6 +22,8 @@ const app = express();
 // 먼저 body/cookie 미들웨어
 app.use(express.json());
 app.use(cookieParser());
+app.use("/api/admin", adminUsersRouter);
+
 
 // CORS 설정
 app.use(
