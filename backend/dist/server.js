@@ -10,21 +10,35 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const withAudit_1 = require("./lib/withAudit");
 const prisma_audit_middleware_1 = require("./lib/prisma-audit-middleware");
 const mail_1 = require("./lib/mail");
+const auth_1 = __importDefault(require("./routes/auth"));
 (0, prisma_audit_middleware_1.attachAuditMiddleware)();
 const app = (0, express_1.default)();
+app.use("/api/auth", auth_1.default);
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
-// CORS
+// CORS 설정
 app.use((0, cors_1.default)({
     origin: [
         "https://ucdksea.com",
         "https://www.ucdksea.com",
         "http://localhost:3000",
-        "http://127.0.0.1:3000"
+        "http://127.0.0.1:3000",
     ],
-    credentials: true
+    credentials: true,
+}));
+// Preflight(OPTIONS) 요청에 대한 응답도 반드시 있어야 함
+app.options("*", (0, cors_1.default)({
+    origin: [
+        "https://ucdksea.com",
+        "https://www.ucdksea.com",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    credentials: true,
 }));
 // -------- dev: 메일 테스트 --------
+const dev_1 = __importDefault(require("./routes/dev"));
+app.use("/api/dev", dev_1.default);
 app.get("/api/dev/test-email", async (_req, res) => {
     try {
         const info = await mail_1.mailer.sendMail({

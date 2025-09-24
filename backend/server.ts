@@ -16,18 +16,29 @@ app.use("/api/auth", authRoutes);
 app.use(express.json());
 app.use(cookieParser());
 
-// CORS
+// CORS 설정
 app.use(
   cors({
     origin: [
       "https://ucdksea.com",
       "https://www.ucdksea.com",
       "http://localhost:3000",
-      "http://127.0.0.1:3000"
+      "http://127.0.0.1:3000",
     ],
-    credentials: true
+    credentials: true,
   })
 );
+
+// Preflight(OPTIONS) 요청에 대한 응답도 반드시 있어야 함
+app.options("*", cors({
+  origin: [
+    "https://ucdksea.com",
+    "https://www.ucdksea.com",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+  ],
+  credentials: true,
+}));
 
 // -------- dev: 메일 테스트 --------
 import devRouter from "./routes/dev";

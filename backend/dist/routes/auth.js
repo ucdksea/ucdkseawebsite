@@ -24,5 +24,10 @@ router.post("/register", async (req, res) => {
     catch (e) {
         return res.status(500).json({ ok: false, error: e?.message || "Internal error" });
     }
+    res.json({ ok: true });
+});
+router.post("/login", async (req, res) => {
+    // 로그인 처리 로직
+    res.json({ ok: true });
 });
 exports.default = router;
