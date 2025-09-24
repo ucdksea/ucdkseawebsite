@@ -16,7 +16,7 @@ type PostType = typeof ALLOWED[number];
 const DEFAULT_ALLOWED = [
   "http://127.0.0.1:3000","http://localhost:3000",
   "http://127.0.0.1:5501","http://localhost:5501",
-  "https://ucdksea.com",
+  "https://ucdksea.com","https://www.ucdksea.com", "https://api.ucdksea.com", 
 ];
 
 function cors(origin: string | null) {
