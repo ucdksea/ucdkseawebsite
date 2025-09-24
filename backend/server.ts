@@ -4,6 +4,8 @@ import cookieParser from "cookie-parser";
 import path from "path";
 import fs from "fs";
 import multer from "multer";
+import { prisma } from "./lib/prisma";
+
 
 const app = express();
 const corsOpts = { origin: ["https://www.ucdksea.com","https://ucdksea.com"], credentials: true };
@@ -116,7 +118,7 @@ app.get("/api/admin/posts", async (req, res) => {
     if (type && (ALLOWED as readonly string[]).includes(type)) where.type = type;
     if (onlyActive) where.active = true;
 
-    const rows = await _prisma.post.findMany({
+    const rows = await prisma.post.findMany({
       where,
       orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
       select: {
