@@ -1,22 +1,15 @@
-// backend/routes/admin-users.ts
 import express from "express";
 import { verifyAdminActionToken, sendApprovalEmail } from "../lib/mail";
-// DB 연동은 후순위로. 타입 에러 막으려고 일단 제외
-// import { prisma } from "../lib/prisma";
+// import { prisma } from "../lib/prisma"; // 나중에 켜기
 
 const router = express.Router();
 
 console.log("[admin-users] router loaded");
 
-// 헬스 체크
 router.get("/__alive", (_req, res) => {
   res.json({ ok: true, router: "admin-users" });
 });
 
-/**
- * Approve/Decline 버튼 눌렀을 때 도착하는 엔드포인트
- * 예: GET /api/admin/users/action?token=...
- */
 router.get("/users/action", async (req, res) => {
   const token = (req.query.token as string) || "";
   if (!token) return res.status(400).send("Missing token");
@@ -25,18 +18,16 @@ router.get("/users/action", async (req, res) => {
     const { action, user } = verifyAdminActionToken(token);
     const appUrl = process.env.APP_BASE_URL || "https://www.ucdksea.com";
 
-    // ---- (선택) DB 반영: 스키마에 맞게 나중에 켜세요 ----
+    // 나중에 DB 반영할 때:
     // await prisma.user.update({
     //   where: { id: user.id },
-    //   data: { isApproved: action === "approve" },  // ← status 가 아니라 isApproved
+    //   data: { isApproved: action === "approve" }, // ← status 말고 isApproved
     // });
 
-    // 승인 메일 발송
     if (action === "approve") {
       await sendApprovalEmail(user.email, user.name, user.email);
     }
 
-    // 간단한 결과 페이지
     res
       .setHeader("Content-Type", "text/html; charset=utf-8")
       .send(`<!doctype html>

@@ -79,7 +79,6 @@ app.options("*", cors({
 app.use("/api/admin", adminUsersRouter);
 import authRouter from "./routes/auth";
 import devRouter from "./routes/dev";
-
 app.use("/api/auth", authRouter);
 app.use("/api/dev", devRouter);
 
@@ -187,7 +186,6 @@ app.get("/__routes", (_req, res) => {
 // (C) 최소 환경변수 확인
 app.get("/__env", (_req, res) => {
   res.json({
-    NODE_ENV: process.env.NODE_ENV,
     PORT: process.env.PORT,
     ADMIN_ACTION_BASE: process.env.ADMIN_ACTION_BASE,
     APP_BASE_URL: process.env.APP_BASE_URL,
