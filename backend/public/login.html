@@ -135,11 +135,10 @@ General members should use the <a href="/join" class=" underline hover:text-[var
   <script>
     // ---- CONFIG (단일 정의, 덮어쓰기 방지) ----
     const DEV = location.hostname === "127.0.0.1" || location.hostname === "localhost";
-    const PROD_API_BASE = "https://api.ucdksea.com";
+    const APP_BASE = location.origin;
     const API_BASE = "https://api.ucdksea.com";  // 절대경로!
     fetch(`${API_BASE}/api/ping`, { credentials: "include" });
-    const APP_BASE = location.origin;                     // 프런트의 실제 호스트를 사용
-    const LOGIN_ENDPOINT = `${API_BASE}/api/auth/login`;
+    const LOGIN_ENDPOINT = `${APP_BASE}/api/auth/login`;
     const REDIRECT_AFTER = `${APP_BASE}/post`;
     console.log("[login] API_BASE:", API_BASE, "REDIRECT_AFTER:", REDIRECT_AFTER);
   
@@ -181,7 +180,7 @@ General members should use the <a href="/join" class=" underline hover:text-[var
         const res = await fetch(LOGIN_ENDPOINT, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: "test", password: "1234" }),
+          body: JSON.stringify({ email, password }),
           credentials: "include"
         });
       

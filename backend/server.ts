@@ -29,6 +29,8 @@ app.use((_, res, next) => { res.setHeader("Vary","Origin"); next(); });
 app.options("*", cors(corsOpts));
 app.use(express.json());
 app.use(cookieParser());
+app.set("trust proxy", 1); 
+
 
 // Health & ping
 app.get("/__health", (_req, res) => res.status(200).send("ok"));
