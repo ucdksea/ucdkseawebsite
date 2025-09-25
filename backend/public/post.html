@@ -134,6 +134,7 @@
   
 
   </main>
+  
   <script>
     // 공통 필드(Title/Date/설명) 토글 유틸
     function toggleLabelAndField(el, hide) {
@@ -623,8 +624,9 @@
     pv.src = url;
     pv.classList.remove("hidden");
     document.getElementById("uploadStatus").textContent = "Uploaded ✓";
-    localStorage.setItem("ksea:lastUpload", url);
   }
+  //    localStorage.setItem("ksea:lastUpload", url);
+
 
   // 페이지 진입 시 마지막 업로드 복구(있을 때만)
   (function restoreLastUpload(){
