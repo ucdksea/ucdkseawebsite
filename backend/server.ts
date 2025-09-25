@@ -9,6 +9,16 @@ import { prisma } from "./lib/prisma";
 import type { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
 
+function isResendTestMode() {
+  const from = String(process.env.RESEND_FROM || "").toLowerCase();
+  return !!process.env.RESEND_API_KEY && from.includes("onboarding@resend.dev");
+}
+
+// 필요시 환경에서 오버라이드 가능 (기본 허용: ucdksea@gmail.com)
+const RESEND_TEST_RECIPIENT =
+  (process.env.RESEND_TEST_RECIPIENT || "ucdksea@gmail.com").toLowerCase();
+
+
 
 const app = express();
 const corsOpts = { origin: ["https://www.ucdksea.com","https://ucdksea.com"], credentials: true };
@@ -409,49 +419,51 @@ if (!useResend) {
 
 async function sendMail(opts: { to: string; subject: string; html: string; text?: string }) {
   const fallbackToResend = async () => {
-// (중략) sendMail 함수 내부 Resend 분기
-  const { Resend } = await import("resend");
-  const resend = new Resend(process.env.RESEND_API_KEY!);
-  const from = process.env.RESEND_FROM || "onboarding@resend.dev";
+    // ✅ Resend 테스트 모드: 허용 수신자만 통과
+    if (isResendTestMode()) {
+      const toList = String(opts.to)
+        .split(",")
+        .map(s => s.trim().toLowerCase())
+        .filter(Boolean);
 
-  const { data, error } = await resend.emails.send({
-    from,
-    to: opts.to,                 // 문자열 또는 string[] OK
-    subject: opts.subject,
-    html: opts.html,
-    text: opts.text,
-    replyTo: process.env.FROM_EMAIL || undefined, // ← replyTo (카멜케이스)
-  });
+      const disallowed = toList.filter(t => t !== RESEND_TEST_RECIPIENT);
+      if (disallowed.length) {
+        console.warn("[MAIL][skip] Resend test mode. Blocked recipients:", disallowed);
+        // 테스트 모드에서는 조용히 스킵 (에러 던지지 않음)
+        return;
+      }
+    }
 
-  if (error) {
-    console.error("[MAIL][resend] error", error);
-    throw error;
-  }
-  console.log("[MAIL][resend] id:", data?.id);   // ✅ 로그로 남김
-  return data?.id || null;                        // ✅ 호출자에게 id 반환
-      await resend.emails.send({
-        from,
-        to: opts.to,
-        subject: opts.subject,
-        html: opts.html,
-        text: opts.text,
-        replyTo: process.env.FROM_EMAIL || undefined,
-      });
-    };
+    const { Resend } = await import("resend");
+    const resend = new Resend(process.env.RESEND_API_KEY!);
+    const from = process.env.RESEND_FROM || "onboarding@resend.dev";
 
-  // 1) RESEND 우선 사용 (키 있으면 바로 HTTP API로 발송)
+    const result = await resend.emails.send({
+      from,
+      to: opts.to,
+      subject: opts.subject,
+      html: opts.html,
+      text: opts.text,
+      replyTo: process.env.FROM_EMAIL || undefined,
+    });
+
+    if ((result as any)?.id) {
+      console.log("[MAIL][resend] id:", (result as any).id);
+    }
+    if ((result as any)?.error) {
+      console.error("[MAIL][resend] error", (result as any).error);
+    }
+  };
+
+  const useResend = !!process.env.RESEND_API_KEY;
+
+  // 1) RESEND 우선
   if (useResend) return fallbackToResend();
 
-  // 2) SMTP 시도 → 실패 시 자동 RESEND 폴백
+  // 2) (옵션) SMTP 시도 → 실패 시 끝 (테스트 모드 폴백 불필요)
+  if (!smtpTransport) throw new Error("SMTP transport missing");
   const from = process.env.FROM_EMAIL || `${process.env.APP_NAME || "App"} <no-reply@local>`;
-  try {
-    if (!smtpTransport) throw new Error("SMTP transport missing");
-    await smtpTransport.sendMail({ from, ...opts });
-  } catch (err) {
-    console.error("[MAIL][smtp] failed, fallback to Resend:", err);
-    if (process.env.RESEND_API_KEY) return fallbackToResend();
-    throw err;
-  }
+  await smtpTransport.sendMail({ from, ...opts });
 }
 // === replace mailer + sendMail end ===
 
@@ -465,50 +477,50 @@ async function sendApplicantReceipt(to: string, name?: string) {
     subject: `[${appName}] Registration received`,
     text: `Hello ${name || to}
 
-We received your officer registration. An admin will review it soon.
-You can sign in after approval: ${loginUrl}
-`,
-    html: `<p>Hello ${name || to},</p>
-           <p>We received your officer registration. An admin will review it soon.</p>
-           <p>After approval, sign in here: <a href="${loginUrl}">${loginUrl}</a></p>`
-  });
-}
+  We received your officer registration. An admin will review it soon.
+  You can sign in after approval: ${loginUrl}
+  `,
+      html: `<p>Hello ${name || to},</p>
+            <p>We received your officer registration. An admin will review it soon.</p>
+            <p>After approval, sign in here: <a href="${loginUrl}">${loginUrl}</a></p>`
+    });
+  }
 
-function signAdminActionToken(uid: string, action: "approve"|"decline") {
-  const secret = process.env.ADMIN_ACTION_SECRET!;
-  return jwt.sign({ uid, action }, secret, { expiresIn: "30m" });
-}
+  function signAdminActionToken(uid: string, action: "approve"|"decline") {
+    const secret = process.env.ADMIN_ACTION_SECRET!;
+    return jwt.sign({ uid, action }, secret, { expiresIn: "30m" });
+  }
 
-async function sendAdminNewRegistration(
-  listCsv: string,
-  user: { id: string; name: string; email: string }
-) {
-  const to = listCsv.split(",").map(s => s.trim()).filter(Boolean);
-  if (!to.length) return;
+  async function sendAdminNewRegistration(
+    listCsv: string,
+    user: { id: string; name: string; email: string }
+  ) {
+    const to = listCsv.split(",").map(s => s.trim()).filter(Boolean);
+    if (!to.length) return;
 
-  const actionBase =
-    process.env.ADMIN_ACTION_BASE ||  // << 반드시 https://api.ucdksea.com
-    process.env.APP_BASE_URL ||
-    "http://localhost:4000";
+    const actionBase =
+      process.env.ADMIN_ACTION_BASE ||  // << 반드시 https://api.ucdksea.com
+      process.env.APP_BASE_URL ||
+      "http://localhost:4000";
 
-  const approveUrl = `${actionBase}/api/admin/users/action?token=${encodeURIComponent(signAdminActionToken(user.id,"approve"))}`;
-  const declineUrl = `${actionBase}/api/admin/users/action?token=${encodeURIComponent(signAdminActionToken(user.id,"decline"))}`;
+    const approveUrl = `${actionBase}/api/admin/users/action?token=${encodeURIComponent(signAdminActionToken(user.id,"approve"))}`;
+    const declineUrl = `${actionBase}/api/admin/users/action?token=${encodeURIComponent(signAdminActionToken(user.id,"decline"))}`;
 
-  const appName = process.env.APP_NAME || "UCD KSEA";
-  const subject = `[${appName}] New officer registration pending`;
-  const profile = `${user.name} <${user.email}>`;
+    const appName = process.env.APP_NAME || "UCD KSEA";
+    const subject = `[${appName}] New officer registration pending`;
+    const profile = `${user.name} <${user.email}>`;
 
-  await sendMail({
-    to: to.join(","),
-    subject,
-    text: `New registration: ${profile}
-Approve: ${approveUrl}
-Decline: ${declineUrl}
-`,
-    html: `<p>New registration: <b>${profile}</b></p>
-           <p><a href="${approveUrl}">Approve</a> | <a href="${declineUrl}">Decline</a></p>`
-  });
-}
+    await sendMail({
+      to: to.join(","),
+      subject,
+      text: `New registration: ${profile}
+  Approve: ${approveUrl}
+  Decline: ${declineUrl}
+  `,
+      html: `<p>New registration: <b>${profile}</b></p>
+            <p><a href="${approveUrl}">Approve</a> | <a href="${declineUrl}">Decline</a></p>`
+    });
+  }
 
 export async function sendApprovalEmail(to: string, name?: string, loginEmail?: string) {
   const appName = process.env.APP_NAME || "App";
