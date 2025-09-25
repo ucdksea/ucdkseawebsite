@@ -138,7 +138,7 @@ General members should use the <a href="/join" class=" underline hover:text-[var
     const APP_BASE = location.origin;
     const API_BASE = "https://api.ucdksea.com";  // 절대경로!
     fetch(`${API_BASE}/api/ping`, { credentials: "include" });
-    const LOGIN_ENDPOINT = `${APP_BASE}/api/auth/login`;
+    const LOGIN_ENDPOINT = `https://api.ucdksea.com/api/auth/login`;
     const REDIRECT_AFTER = `${APP_BASE}/post`;
     console.log("[login] API_BASE:", API_BASE, "REDIRECT_AFTER:", REDIRECT_AFTER);
   

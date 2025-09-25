@@ -647,6 +647,36 @@ app.get("/__mail_test", async (req, res) => {
   }
 });
 
+// ✅ 로그인 라우트 추가
+app.post("/api/auth/login", async (req, res) => {
+  try {
+    const { email, password } = req.body || {};
+    if (!email || !password) return res.status(400).json({ error: "Missing credentials" });
+
+    const emailNorm = String(email).toLowerCase().trim();
+    const user = await prisma.user.findUnique({ where: { email: emailNorm } });
+    if (!user) return res.status(401).json({ error: "Invalid login" });
+
+    const ok = await bcrypt.compare(password, user.passwordHash);
+    if (!ok) return res.status(401).json({ error: "Invalid login" });
+    if (!user.isApproved) return res.status(403).json({ error: "Not approved yet" });
+
+    // 같은 사이트(ucdksea.com)의 서브도메인 간 공유
+    res.cookie("uid", user.id, {
+      httpOnly: true,
+      secure: true,         // HTTPS 필수
+      sameSite: "lax",      // same-site라 Lax 가능 (원하면 "none")
+      domain: ".ucdksea.com",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7 * 1000,
+    });
+
+    return res.json({ ok: true, user: { id: user.id, email: user.email, name: user.name } });
+  } catch (e:any) {
+    console.error("[POST /api/auth/login] ERR", e);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
 
 // Listen
 const PORT = Number(process.env.PORT || 4000);
