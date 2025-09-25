@@ -134,7 +134,8 @@
   
 
   </main>
-  
+  <script>window.API_BASE = "https://api.ucdksea.com";</script>
+
   <script>
     // 공통 필드(Title/Date/설명) 토글 유틸
     function toggleLabelAndField(el, hide) {
@@ -198,7 +199,8 @@
         ? (location.port === "3000" ? "" : "http://localhost:3000")
         : "";
         const API_BASE = "https://api.ucdksea.com";  // 절대경로!
-        const API = API_BASE;  
+        //const API = API_BASE;  
+        const API = window.API_BASE;
         fetch(`${API}/api/ping`, { credentials: "include" });
         const $ = (id) => document.getElementById(id);
   
