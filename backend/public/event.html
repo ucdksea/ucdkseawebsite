@@ -274,7 +274,83 @@
             }
           </script>
           
-
+          <script>
+            // URL 유틸
+            function _absUrl(raw){
+              const base = (typeof API !== "undefined" && API) ? API : location.origin;
+              return raw?.startsWith("http") ? new URL(raw) : new URL(raw || "", base);
+            }
+            function _dedupe(arr){ return [...new Set(arr.filter(Boolean))]; }
+          
+            // 원본 경로에서 가능한 모든 공개/프록시 케이스 생성
+            function buildImageCandidates(raw){
+              const url = _absUrl(raw);
+              const base = new URL((typeof API !== "undefined" && API) ? API : location.origin);
+              const sameHost = url.host === base.host;
+          
+              const p = url.pathname || "";
+              const afterUploads = p.includes("/uploads/") ? p.split("/uploads/")[1] : null;
+          
+              const cands = [];
+              // 0) 원본
+              cands.push(url.toString());
+          
+              if (sameHost){
+                // 1) /file2 (uploads 유지)
+                if (p.startsWith("/file2/")) cands.push(url.toString());
+                else if (p.startsWith("/file/")) cands.push(new URL(p.replace("/file/","/file2/"), url).toString());
+                else if (p.startsWith("/uploads/")) cands.push(new URL("/file2"+p, url).toString());
+                else if (p.includes("/uploads/")) cands.push(new URL(p.replace("/uploads/","/file2/uploads/"), url).toString());
+          
+                // 2) /file (uploads 유지)
+                if (p.startsWith("/file2/")) cands.push(new URL(p.replace("/file2/","/file/"), url).toString());
+                else if (p.startsWith("/file/")) cands.push(new URL(p, url).toString());
+                else if (p.startsWith("/uploads/")) cands.push(new URL("/file"+p, url).toString());
+                else if (p.includes("/uploads/")) cands.push(new URL(p.replace("/uploads/","/file/uploads/"), url).toString());
+          
+                // 3) uploads 세그먼트를 제거해야 하는 서버용
+                if (afterUploads){
+                  cands.push(new URL("/file2/"+afterUploads, url).toString());
+                  cands.push(new URL("/file/"+afterUploads, url).toString());
+                }
+              }
+              return _dedupe(cands).map(s => encodeURI(s));
+            }
+          
+            // 이미지 로더: 후보들을 인증 fetch로 순차 조회 → 성공시 blob URL 세팅
+            async function loadImageSmart(imgEl, raw){
+              const cands = buildImageCandidates(raw);
+              // 같은 호스트만 쿠키 포함
+              const baseHost = new URL((typeof API !== "undefined" && API) ? API : location.origin).host;
+          
+              for (const href of cands){
+                try{
+                  const u = new URL(href);
+                  const creds = (u.host === baseHost) ? "include" : "omit";
+                  const r = await fetch(href, { credentials: creds });
+                  if (!r.ok) continue;
+                  const ct = r.headers.get("content-type") || "";
+                  if (!ct.startsWith("image/")) continue;
+                  const blob = await r.blob();
+                  // 이전 blob URL 있으면 정리
+                  if (imgEl.dataset.objUrl) URL.revokeObjectURL(imgEl.dataset.objUrl);
+                  const objUrl = URL.createObjectURL(blob);
+                  imgEl.src = objUrl;
+                  imgEl.dataset.objUrl = objUrl;
+                  return;
+                }catch{/* try next */}
+              }
+              // 전부 실패하면 맨 첫 후보를 그냥 설정(브라우저가 직접 요청)
+              imgEl.src = cands[0] || "";
+            }
+          
+            // 팝업용 큰이미지 데이터도 같은 규칙으로 "가장 가능성 높은 공개 URL"로 세팅
+            function bestPublicUrl(raw){
+              const cands = buildImageCandidates(raw);
+              return cands[0] || "";
+            }
+          </script>
+          
     <!-- 1) Event Polaroid (Gallery) -->
     <script>
       (async () => {
@@ -315,7 +391,7 @@
                 <div class="polaroid" onclick="expandImage(this)">
                   <img
                     alt="${esc(title)}"
-                    data-src="${esc(src0)}"        <!-- ✅ 원본만 저장 -->
+                    data-src="${esc(src0)}"        
                     data-large="${esc(src0)}"
                     data-text-enc="${esc(dataTextEnc)}"
                     data-link="${esc(primaryLink)}"
@@ -335,60 +411,54 @@
           const imgs = wrap.querySelectorAll('.polaroid img[data-src]');
           imgs.forEach(img => {
             const raw = img.getAttribute('data-src') || "";
-            // 팝업 큰이미지도 동일 변환
             const largeRaw = img.getAttribute('data-large') || "";
-            loadImageWithAuth(img, raw);
+            // 실제 이미지 로딩 (인증 fetch → 여러 경로 폴백)
+            loadImageSmart(img, raw);
             // 팝업용 data-large는 프록시 우선 URL로 업데이트
             const largeViaProxy = toPublicImage(largeRaw);
-            img.setAttribute('data-large', largeViaProxy);
+            img.setAttribute('data-large', bestPublicUrl(largeRaw || raw));
           });
       
-        } catch(e) {
+        /*} catch(e) {
           console.warn("EVENT_POLAROID fetch failed:", e);
           wrap.innerHTML = "";
         }
-      })();
+      })();*/
       </script>
-      
-      
-    
-      
-     
-      
 
-<!-- 2) Upcoming Event (있을 때만 표시) -->
-<script>
-  (async () => {
-    const section = document.getElementById("upcomingSection");
-    const box = document.getElementById("upcomingBox");
-    const a = box ? box.querySelector("a") : null;
-    const img = document.getElementById("upcomingImg");
-    const descEl = document.querySelector(".upcomingDesc");
-    if (!section || !box || !a || !img || !descEl) return;
-  
-    try {
-      const r = await fetch(`${API}/api/admin/posts?type=EVENT_UPCOMING&active=1`, { credentials: "omit" });
-      if (!r.ok) throw new Error(r.status);
-      const { posts = [] } = await r.json();
-  
-      if (!posts.length) { section.style.display = "none"; return; }
-  
-      const p = posts[0];
-      section.style.display = "";
-  
-      const href = p.meta?.formUrl || p.meta?.instagramUrl || p.linkUrl || "#";
-      a.href = href;
-      if (href === "#") a.addEventListener("click", (e) => e.preventDefault());
-  
-      const original = p.meta?.posterUrl || p.imageUrl || "";
-      await loadImageWithAuth(img, original);  // ✅ 쿠키 포함 로딩
-      descEl.innerHTML = p.descKo || p.descEn || "";
-    } catch (e) {
-      console.warn("EVENT_UPCOMING fetch failed:", e);
-      section.style.display = "none";
-    }
-  })();
-  </script>
+      <script>
+        (async () => {
+          const section = document.getElementById("upcomingSection");
+          const box = document.getElementById("upcomingBox");
+          const a = box ? box.querySelector("a") : null;
+          const img = document.getElementById("upcomingImg");
+          const descEl = document.querySelector(".upcomingDesc");
+          if (!section || !box || !a || !img || !descEl) return;
+        
+          try {
+            const r = await fetch(`${API}/api/admin/posts?type=EVENT_UPCOMING&active=1`, { credentials: "omit" });
+            if (!r.ok) throw new Error(r.status);
+            const { posts = [] } = await r.json();
+        
+            if (!posts.length) { section.style.display = "none"; return; }
+        
+            const p = posts[0];
+            section.style.display = "";
+        
+            const href = p.meta?.formUrl || p.meta?.instagramUrl || p.linkUrl || "#";
+            a.href = href;
+            if (href === "#") a.addEventListener("click", (e) => e.preventDefault());
+        
+            const original = p.meta?.posterUrl || p.imageUrl || "";
+            await loadImageSmart(img, original);   // ✅ 위 스마트 로더 사용
+            descEl.innerHTML = p.descKo || p.descEn || "";
+          } catch (e) {
+            console.warn("EVENT_UPCOMING fetch failed:", e);
+            section.style.display = "none";
+          }
+        })();
+        </script>
+        
   
   
 
