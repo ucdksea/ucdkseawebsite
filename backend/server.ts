@@ -8,6 +8,7 @@ import multer from "multer";
 import { prisma } from "./lib/prisma";
 import type { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
+import os from 'os';
 
 
 function isResendTestMode() {
@@ -64,7 +65,7 @@ function setImageCORS(req: Request, res: Response) {
   res.setHeader("Vary", "Origin");
   res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
 }
-
+app.use((req,res,next)=>{ res.setHeader('X-Instance', os.hostname()); next(); });
 // ── 이미지 라우트 전역 CORS + OPTIONS 처리 (static/프록시 **앞**)
 app.use((req, res, next) => {
   if (IMAGE_ROUTES.some(rx => rx.test(req.path))) {

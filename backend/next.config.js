@@ -9,6 +9,16 @@ const nextConfig = {
   };
   
   module.exports = nextConfig;
+  module.exports = {
+    images: {
+      remotePatterns: [
+        { protocol: 'https', hostname: 'api.ucdksea.com', pathname: '/uploads/**' },
+      ],
+      // 또는 간단히
+      // domains: ['api.ucdksea.com'],
+    },
+  };
+  
   // next.config.js
 module.exports = {
   async rewrites() {
@@ -24,6 +34,7 @@ module.exports = {
       { source: '/faq', destination: '/faq.html' },
       { source: '/join', destination: '/join.html' },
       { source: '/register', destination: '/register.html' },
+      { source: '/uploads/:path*', destination: 'https://api.ucdksea.com/uploads/:path*' }
 
     ]
   }
