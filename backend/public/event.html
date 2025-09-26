@@ -301,12 +301,14 @@
               <div class="event-item">
                 <div class="polaroid" onclick="expandImage(this)">
                   <img
-                    alt="${esc(title)}"
-                    src="${src}"                   
-                    data-large="${src}"          
-                    data-text-enc="${esc(dataTextEnc)}"
-                    data-link="${esc(primaryLink)}"
-                  />
+                  alt="${esc(title)}"
+                  src=""                       
+                  data-src-original="${esc(src0)}"
+                  data-text-enc="${esc(dataTextEnc)}"
+                  data-link="${esc(primaryLink)}"
+                  referrerpolicy="no-referrer"
+                />
+                
                   <p>${esc(bottomCaption)}</p>
                   ${primaryLink ? `<div style="margin-top:6px;">
                     <a href="${esc(primaryLink)}" target="_blank" rel="noopener" class="text-sm underline"></a>
@@ -317,6 +319,52 @@
           }).join("");
       
           wrap.innerHTML = html;
+          // 이미지 로더: file2(프록시) → 절대URL → 원본, 순서대로 시도
+wrap.querySelectorAll('.polaroid img').forEach(img => {
+  const src0 = img.getAttribute('data-src-original') || "";
+  if (!src0) return;
+
+  const cands = [];
+  // 1) 같은 호스트(api.ucdksea.com)면 /file → /file2 리라이트
+  try {
+    const base = (typeof API !== "undefined" && API) ? API : location.origin;
+    const api  = new URL(base);
+    const url  = src0.startsWith("http") ? new URL(src0) : new URL(src0, base);
+
+    if (url.host === api.host) {
+      let p = url.pathname;
+      if (!p.startsWith("/file2/")) {
+        if (p.startsWith("/file/"))      p = p.replace("/file/", "/file2/");
+        else if (p.startsWith("/uploads/")) p = "/file2" + p;
+        else if (p.includes("/uploads/"))   p = p.replace("/uploads/", "/file2/uploads/");
+        url.pathname = p;
+      }
+      cands.push(url.toString());
+    }
+  } catch (e) {}
+
+  // 2) 절대 URL(인코딩만)
+  try {
+    const base = (typeof API !== "undefined" && API) ? API : location.origin;
+    const abs  = src0.startsWith("http") ? new URL(src0) : new URL(src0, base);
+    cands.push(encodeURI(abs.toString()));
+  } catch (e) {}
+
+  // 3) 원본 그대로
+  cands.push(src0);
+
+  let i = 0;
+  function tryNext() {
+    if (i >= cands.length) { img.alt = "(image not available)"; return; }
+    img.src = cands[i++];
+  }
+  img.onerror = tryNext;
+  tryNext();
+
+  // 팝업용 large도 첫 후보로 셋업(실패해도 currentSrc를 expandImage가 잡습니다)
+  img.setAttribute('data-large', cands[0] || src0);
+});
+
       
         } catch(e) {
           console.warn("EVENT_POLAROID fetch failed:", e);
