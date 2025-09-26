@@ -38,21 +38,55 @@ app.get("/api/ping", (_req, res) => res.json({ ok: true }));
 
 
 // Static
-// 1) 실행 방식(ts-node / dist) 모두에서 backend/public을 찾아내도록 보강
+// --- 1) PUBLIC_ROOT: 환경변수로 강제 가능 ---
 function pickPublicRoot() {
   const cands = [
-    path.resolve(__dirname, "../public"), // dist 실행 시
-    path.resolve(__dirname, "./public"),  // ts-node로 server.ts 실행 시
-    path.resolve(process.cwd(), "backend/public"), // 혹시 cwd 기준
-    path.resolve(process.cwd(), "public"),         // 최후 보정
+    path.resolve(__dirname, "../public"),
+    path.resolve(__dirname, "./public"),
+    path.resolve(process.cwd(), "backend/public"),
+    path.resolve(process.cwd(), "public"),
   ];
-  for (const p of cands) {
-    try {
-      if (fs.existsSync(p)) return p;
-    } catch {}
-  }
+  for (const p of cands) try { if (fs.existsSync(p)) return p; } catch {}
   return cands[0];
 }
+
+// 환경변수 우선 적용
+const PUBLIC_ROOT = process.env.PUBLIC_ROOT_DIR
+  ? path.resolve(process.env.PUBLIC_ROOT_DIR)
+  : pickPublicRoot();
+
+console.log("[PUBLIC_ROOT]", PUBLIC_ROOT);
+
+// --- 2) 정적 서빙 ---
+app.use(
+  "/uploads",
+  express.static(path.join(PUBLIC_ROOT, "uploads"), {
+    maxAge: "1y",
+    etag: true,
+    setHeaders(res) {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    },
+  })
+);
+
+// --- 3) recent API도 동일 루트 사용(현재 코드는 __dirname 고정이라 틀어질 수 있음) ---
+app.get("/api/uploads/recent", (_req, res) => {
+  try {
+    const ROOT = path.join(PUBLIC_ROOT, "uploads", "posts");
+    const files = fs.readdirSync(ROOT)
+      .filter(f => !f.startsWith("."))
+      .map(f => ({ f, t: fs.statSync(path.join(ROOT, f)).mtimeMs }))
+      .sort((a,b) => b.t - a.t)
+      .slice(0, 10)
+      .map(x => x.f);
+    res.json({ files });
+  } catch (e:any) {
+    res.status(500).json({ ok:false, error: e?.message || "list failed" });
+  }
+});
+
 
 const PUBLIC_ROOT = pickPublicRoot();
 console.log("[PUBLIC_ROOT]", PUBLIC_ROOT);
