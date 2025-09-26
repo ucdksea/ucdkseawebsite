@@ -35,6 +35,7 @@ app.set("trust proxy", 1);
 
 // Health & ping
 app.get("/__health", (_req, res) => res.status(200).send("ok"));
+app.get("/healthz",  (_req, res) => res.status(200).send("ok"));
 app.get("/api/ping", (_req, res) => res.json({ ok: true }));
 
 // ── 이미지 경로 정의
@@ -260,8 +261,6 @@ function sendFromAnyRoot(rel: string, req: Request, res: Response) {
   }
   setImageCORS(req, res);
   res.setHeader("Cache-Control", "no-store, max-age=0"); 
-return res.status(404).json({ error: "not found" });
-
   return res.status(404).json({ error: "not found" });
 }
 
