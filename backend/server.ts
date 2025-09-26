@@ -990,6 +990,20 @@ app.use((req, res, next) => {
   res.setHeader("Cache-Control", "no-store, max-age=0");
 });
 
+// server.ts (라우트들 아래, 마지막 미들웨어들 위에)
+app.use((err: any, _req: any, res: any, _next: any) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE')
+      return res.status(413).json({ error: 'File too large (max 10MB)' });
+    return res.status(400).json({ error: err.message });
+  }
+  if (err && err.message === 'Only image files are allowed') {
+    return res.status(415).json({ error: 'Only image files are allowed' });
+  }
+  return res.status(500).json({ error: err?.message || 'Server error' });
+});
+
+
 // Listen
 const PORT = Number(process.env.PORT || 4000);
 console.log("MAIL_MODE:", process.env.RESEND_API_KEY ? "resend" : "smtp");

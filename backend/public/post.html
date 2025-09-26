@@ -273,6 +273,8 @@
   
     // ===== 업로드 =====
     // ✅ 정상 코드 (POST /api/upload)
+
+    
     $("btnUpload").addEventListener("click", async () => {
       const f = $("file").files && $("file").files[0];
       if (!f) { $("uploadStatus").textContent = "Choose an image first."; return; }
@@ -689,7 +691,7 @@
   }
 
 </script>
-
+<script type="module" src="/js/uploader.js"></script>
 
 
   
