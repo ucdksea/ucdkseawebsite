@@ -412,18 +412,16 @@
           imgs.forEach(img => {
             const raw = img.getAttribute('data-src') || "";
             const largeRaw = img.getAttribute('data-large') || "";
-            // 실제 이미지 로딩 (인증 fetch → 여러 경로 폴백)
             loadImageSmart(img, raw);
-            // 팝업용 data-large는 프록시 우선 URL로 업데이트
-            const largeViaProxy = toPublicImage(largeRaw);
             img.setAttribute('data-large', bestPublicUrl(largeRaw || raw));
           });
-      
-        /*} catch(e) {
+
+        } catch (e) {
           console.warn("EVENT_POLAROID fetch failed:", e);
           wrap.innerHTML = "";
         }
-      })();*/
+      })();
+
       </script>
 
       <script>
