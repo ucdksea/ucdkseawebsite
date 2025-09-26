@@ -248,9 +248,15 @@
       
           const html = posts.map((p) => {
             const m = p.meta || {};
+            const esc = (s)=> (s||"").toString().replace(/"/g,"&quot;");
             const quarter = (p.quarter || m.quarter || p.semester || m.semester || "").trim();
             const year    = (p.year || m.year || "").trim();
             const title   = (p.title || "").trim();
+
+            const pickImage = () =>
+            (m.posterUrl || p.posterUrl || m.imageUrl || p.imageUrl ||
+              (Array.isArray(m.images) && m.images[0]) ||
+              (Array.isArray(p.images) && p.images[0]) || "");
       
             const captionRaw = (quarter && year) ? `${quarter} ${year}` : title;
             const dateStr    = p.date ? new Date(p.date).toISOString().slice(0,10) : "";
@@ -260,9 +266,12 @@
             const posterUrl   = (p.posterUrl || m.posterUrl || "").trim();
             const imageUrl    = (p.imageUrl || "").trim();
             const primaryLink = (p.instagramUrl || p.formUrl || p.linkUrl || m.instagramUrl || m.formUrl || "").trim();
-            const thumbOriginal = m.posterUrl || p.imageUrl || "";
+            const thumbOriginal = pickImage();
             // 팝업 큰 사진 = 일반 우선 → 포스터
-            const largeOriginal = p.imageUrl  || m.posterUrl || "";
+            const largeOriginal = (p.imageUrl || m.posterUrl || p.posterUrl || 
+                         (Array.isArray(p.images) && p.images[0]) ||
+                         thumbOriginal);
+
             // 외부 링크
       
             // 설명(팝업용) + 포스터 토큰
