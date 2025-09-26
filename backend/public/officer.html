@@ -164,6 +164,7 @@
       (async () => {
         const DEV = location.hostname === "127.0.0.1" || location.hostname === "localhost";
         const API_BASE = "https://api.ucdksea.com";  // 절대경로!
+        const API = API_BASE;
         fetch(`${API_BASE}/api/ping`, { credentials: "include" });
             
         const grid = document.querySelector("#list_OFFICER");
@@ -178,8 +179,7 @@
             .replace(/'/g, "&#39;");
     
         try {
-          const r = await fetch(`${API}/api/admin/posts?type=OFFICER&active=1`, { credentials: "omit" });
-          if (!r.ok) throw new Error(r.status);
+          const r = await fetch(`${API}/api/admin/posts?type=OFFICER&active=1`, { credentials: "omit" });          if (!r.ok) throw new Error(r.status);
           const { posts = [] } = await r.json();
     
           if (!posts.length) { grid.innerHTML = ""; return; }
