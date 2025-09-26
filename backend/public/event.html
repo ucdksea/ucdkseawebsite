@@ -216,75 +216,6 @@
       fetch(`${API_BASE}/api/ping`, { credentials: "include" });
           </script>
           <script>
-            // 안전한 절대 URL 만들기(인코딩만, 리라이트 없음)
-            function absUrl(u){
-              if(!u) return "";
-              try{
-                const base = (typeof API !== "undefined" && API) ? API : location.origin;
-                const url  = u.startsWith("http") ? new URL(u) : new URL(u, base);
-                return encodeURI(url.toString());
-              }catch{
-                return encodeURI(u);
-              }
-            }
-          
-            // 같은 호스트(= API)일 때만 /file → /file2 리라이트
-            function toPublicImage(u){
-              if (!u) return "";
-              try {
-                const base = (typeof API !== "undefined" && API) ? API : location.origin;
-                const api  = new URL(base);
-                const url  = u.startsWith("http") ? new URL(u) : new URL(u, base);
-          
-                if (url.host !== api.host) return url.toString();
-          
-                let p = url.pathname;
-                if (p.startsWith("/file2/")) return url.toString();
-                if (p.startsWith("/file/"))         p = p.replace("/file/", "/file2/");
-                else if (p.startsWith("/uploads/")) p = "/file2" + p;
-                else if (p.includes("/uploads/"))   p = p.replace("/uploads/", "/file2/uploads/");
-                url.pathname = p;
-                return encodeURI(url.toString());
-              } catch {
-                return u;
-              }
-            }
-          
-            // ---- 로더 (절대 → 원본 → 프록시 순) ----
-            (function attachPolaroidLoader(){
-              const grid = document.getElementById('polaroidGrid');
-              if(!grid) return;
-          
-              grid.querySelectorAll('.polaroid img').forEach(img => {
-                const src0 = img.getAttribute('data-src-original') || "";
-                if (!src0) return;
-          
-                const first  = absUrl(src0);         // 1) 절대 URL(가장 안전)
-                const second = src0;                 // 2) 원본 그대로
-                const third  = toPublicImage(src0);  // 3) /file2 리라이트(프록시)
-          
-                const tried = new Set();
-                const cands = [first, second, third].filter(u => u && !tried.has(u) && (tried.add(u), true));
-          
-                let i = 0;
-                function tryNext() {
-                  if (i >= cands.length) { img.alt = "(image not available)"; return; }
-                  img.src = cands[i++];
-                }
-                img.onerror = tryNext;
-                // CORS 이슈 최소화(쿠키 불필요 이미지 로드)
-                img.setAttribute('crossorigin', 'anonymous');
-                img.referrerPolicy = 'no-referrer';
-          
-                tryNext();
-          
-                // 팝업용 large 기본값
-                img.setAttribute('data-large', cands[0] || src0);
-              });
-            })();
-          </script>          
-          
-          <script>
             // 같은 호스트(= API)일 때만 공개 프록시(/file2/…)로 안전 리라이트
             function toPublicImage(u){
               if (!u) return "";
@@ -310,70 +241,21 @@
               }
             }
           </script>
-          
-            
-          
-    
 
     <!-- 1) Event Polaroid (Gallery) -->
     <script>
-      // ---------- 공용 유틸 ----------
-      function absUrl(u){
-        if(!u) return "";
-        try{
-          const base = (typeof API !== "undefined" && API) ? API : location.origin;
-          const url  = u.startsWith("http") ? new URL(u) : new URL(u, base);
-          return encodeURI(url.toString());
-        }catch{ return encodeURI(u); }
-      }
-    
-      // 같은 호스트(= API)일 때만 /file → /file2 리라이트
-      function toPublicImage(u){
-        if (!u) return "";
-        try {
-          const base = (typeof API !== "undefined" && API) ? API : location.origin;
-          const api  = new URL(base);
-          const url  = u.startsWith("http") ? new URL(u) : new URL(u, base);
-          if (url.host !== api.host) return url.toString();
-    
-          let p = url.pathname;
-          if (p.startsWith("/file2/")) return url.toString();
-          if (p.startsWith("/file/"))         p = p.replace("/file/", "/file2/");
-          else if (p.startsWith("/uploads/")) p = "/file2" + p;
-          else if (p.includes("/uploads/"))   p = p.replace("/uploads/", "/file2/uploads/");
-          url.pathname = p;
-          return encodeURI(url.toString());
-        } catch { return u; }
-      }
-    
-      // (응급용) 공개 이미지 프록시 — 백엔드 /file2가 아직 열리지 않았다면 마지막 후보로만 사용
-      function wsrv(u){
-        try{
-          const abs = absUrl(u);
-          const clean = abs.replace(/^https?:\/\//,'');  // images.weserv.nl 규격
-          return `https://images.weserv.nl/?url=${encodeURIComponent(clean)}`;
-        }catch{ return ""; }
-      }
-    
-      function uniq(list){
-        const s = new Set(); const out = [];
-        for (const x of list) if (x && !s.has(x)) { s.add(x); out.push(x); }
-        return out;
-      }
-    
-      // ---------- 갤러리 렌더 + 로더 ----------
       (async () => {
         const wrap = document.getElementById("polaroidGrid");
         if (!wrap) return;
-    
+      
         const esc = (s)=> (s||"").toString().replace(/"/g,"&quot;");
-    
+      
         try {
           const r = await fetch(`${API}/api/admin/posts?type=EVENT_POLAROID&active=1`, { credentials: "omit" });
           if (!r.ok) throw new Error(r.status);
           const { posts = [] } = await r.json();
           if (!posts.length) { wrap.innerHTML = ""; return; }
-    
+      
           const html = posts.map((p) => {
             const m = p.meta || {};
             const src0 =
@@ -381,7 +263,9 @@
               p.posterUrl || m.posterUrl ||
               (Array.isArray(p.images) && p.images[0]) ||
               (Array.isArray(m.images) && m.images[0]) || "";
-    
+      
+            const src = toPublicImage(src0);   // ✅ 여기만 교체
+      
             const title   = (p.title || "").trim();
             const quarter = (p.quarter || m.quarter || p.semester || m.semester || "").trim();
             const year    = (p.year || m.year || "").trim();
@@ -389,65 +273,40 @@
             const dateStr    = p.date ? new Date(p.date).toISOString().slice(0,10) : "";
             const bottomCaption = [captionRaw, title].filter(Boolean).join(" ");
             const primaryLink = (p.instagramUrl || p.formUrl || p.linkUrl || m.instagramUrl || m.formUrl || "").trim();
-    
+      
             const line1 = `${esc(title)}$<span style='color:gray;'>${esc(captionRaw)}${dateStr ? " | " + dateStr : ""}</span>$<span style='color:#ececec;'>_____________________</span>$`;
             const line2 = p.descKo ? `<br>${esc(p.descKo)}$` : "";
             const line3 = p.descEn ? `<br>${esc(p.descEn)}<br>$` : "";
             const dataTextEnc = encodeURIComponent([line1, line2, line3, "<img-poster/>"].join(""));
-    
+      
             return `
               <div class="event-item">
                 <div class="polaroid" onclick="expandImage(this)">
                   <img
                     alt="${esc(title)}"
-                    src=""
-                    data-src-original="${esc(src0)}"
+                    src="${src}"                   <!-- ✅ 공개 프록시 URL -->
+                    data-large="${src}"            <!-- ✅ 팝업도 동일 -->
                     data-text-enc="${esc(dataTextEnc)}"
                     data-link="${esc(primaryLink)}"
-                    referrerpolicy="no-referrer"
                   />
                   <p>${esc(bottomCaption)}</p>
                   ${primaryLink ? `<div style="margin-top:6px;">
-                    <a href="${esc(primaryLink)}" target="_blank" rel="noopener noreferrer" class="text-sm underline">More details</a>
+                    <a href="${esc(primaryLink)}" target="_blank" rel="noopener" class="text-sm underline"></a>
                   </div>` : ""}
                 </div>
               </div>
             `;
           }).join("");
-    
+      
           wrap.innerHTML = html;
-    
-          // ✅ 여기서 '한 번만' 로더 바인딩 (공개 후보 → 원본 → /file2 → wsrv)
-          wrap.querySelectorAll('.polaroid img').forEach(img => {
-            const src0 = img.getAttribute('data-src-original') || "";
-            if (!src0) return;
-    
-            const cands = uniq([
-              // 공개로 열릴 확률 높은 순
-              absUrl(src0),           // https://api.ucdksea.com/... (쿠키 없이 접근 시 401일 수도 있음)
-              src0,                   // 데이터 그대로
-              toPublicImage(src0),    // /file2 리라이트 (배포되어 있으면 OK)
-              wsrv(src0),             // 응급용 공개 프록시
-            ]);
-    
-            let i = 0;
-            function tryNext() {
-              if (i >= cands.length) { img.alt = "(image not available)"; return; }
-              img.src = cands[i++];
-            }
-            img.onerror = tryNext;
-            img.setAttribute('crossorigin','anonymous');
-            img.referrerPolicy = 'no-referrer';
-            img.setAttribute('data-large', cands[0] || src0);
-            tryNext();
-          });
-    
+      
         } catch(e) {
           console.warn("EVENT_POLAROID fetch failed:", e);
           wrap.innerHTML = "";
         }
       })();
-    </script>
+      </script>
+      
     
       
      
@@ -462,39 +321,31 @@
     const img = document.getElementById("upcomingImg");
     const descEl = document.querySelector(".upcomingDesc");
     if (!section || !box || !a || !img || !descEl) return;
-
+  
     try {
       const r = await fetch(`${API}/api/admin/posts?type=EVENT_UPCOMING&active=1`, { credentials: "omit" });
       if (!r.ok) throw new Error(r.status);
       const { posts = [] } = await r.json();
-
+  
       if (!posts.length) { section.style.display = "none"; return; }
-
+  
       const p = posts[0];
       section.style.display = "";
-
+  
       const href = p.meta?.formUrl || p.meta?.instagramUrl || p.linkUrl || "#";
       a.href = href;
       if (href === "#") a.addEventListener("click", (e) => e.preventDefault());
-
+  
       const original = p.meta?.posterUrl || p.imageUrl || "";
-      const cands = uniq([ absUrl(original), original, toPublicImage(original), wsrv(original) ]);
-
-      let i = 0;
-      function tryNext(){ if(i >= cands.length){ img.alt = "(image not available)"; return; } img.src = cands[i++]; }
-      img.onerror = tryNext;
-      img.setAttribute('crossorigin','anonymous');
-      img.referrerPolicy = 'no-referrer';
-      tryNext();
-
+      img.src = toPublicImage(original);   // ✅ 공개 프록시로 보정 (쿠키 불필요)
       descEl.innerHTML = p.descKo || p.descEn || "";
     } catch (e) {
       console.warn("EVENT_UPCOMING fetch failed:", e);
       section.style.display = "none";
     }
   })();
-</script>
-
+  </script>
+  
 
   </body>
 </html>
