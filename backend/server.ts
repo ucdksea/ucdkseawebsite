@@ -130,11 +130,12 @@ for (const root of PUBLIC_ROOTS) {
       maxAge: "1y",
       etag: true,
       setHeaders(res) {
-        // 여기서는 **캐시만** 세팅. CORS는 위에서 이미 설정됨.
+        // ✅ 헤더만 세팅
         res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
       },
     })
   );
+  
 }
 
 // ── 공개 프록시: /file/**, /file2/** → 여러 루트 + 레거시 경로 탐색 ─────────
@@ -370,8 +371,9 @@ app.post("/api/admin/posts", async (req, res) => {
     type PostType = typeof ALLOWED[number];
     const body = req.body || {};
 
-    // 1) REORDER first
-    if (body.action === "REORDER") {
+    // 1) REORDER first  ✅ 여기 강화
+    const action = String(body.action || "").toUpperCase();
+    if (action === "REORDER") {
       const type: PostType | undefined = ALLOWED.includes(body.type) ? body.type : undefined;
       const idsRaw = Array.isArray(body.order) ? body.order : [];
       const order = Array.from(new Set(idsRaw.filter((x: any) => typeof x === "string" && x.trim())));
@@ -387,7 +389,7 @@ app.post("/api/admin/posts", async (req, res) => {
       await prisma.$transaction(ids.map((id, idx) =>
         prisma.post.update({ where: { id }, data: { sortOrder: idx } })
       ));
-      return res.json({ ok: true, type, count: ids.length });
+      return res.json({ ok: true, type, count: ids.length });  // ✅ 여기서 끝
     }
 
     // 2) CREATE
@@ -508,102 +510,6 @@ app.get("/api/debug/posts/summary", async (_req, res) => {
     });
   } catch (e: any) {
     res.status(500).json({ ok: false, error: e?.message || "debug failed" });
-  }
-});
-
-// ✅ Express: POST /api/admin/posts
-app.post("/api/admin/posts", async (req, res) => {
-  try {
-    const ALLOWED = ["POPUP","EVENT_UPCOMING","EVENT_POLAROID","GM","OFFICER"] as const;
-    type PostType = typeof ALLOWED[number];
-
-    const body = req.body || {};
-    const type: PostType | undefined = ALLOWED.includes(body.type) ? body.type : undefined;
-    if (!type) return res.status(400).json({ error: `type must be one of ${ALLOWED.join("|")}` });
-
-    if (!body.imageUrl) return res.status(400).json({ error: "imageUrl required" });
-    if ((type === "POPUP" || type === "EVENT_UPCOMING") && !body.linkUrl) {
-      return res.status(400).json({ error: "linkUrl required for POPUP/EVENT_UPCOMING" });
-    }
-    if (type === "EVENT_POLAROID" && !body.title) {
-      return res.status(400).json({ error: "title required for EVENT_POLAROID" });
-    }
-
-    // Quarter/Year 정규화 (GM, EVENT_POLAROID 용)
-    const seasonAliases: Record<string,string> = {
-      fall:"Fall", f:"Fall", autumn:"Fall", "1":"Fall", q1:"Fall",
-      winter:"Winter", w:"Winter", "2":"Winter", q2:"Winter",
-      spring:"Spring", s:"Spring", "3":"Spring", q3:"Spring",
-    };
-    const normYear = typeof body.year === "number" ? String(body.year)
-                   : typeof body.year === "string" ? body.year.trim() : "";
-    const qRaw = body.quarter ?? "";
-    const qStr = typeof qRaw === "number" ? String(qRaw)
-               : typeof qRaw === "string" ? qRaw.trim().replace(/^q/i,"") : "";
-    const qAlias = seasonAliases[qStr.toLowerCase().replace(/\s+/g,"")] ?? "";
-
-    if (type === "GM" || type === "EVENT_POLAROID") {
-      if (!normYear)  return res.status(400).json({ error: `Year required for ${type}` });
-      if (!qStr)      return res.status(400).json({ error: `Quarter required for ${type}` });
-      if (!qAlias)    return res.status(400).json({ error: "Quarter must be one of Fall / Winter / Spring" });
-    }
-
-    // meta 병합
-    const meta: any = {};
-    const posterUrl = body.posterUrl ?? body?.meta?.posterUrl ?? body.imageUrl;
-    if (posterUrl) meta.posterUrl = posterUrl;
-    if (body.formUrl ?? body?.meta?.formUrl) meta.formUrl = body.formUrl ?? body?.meta?.formUrl;
-    if (body.instagramUrl ?? body?.meta?.instagramUrl) meta.instagramUrl = body.instagramUrl ?? body?.meta?.instagramUrl;
-
-    const data: any = {
-      type,
-      imageUrl: body.imageUrl,
-      active: true,
-      meta: Object.keys(meta).length ? meta : null,
-    };
-
-    if (type === "OFFICER") {
-      data.title   = (body.enName   ?? "").trim();
-      data.descKo  = (body.koName   ?? "").trim();
-      data.descEn  = (body.role     ?? "").trim();
-      data.linkUrl = (body.linkedin ?? "").trim() || null;
-      data.date    = null;
-      data.year    = null;
-      data.quarter = null;
-      if (!data.title || !data.descKo || !data.descEn) {
-        return res.status(400).json({ error: "enName/koName/role required for OFFICER" });
-      }
-    } else if (type === "GM") {
-      data.title   = null;
-      data.descKo  = body.descKo ?? null;
-      data.descEn  = body.descEn ?? null;
-      data.linkUrl = body.linkUrl ?? null;
-      data.date    = null;
-      data.year    = normYear;
-      data.quarter = qAlias;
-    } else if (type === "EVENT_POLAROID") {
-      data.title   = body.title ?? null;
-      data.descKo  = body.descKo ?? null;
-      data.descEn  = body.descEn ?? null;
-      data.linkUrl = body.linkUrl ?? null;
-      data.date    = body.date ? new Date(body.date) : null;
-      data.year    = normYear;
-      data.quarter = qAlias;
-    } else {
-      data.title   = body.title ?? null;
-      data.descKo  = body.descKo ?? null;
-      data.descEn  = body.descEn ?? null;
-      data.linkUrl = body.linkUrl ?? null;
-      data.date    = body.date ? new Date(body.date) : null;
-      data.year    = null;
-      data.quarter = null;
-    }
-
-    const post = await prisma.post.create({ data });
-    return res.json({ ok: true, post });
-  } catch (e: any) {
-    console.error("[POST /api/admin/posts] ERR", e);
-    return res.status(500).json({ error: e?.message || "Create failed" });
   }
 });
 
