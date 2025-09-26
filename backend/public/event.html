@@ -99,7 +99,7 @@
             const imgEl = el.querySelector('img');
             const large0 = imgEl?.getAttribute('data-large') || '';
             if (large0) {
-              const large2 = (typeof toFile2 === 'function') ? toFile2(large0) : large0;
+              const large2 = (typeof toFile2 === 'function') ? toFile2(large0) : encodeURI(large0);
               imgEl.setAttribute('data-large', large2);
             }
           } catch (e) { /* no-op */ }
@@ -215,38 +215,32 @@
       const API = API_BASE;  
       fetch(`${API_BASE}/api/ping`, { credentials: "include" });
           </script>
-    <script>
-      // 이미지 URL을 /file2/... 형태로 강제 변환
-      function ensureFile2(url){
-        if (!url) return "";
-        try {
-          // 절대/상대 경로 모두 처리
-          const base = (typeof API !== "undefined" && API) ? API : location.origin;
-          const u = url.startsWith("http") ? new URL(url) : new URL(url, base);
-          let p = u.pathname;
-    
-          if (p.includes("/file2/")) return u.toString();                // 이미 file2면 그대로
-          if (p.includes("/file/")) {                                    // /file/ → /file2/
-            u.pathname = p.replace("/file/", "/file2/");
-            return u.toString();
-          }
-          if (p.startsWith("/uploads/")) {                               // /uploads/... → /file2/uploads/...
-            u.pathname = "/file2" + p;
-            return u.toString();
-          }
-          if (p.includes("/uploads/")) {                                 // 기타 케이스 보정
-            u.pathname = p.replace("/uploads/", "/file2/uploads/");
-            return u.toString();
-          }
-          return u.toString();
-        } catch {
-          // URL 파싱 실패 시 단순 치환 Fallback
-          if (url.includes("/file/")) return url.replace("/file/", "/file2/");
-          if (url.includes("/uploads/")) return url.replace("/uploads/", "/file2/uploads/");
-          return url;
-        }
-      }
-    </script>
+          <script>
+            function ensureFile2(url){
+              if (!url) return "";
+              try {
+                // ✅ 공백/괄호 등 인코딩
+                url = encodeURI(url);
+          
+                const base = (typeof API !== "undefined" && API) ? API : location.origin;
+                const u = url.startsWith("http") ? new URL(url) : new URL(url, base);
+                let p = u.pathname;
+          
+                if (p.includes("/file2/")) return u.toString();
+                if (p.includes("/file/")) { u.pathname = p.replace("/file/", "/file2/"); return u.toString(); }
+                if (p.startsWith("/uploads/")) { u.pathname = "/file2" + p; return u.toString(); }
+                if (p.includes("/uploads/")) { u.pathname = p.replace("/uploads/", "/file2/uploads/"); return u.toString(); }
+                return u.toString();
+              } catch {
+                // ✅ Fallback도 인코딩
+                const enc = (s)=> s ? encodeURI(s) : s;
+                if (url.includes("/file/")) return enc(url.replace("/file/", "/file2/"));
+                if (url.includes("/uploads/")) return enc(url.replace("/uploads/", "/file2/uploads/"));
+                return enc(url);
+              }
+            }
+          </script>
+          
     
 
     <!-- 1) Event Polaroid (Gallery) -->
@@ -320,19 +314,31 @@
       
           // 목록 썸네일: file2 우선, 실패시 원본 폴백
           wrap.querySelectorAll('.polaroid img').forEach(img => {
-            const original =img.getAttribute('data-thumb-original') ||img.getAttribute('data-large') || img.getAttribute('data-poster') || "";    
+            const original =
+              img.getAttribute('data-thumb-original') ||
+              img.getAttribute('data-large') ||
+              img.getAttribute('data-poster') || "";
+          
             if (!original) return;
-            const srcFile2 = (typeof ensureFile2==="function") ? ensureFile2(original) : original;
+          
+            const srcFile2 = (typeof ensureFile2==="function") ? ensureFile2(original) : encodeURI(original);
             img.setAttribute("data-original", original);
-            const large0 = img.getAttribute('data-large') || "";
-            if (large0) img.setAttribute('data-large', (typeof ensureFile2==="function") ? ensureFile2(large0) : large0);
             img.src = srcFile2;
+          
+            // ✅ 팝업용도 인코딩 + /file2 보정
+            const large0 = img.getAttribute('data-large') || "";
+            if (large0) {
+              const large2 = (typeof ensureFile2==="function") ? ensureFile2(large0) : encodeURI(large0);
+              img.setAttribute('data-large', large2);
+            }
+          
             img.onerror = function(){
               if (img.getAttribute("data-tried-original")==="1") return;
               img.setAttribute("data-tried-original","1");
-              img.src = img.getAttribute("data-original");
+              img.src = img.getAttribute("data-original"); // 원본으로 1회 재시도
             };
           });
+          
       
         } catch(e) {
           console.warn("EVENT_POLAROID fetch failed:", e);
