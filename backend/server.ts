@@ -158,6 +158,26 @@ function findCandidatePaths(rel: string) {
   return Array.from(new Set(paths));
 }
 
+function trySuffixMatch(root: string, cand: string): string | null {
+  // uploads/posts/… 인 경우에만 suffix 매칭
+  const m = cand.match(/^uploads\/posts\/(.+)$/i);
+  if (!m) return null;
+
+  const wantBase = path.basename(m[1]).toLowerCase(); // 1758868387752_geoyang.JPG
+  const dir = path.join(root, "uploads", "posts");
+  try {
+    if (!fs.existsSync(dir)) return null;
+    const list = fs.readdirSync(dir);
+    const hit = list.find(f => f.toLowerCase().endsWith("_" + wantBase));
+    if (!hit) return null;
+    const full = path.join(dir, hit);
+    return fs.statSync(full).isFile() ? full : null;
+  } catch {
+    return null;
+  }
+}
+
+
 // ── 디버그: 어떤 실제 경로를 확인하는지 보여줌 ──────────────────────
 app.get("/__probe", (req, res) => {
   const rel = String(req.query.rel || "");
@@ -183,16 +203,26 @@ function sendFromAnyRoot(rel: string, req: Request, res: Response) {
       const full = path.resolve(path.join(root, cand));
       const allowBase = cand.startsWith("uploads/") ? rootUploads : root;
       if (!full.startsWith(path.resolve(allowBase) + path.sep)) continue;
+
       if (fs.existsSync(full) && fs.statSync(full).isFile()) {
         setImageCORS(req, res);
         res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
         return res.sendFile(full);
+      }
+
+      // ✅ 여기서 suffix 매칭 시도
+      const suffixHit = trySuffixMatch(root, cand);
+      if (suffixHit) {
+        setImageCORS(req, res);
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        return res.sendFile(suffixHit);
       }
     }
   }
   setImageCORS(req, res);
   return res.status(404).json({ error: "not found" });
 }
+
 
 app.get(/^\/file\/(.*)$/, (req, res) => {
   try { return sendFromAnyRoot(String(req.params[0] || ""), req, res); }
@@ -234,16 +264,20 @@ app.get("/api/uploads/recent", (_req, res) => {
 });
 
 // ── Upload (10MB): 새 파일은 CANON_ROOT에만 기록 (통일) ────────────────
-const UPLOAD_DIR = path.join(CANON_ROOT, "uploads", "posts");
-fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+const looksTimestamped = /^\d{10,}_.+\.(jpe?g|png|gif|webp|svg)$/i;
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
   filename: (_req, file, cb) => {
     const safe = String(file.originalname || "").replace(/[^a-zA-Z0-9._-]/g, "_");
+    if (looksTimestamped.test(safe)) {
+      // ✅ 이미 "숫자_…"로 시작하면 그대로 쓴다 (링크 안정화)
+      return cb(null, safe);
+    }
     cb(null, `${Date.now()}_${safe}`);
   },
 });
+
 const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 },
