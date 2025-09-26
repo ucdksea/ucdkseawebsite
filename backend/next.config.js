@@ -9,15 +9,25 @@ const nextConfig = {
   };
   
   module.exports = nextConfig;
-  module.exports = {
-    images: {
-      remotePatterns: [
-        { protocol: 'https', hostname: 'api.ucdksea.com', pathname: '/uploads/**' },
-      ],
-      // 또는 간단히
-      // domains: ['api.ucdksea.com'],
-    },
-  };
+// next.config.js
+module.exports = {
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: 'ucdksea-prod-uploads.s3.us-west-2.amazonaws.com', pathname: '/uploads/**' },
+      { protocol: 'https', hostname: 'cdn.ucdksea.com', pathname: '/uploads/**' }, // Phase 2
+    ],
+    // domains: ['ucdksea-prod-uploads.s3.us-west-2.amazonaws.com', 'cdn.ucdksea.com'], // 대안
+  },
+  async rewrites() {
+    return [
+      // 혹시 과거 상대경로가 남아 있으면 보호
+      { source: '/uploads/:path*', destination: 'https://cdn.ucdksea.com/uploads/:path*' }, // Phase 2
+      // Phase 1이라면 S3 도메인으로:
+      // { source: '/uploads/:path*', destination: 'https://ucdksea-prod-uploads.s3.us-west-2.amazonaws.com/uploads/:path*' },
+    ];
+  },
+};
+
   
   // next.config.js
 module.exports = {

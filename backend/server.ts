@@ -1,5 +1,5 @@
 ///Users/stephanie/Desktop/ucdksea-website/backend/server.ts
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction , type RequestHandler} from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path";
@@ -9,6 +9,32 @@ import { prisma } from "./lib/prisma";
 import type { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
 import os from 'os';
+import { S3Client, PutObjectCommand, HeadObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import crypto from 'crypto';
+
+
+const r2 = new S3Client({
+  region: process.env.R2_REGION || 'auto',
+  endpoint: process.env.R2_ENDPOINT,
+  forcePathStyle: true,  
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+  },
+});
+const uploadMem = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 20 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (!String(file.mimetype || '').startsWith('image/')) return cb(new Error('Only image files are allowed'));
+    cb(null, true);
+  },
+});
+function uniqueName(orig: string) {
+  const safe = (orig || 'upload').replace(/[^a-zA-Z0-9._-]/g, '_');
+  const salt = crypto.randomBytes(4).toString('hex');
+  return `${Date.now()}_${salt}_${safe}`;
+}
 
 
 function isResendTestMode() {
@@ -151,6 +177,63 @@ for (const root of PUBLIC_ROOTS) {
   );
   
 }
+const uploadOne = uploadMem.single('file') as unknown as RequestHandler;
+// === 업로드 라우트 (POST /api/upload) ===
+app.post(
+  '/api/upload',
+  uploadOne,
+  async (req: Request & { file?: Express.Multer.File }, res: Response) => {
+    try {
+      const f = req.file;
+      if (!f) return res.status(400).json({ ok: false, error: 'NO_FILE' });
+
+      const key = `posts/${uniqueName(f.originalname)}`;
+      await r2.send(new PutObjectCommand({
+        Bucket: process.env.R2_BUCKET!,
+        Key: key,
+        Body: f.buffer,
+        ContentType: f.mimetype,
+        CacheControl: 'public, max-age=31536000, immutable',
+      }));
+
+      const url = `/uploads/${key}`;
+      return res.json({ ok: true, key, url });
+    } catch (e) {
+      console.error('[upload]', e);
+      return res.status(500).json({ ok:false, error:'UPLOAD_FAILED' });
+    }
+  }
+);
+
+
+// === 프록시 GET (GET /uploads/:path...) ===
+app.get('/uploads/*', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const key = req.params[0];
+    const head = await r2.send(new HeadObjectCommand({ Bucket: process.env.R2_BUCKET!, Key: key }));
+
+    const etag = head.ETag;
+    if (etag && req.headers['if-none-match'] === etag) {
+      // 304에도 ETag 헤더를 다시 달아주는 게 안전
+      res.setHeader('ETag', etag);
+      return res.status(304).end();
+    }
+
+    const obj = await r2.send(new GetObjectCommand({ Bucket: process.env.R2_BUCKET!, Key: key }));
+
+    if (head.ContentType) res.setHeader('Content-Type', head.ContentType);
+    if (etag) res.setHeader('ETag', etag);
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+
+    // @ts-ignore
+    obj.Body.pipe(res);
+  } catch (e: any) {
+    // ⬇️ 404는 폴백으로 넘겨 디스크/레거시 경로 탐색하게 함
+    if (e?.$metadata?.httpStatusCode === 404) return next();
+    console.error('[uploads-proxy]', e);
+    return res.status(500).send('Server error');
+  }
+});
 
 // ── 공개 프록시: /file/**, /file2/** → 여러 루트 + 레거시 경로 탐색 ─────────
 function findCandidatePaths(rel: string) {
@@ -341,26 +424,6 @@ const upload = multer({
 });
 
 type ReqWithFile = Request & { file?: any };
-
-app.post("/api/upload", upload.single("file"), async (req: ReqWithFile, res: Response) => {
-  try {
-    const file = req.file;
-    if (!file) return res.status(400).json({ error: "No file" });
-
-    const base = process.env.APP_BASE_URL || `${req.protocol}://${req.get("host")}`;
-    const url = `${base}/uploads/posts/${file.filename}`;
-    const payload = JSON.stringify({ url });
-
-    res.status(201);
-    res.setHeader("Content-Type", "application/json");
-    res.setHeader("Content-Length", Buffer.byteLength(payload).toString());
-    res.setHeader("Connection", "close");
-    res.end(payload);
-  } catch (e: any) {
-    console.error("[ERR][UPLOAD]", e);
-    res.status(500).json({ ok: false, error: e?.message || "Upload failed" });
-  }
-});
 
 // ✅ Express: POST /api/admin/posts
 // --- LIST posts (RESTORE this as its own route) ---
