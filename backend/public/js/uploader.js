@@ -19,16 +19,29 @@ async function uploadPoster(file) {
 
 const uploadingRef = { current: false };
 
+const MAX = 10 * 1024 * 1024;
+
 async function onPick(file) {
-  if (uploadingRef.current) return null; // 🔒 중복 방지
+  if (uploadingRef.current) return;
   uploadingRef.current = true;
   try {
-    const url = await uploadPoster(file);
-    return url;
+    // 10MB 초과면 압축 시도 (가로/세로 2000px 제한 + JPEG 품질 0.9부터)
+    let toUpload = file;
+    if (file.size > MAX) {
+      toUpload = await compressImageFile(file, { maxW: 2000, maxH: 2000, mime: 'image/jpeg', quality: 0.9 });
+      // 여전히 초과면 한 번 더 줄이기(선택)
+      if (toUpload.size > MAX) {
+        toUpload = await compressImageFile(toUpload, { maxW: 1600, maxH: 1600, mime: 'image/jpeg', quality: 0.85 });
+      }
+    }
+
+    const url = await uploadPoster(toUpload);  // ← 네가 만든 함수 그대로 사용
+    // ... setState(url)
   } finally {
-    uploadingRef.current = false;        // 🔓 해제
+    uploadingRef.current = false;
   }
 }
+
 
 // === DOM 바인딩 (id는 네 페이지의 실제 id에 맞게) ===
 document.addEventListener('DOMContentLoaded', () => {
