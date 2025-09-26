@@ -36,6 +36,24 @@ app.set("trust proxy", 1);
 app.get("/__health", (_req, res) => res.status(200).send("ok"));
 app.get("/api/ping", (_req, res) => res.json({ ok: true }));
 
+// ── 이미지 라우트 전역 CORS (404/오류에도 항상 붙임) ─────────────────
+const IMAGE_ROUTES = [
+  /^\/uploads(\/|$)/,
+  /^\/file(\/|$)/,
+  /^\/file2(\/|$)/,
+];
+
+// ── 이미지 라우트 최종 404 핸들러 (CORS 포함) ─────────────────────────
+app.use((req, res, next) => {
+  const hit = IMAGE_ROUTES.some(rx => rx.test(req.path));
+  if (!hit) return next();
+  // 여기까지 왔다는 건 위의 static/프록시에서 못 찾았다는 뜻
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+  return res.status(404).json({ error: "not found" });
+});
+
+
 
 // ── Static roots: 과거/현재/디스크 경로 모두 지원 ─────────────────────
 function pickRoots() {
@@ -114,6 +132,32 @@ function findCandidatePaths(rel: string) {
 
   return Array.from(new Set(paths));
 }
+
+// /file, /file2 : HEAD도 GET과 동일 처리
+app.head(/^\/file\/(.*)$/, (req, res) => {
+  try { return sendFromAnyRoot(String(req.params[0] || ""), res); }
+  catch (e) { console.error("[HEAD /file] error:", e); return res.status(500).json({ error: "server error" }); }
+});
+app.head(/^\/file2\/(.*)$/, (req, res) => {
+  try { return sendFromAnyRoot(String(req.params[0] || ""), res); }
+  catch (e) { console.error("[HEAD /file2] error:", e); return res.status(500).json({ error: "server error" }); }
+});
+
+// ── 디버그: 어떤 실제 경로를 확인하는지 보여줌 ──────────────────────
+app.get("/__probe", (req, res) => {
+  const rel = String(req.query.rel || "");
+  const tried: Array<{root: string, path: string, exists: boolean}> = [];
+  const candidates = findCandidatePaths(rel);
+  for (const root of PUBLIC_ROOTS) {
+    for (const cand of candidates) {
+      const full = path.resolve(path.join(root, cand));
+      let exists = false;
+      try { exists = fs.existsSync(full) && fs.statSync(full).isFile(); } catch {}
+      tried.push({ root, path: full, exists });
+    }
+  }
+  res.json({ rel, candidates, tried });
+});
 
 
 function sendFromAnyRoot(rel: string, res: Response) {
