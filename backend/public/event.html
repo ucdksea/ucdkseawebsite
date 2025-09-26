@@ -93,14 +93,9 @@
 
     <script>
       (function () {
-        // 배포 API
         const PROD = "https://api.ucdksea.com";
-    
-        // 이미 선언돼 있으면 덮어쓰지 않음 (다른 스크립트와 충돌 방지)
         if (!("API_BASE" in window)) window.API_BASE = PROD;
-        if (!("API" in window))      window.API = window.API_BASE;
-    
-        // 진단용 핑 (실패해도 무시)
+        if (!("API" in window))      window.API     = window.API_BASE;
         fetch(`${window.API_BASE}/api/ping`, { credentials: "include" }).catch(()=>{});
       })();
     </script>
@@ -291,102 +286,70 @@
             }
           </script>
           <script>
-            // ===== URL helpers (교체본) =====
-            //const API_BASE = "https://api.ucdksea.com";
-            const HOSTS = ["api.ucdksea.com", "www.ucdksea.com", "ucdksea.com"];
-          
-            function _absUrl(raw){
-              const base = (typeof API !== "undefined" && API) ? API : API_BASE;
-              return raw?.startsWith("http") ? new URL(raw) : new URL(raw || "", base);
-            }
+            // ===== URL helpers (최종) =====
+            // 모든 후보 URL은 오직 API_BASE 호스트만 사용 (CORS 회피)
             function _dedupe(arr){ return [...new Set(arr.filter(Boolean))]; }
           
-            // 맨파일명만 온 경우(1758..._x.jpg 등) 자동으로 /uploads/posts/<파일>로 보정
             function ensureUploadsPath(raw){
               if (!raw) return "";
-              if (/^https?:\/\//i.test(raw)) return raw;
-              if (raw.startsWith("/uploads/")) return raw;
+              if (/^https?:\/\//i.test(raw)) return raw;               // 이미 절대 URL이면 그대로
+              if (raw.startsWith("/uploads/")) return raw;              // /uploads/... 면 그대로
+              // 맨 파일명만 온 경우 자동 보정
               if (/^\d{10,}_.+\.(jpe?g|png|gif|webp)$/i.test(raw)) return "/uploads/posts/" + raw;
               return raw;
             }
           
-            // 같은 경로에 대해 api/www/루트 도메인 전부 시도
-            function hostVariants(u){
-              const out = [];
+            function _absUrlOnAPI(pathOrUrl){
+              const base = (typeof API !== "undefined" && API) ? API : (window.API_BASE || "https://api.ucdksea.com");
+              // 이미 절대 URL이어도 호스트를 API로 강제 스왑
               try {
-                const src = new URL(u);
-                // 원본
-                out.push(src.toString());
-                // api/www/apex 강제 스왑
-                for (const h of HOSTS){
-                  if (src.host === h) continue;
-                  const v = new URL(src.toString());
-                  v.host = h;
-                  out.push(v.toString());
-                }
-              } catch { out.push(u); }
-              return out;
+                const u = pathOrUrl.startsWith("http") ? new URL(pathOrUrl) : new URL(pathOrUrl, base);
+                const api = new URL(base);
+                u.protocol = api.protocol;
+                u.host     = api.host;
+                return u;
+              } catch {
+                return new URL(String(pathOrUrl || "/"), base);
+              }
             }
           
-            // 후보 URL 생성기
+            // 후보 URL 생성기: 오직 API 호스트에서만 /uploads, /file2 변형을 시도
             function buildImageCandidates(raw){
-              // 0) 우선 맨파일명 → /uploads/posts 보정
-              const rawFixed = ensureUploadsPath(raw);
+              const fixed = ensureUploadsPath(raw);
+              const u0    = _absUrlOnAPI(fixed);
+              const p     = u0.pathname || "";
+              const c     = [];
           
-              const u0  = _absUrl(rawFixed);       // e.g. https://api.../uploads/posts/xxx.jpg
-              const p   = u0.pathname || "";
-              const c   = [];
+              // 1) 원본 on API
+              c.push(u0.toString());
           
-              // 1) 원본 + 호스트 스왑( api/www/apex )
-              c.push(...hostVariants(u0.toString()));
-          
-              // 2) /file2, /file 프록시 변형 (각 호스트마다)
-              const variants = _dedupe(c.slice());
-              for (const href of variants){
-                try {
-                  const u = new URL(href);
-                  const path = u.pathname;
-                  if (path.startsWith("/file2/")) {
-                    // 그대로
-                    c.push(u.toString());
-                  } else if (path.startsWith("/file/")) {
-                    const v = new URL(u.toString());
-                    v.pathname = path.replace("/file/","/file2/");
-                    c.push(v.toString());
-                  } else if (path.startsWith("/uploads/")) {
-                    const v2 = new URL(u.toString());
-                    v2.pathname = "/file2" + path;
-                    c.push(v2.toString());
-                    const v1 = new URL(u.toString());
-                    v1.pathname = "/file" + path;
-                    c.push(v1.toString());
-                  } else {
-                    // 맨파일명 같은 비업로드 경로인 경우, /uploads/posts를 강제로 만들어 시도
-                    const fname = path.replace(/^\/+/,"");
-                    if (/^\d{10,}_.+\.(jpe?g|png|gif|webp)$/i.test(fname)) {
-                      const v2 = new URL(u.toString());
-                      v2.pathname = "/file2/uploads/posts/" + fname;
-                      c.push(v2.toString());
-                      const v1 = new URL(u.toString());
-                      v1.pathname = "/file/uploads/posts/" + fname;
-                      c.push(v1.toString());
-                      const v0 = new URL(u.toString());
-                      v0.pathname = "/uploads/posts/" + fname;
-                      c.push(v0.toString());
-                    }
-                  }
-                } catch {/* ignore */}
+              // 2) /file2, /file 변형
+              if (p.startsWith("/file2/")) {
+                c.push(u0.toString());
+              } else if (p.startsWith("/file/")) {
+                const v2 = new URL(u0.toString()); v2.pathname = p.replace("/file/","/file2/"); c.push(v2.toString());
+                c.push(u0.toString());
+              } else if (p.startsWith("/uploads/")) {
+                const v2 = new URL(u0.toString()); v2.pathname = "/file2" + p; c.push(v2.toString());
+                const v1 = new URL(u0.toString()); v1.pathname = "/file"  + p; c.push(v1.toString());
+              } else {
+                // 맨 파일명 등 비업로드 경로 => /uploads/posts 로 보정하여 3종 시도
+                const fname = p.replace(/^\/+/,"");
+                if (/^\d{10,}_.+\.(jpe?g|png|gif|webp)$/i.test(fname)) {
+                  const v2 = new URL(u0.toString()); v2.pathname = "/file2/uploads/posts/" + fname; c.push(v2.toString());
+                  const v1 = new URL(u0.toString()); v1.pathname = "/file/uploads/posts/"  + fname; c.push(v1.toString());
+                  const v0 = new URL(u0.toString()); v0.pathname = "/uploads/posts/"       + fname; c.push(v0.toString());
+                }
               }
-          
               return _dedupe(c).map(s => encodeURI(s));
             }
           
-            // 쿠키 필요 없는 공개 이미지: 모든 후보를 순회해서 성공하는 첫 blob으로 표시
+            // 공개 이미지 로더: API 호스트들만 돌면서 첫 성공 blob로 보여줌 (CORS OK)
             async function loadImageSmart(imgEl, raw){
               const cands = buildImageCandidates(raw);
               for (const href of cands){
                 try{
-                  const r = await fetch(href, { credentials: "omit" });
+                  const r = await fetch(href, { credentials: "omit" });  // API는 이미지에 CORS 헤더 있음
                   if (!r.ok) continue;
                   const ct = r.headers.get("content-type") || "";
                   if (!ct.startsWith("image/")) continue;
@@ -406,6 +369,7 @@
               return cands[0] || "";
             }
           </script>
+          
                 
     <!-- 1) Event Polaroid (Gallery) -->
     <script>
