@@ -9,6 +9,7 @@ import { prisma } from "./lib/prisma";
 import type { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
 
+
 function isResendTestMode() {
   const from = String(process.env.RESEND_FROM || "").toLowerCase();
   return !!process.env.RESEND_API_KEY && from.includes("onboarding@resend.dev");
@@ -30,6 +31,7 @@ app.use((_, res, next) => { res.setHeader("Vary","Origin"); next(); });
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
 app.set("trust proxy", 1); 
 
 
@@ -37,6 +39,9 @@ app.set("trust proxy", 1);
 app.get("/__health", (_req, res) => res.status(200).send("ok"));
 app.get("/healthz",  (_req, res) => res.status(200).send("ok"));
 app.get("/api/ping", (_req, res) => res.json({ ok: true }));
+app.get("/log", (_req, res) => {
+  res.sendFile(path.join(CANON_ROOT, "activity-feed.html"));
+});
 
 // ── 이미지 경로 정의
 const IMAGE_ROUTES = [/^\/uploads(\/|$)/, /^\/file(\/|$)/, /^\/file2(\/|$)/];
@@ -122,6 +127,12 @@ console.log("[PUBLIC_ROOTS]", PUBLIC_ROOTS);
 console.log("[CANON_ROOT]", CANON_ROOT, "(uploads will be written here)");
 const UPLOAD_DIR = path.join(CANON_ROOT, "uploads", "posts");
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+
+app.use(express.static(CANON_ROOT, {
+  extensions: ['html'],
+  index: ['index.html'],
+  maxAge: '1h'
+}));
 
 // ── /uploads 정적 서빙: 여러 루트를 차례로 시도 (fallthrough) ────────────
 for (const root of PUBLIC_ROOTS) {
