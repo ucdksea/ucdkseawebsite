@@ -216,35 +216,20 @@
       fetch(`${API_BASE}/api/ping`, { credentials: "include" });
           </script>
           <script>
-            // 절대 URL + 안전 인코딩
+            // 절대 URL + 안전 인코딩 (리라이트 금지)
             function absUrl(u){
               if(!u) return "";
               try{
                 const base = (typeof API !== "undefined" && API) ? API : location.origin;
-                const url  = u.startsWith("http") ? u : new URL(u, base).toString();
-                return encodeURI(url);
+                const url  = u.startsWith("http") ? new URL(u) : new URL(u, base);
+                return encodeURI(url.toString());
               }catch{
                 return encodeURI(u);
               }
             }
-            
-            // ... wrap.innerHTML = html; 바로 아래에 붙이기
-            wrap.querySelectorAll('.polaroid img').forEach(img => {
-              const cands = [
-                img.getAttribute('data-thumb-original'),
-                img.getAttribute('data-large'),
-                img.getAttribute('data-poster')
-              ].filter(Boolean);
-            
-              let i = 0;
-              function loadNext(){
-                if (i >= cands.length) { img.removeAttribute('src'); img.alt = '(image missing)'; return; }
-                img.src = absUrl(cands[i++]);
-              }
-              img.onerror = loadNext;
-              loadNext();
-            });
-            </script>
+          </script>
+          
+          
             
           
     
@@ -340,38 +325,31 @@
     const img = document.getElementById("upcomingImg");
     const descEl = document.querySelector(".upcomingDesc");
     if (!section || !box || !a || !img || !descEl) return;
-
+  
     try {
       const r = await fetch(`${API}/api/admin/posts?type=EVENT_UPCOMING&active=1`, { credentials: "omit" });
       if (!r.ok) throw new Error(r.status);
       const { posts = [] } = await r.json();
-
-      if (!posts.length) {
-        section.style.display = "none";
-        return;
-      }
-
-      const p = posts[0];                          // ← 여기서 p를 확보
-      section.style.display = "";                  // 섹션 표시
-
-      // 링크: formUrl → instagramUrl → linkUrl → '#'
+  
+      if (!posts.length) { section.style.display = "none"; return; }
+  
+      const p = posts[0];
+      section.style.display = "";
+  
       const href = p.meta?.formUrl || p.meta?.instagramUrl || p.linkUrl || "#";
       a.href = href;
       if (href === "#") a.addEventListener("click", (e) => e.preventDefault());
-
-      // 이미지: poster(우선) → imageUrl, 그리고 /file2 강제
+  
       const original = p.meta?.posterUrl || p.imageUrl || "";
-      setImgWithFallback(img, original);
-
-      // 설명: ko 우선 → en
+      img.src = absUrl(original); // ✅ 리라이트 없이 절대경로+인코딩만
       descEl.innerHTML = p.descKo || p.descEn || "";
-
     } catch (e) {
       console.warn("EVENT_UPCOMING fetch failed:", e);
       section.style.display = "none";
     }
   })();
-</script>
+  </script>
+  
 <script>
   // file2 경로 추정
   function toFile2(url) {
