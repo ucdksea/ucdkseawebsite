@@ -216,30 +216,36 @@
       fetch(`${API_BASE}/api/ping`, { credentials: "include" });
           </script>
           <script>
-            function ensureFile2(url){
-              if (!url) return "";
-              try {
-                // ✅ 공백/괄호 등 인코딩
-                url = encodeURI(url);
-          
+            // 절대 URL + 안전 인코딩
+            function absUrl(u){
+              if(!u) return "";
+              try{
                 const base = (typeof API !== "undefined" && API) ? API : location.origin;
-                const u = url.startsWith("http") ? new URL(url) : new URL(url, base);
-                let p = u.pathname;
-          
-                if (p.includes("/file2/")) return u.toString();
-                if (p.includes("/file/")) { u.pathname = p.replace("/file/", "/file2/"); return u.toString(); }
-                if (p.startsWith("/uploads/")) { u.pathname = "/file2" + p; return u.toString(); }
-                if (p.includes("/uploads/")) { u.pathname = p.replace("/uploads/", "/file2/uploads/"); return u.toString(); }
-                return u.toString();
-              } catch {
-                // ✅ Fallback도 인코딩
-                const enc = (s)=> s ? encodeURI(s) : s;
-                if (url.includes("/file/")) return enc(url.replace("/file/", "/file2/"));
-                if (url.includes("/uploads/")) return enc(url.replace("/uploads/", "/file2/uploads/"));
-                return enc(url);
+                const url  = u.startsWith("http") ? u : new URL(u, base).toString();
+                return encodeURI(url);
+              }catch{
+                return encodeURI(u);
               }
             }
-          </script>
+            
+            // ... wrap.innerHTML = html; 바로 아래에 붙이기
+            wrap.querySelectorAll('.polaroid img').forEach(img => {
+              const cands = [
+                img.getAttribute('data-thumb-original'),
+                img.getAttribute('data-large'),
+                img.getAttribute('data-poster')
+              ].filter(Boolean);
+            
+              let i = 0;
+              function loadNext(){
+                if (i >= cands.length) { img.removeAttribute('src'); img.alt = '(image missing)'; return; }
+                img.src = absUrl(cands[i++]);
+              }
+              img.onerror = loadNext;
+              loadNext();
+            });
+            </script>
+            
           
     
 
