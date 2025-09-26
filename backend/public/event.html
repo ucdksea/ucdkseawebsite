@@ -90,6 +90,21 @@
 
     <!-- (필수) 팝업 동작 함수들 포함된 파일 -->
     <script src="./js/event.js"></script>
+
+    <script>
+      (function () {
+        // 배포 API
+        const PROD = "https://api.ucdksea.com";
+    
+        // 이미 선언돼 있으면 덮어쓰지 않음 (다른 스크립트와 충돌 방지)
+        if (!("API_BASE" in window)) window.API_BASE = PROD;
+        if (!("API" in window))      window.API = window.API_BASE;
+    
+        // 진단용 핑 (실패해도 무시)
+        fetch(`${window.API_BASE}/api/ping`, { credentials: "include" }).catch(()=>{});
+      })();
+    </script>
+    
     <script>
       // expandImage가 팝업을 띄운 다음, 본문(#popupText) 끝에 포스터 <a><img>를 삽입
       (function () {
@@ -277,7 +292,7 @@
           </script>
           <script>
             // ===== URL helpers (교체본) =====
-            const API_BASE = "https://api.ucdksea.com";
+            //const API_BASE = "https://api.ucdksea.com";
             const HOSTS = ["api.ucdksea.com", "www.ucdksea.com", "ucdksea.com"];
           
             function _absUrl(raw){
