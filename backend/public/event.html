@@ -257,14 +257,13 @@
             const bottomCaption = [captionRaw, title].filter(Boolean).join(" ");
       
             // 목록 썸네일 = 포스터 우선 → 일반
-            const posterUrl     = m.posterUrl || "";         // ★ 포스터는 여기
-            const imageUrl      = p.imageUrl || "";          // ★ 일반 사진은 여기
-
+            const posterUrl   = (p.posterUrl || m.posterUrl || "").trim();
+            const imageUrl    = (p.imageUrl || "").trim();
+            const primaryLink = (p.instagramUrl || p.formUrl || p.linkUrl || m.instagramUrl || m.formUrl || "").trim();
             const thumbOriginal = m.posterUrl || p.imageUrl || "";
             // 팝업 큰 사진 = 일반 우선 → 포스터
             const largeOriginal = p.imageUrl  || m.posterUrl || "";
             // 외부 링크
-            const primaryLink   = m.formUrl || m.instagramUrl || p.linkUrl || "";
       
             // 설명(팝업용) + 포스터 토큰
             const line1 = `${esc(title)}$<span style='color:gray;'>${esc(captionRaw)}${dateStr ? " | " + dateStr : ""}</span>$<span style='color:#ececec;'>_____________________</span>$`;
@@ -284,7 +283,7 @@
                   />
                   <p>${esc(bottomCaption)}</p>
                   ${primaryLink ? `<div style="margin-top:6px;">
-                    <a href="${esc(primaryLink)}" target="_blank" rel="noopener" class="text-sm underline">More</a>
+                    <a href="${esc(primaryLink)}" target="_blank" rel="noopener" class="text-sm underline"></a>
                   </div>` : ""}
                 </div>
               </div>
