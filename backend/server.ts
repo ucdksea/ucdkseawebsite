@@ -39,7 +39,50 @@ app.get("/api/ping", (_req, res) => res.json({ ok: true }));
 
 // Static
 const PUBLIC_ROOT = path.resolve(__dirname, "../public");
-app.use("/uploads", express.static(path.join(PUBLIC_ROOT, "uploads"), { maxAge: "1y", etag: true }));
+app.use("/uploads", express.static(path.join(PUBLIC_ROOT, "uploads"), {
+    maxAge: "1y", etag: true,
+    setHeaders(res) {
+    // 크로스 오리진 이미지 허용
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    // (선택) 캐시 힌트
+    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+  },}));
+// 공개 이미지 프록시: /file2/**  →  /uploads/**
+app.get(/^\/file2\/(.*)$/, (req, res) => {
+  try {
+    const rel0 = String(req.params[0] || "");
+    // 경로 정리 + 택시(../) 제거
+    let rel = rel0.replace(/^(\.\.\/|\/)+/g, "");
+
+    // /file/**, /uploads/**, 혹은 하위 경로 모두 흡수
+    if (rel.startsWith("file/")) rel = rel.replace(/^file\//, "uploads/");
+    if (!rel.startsWith("uploads/")) rel = "uploads/" + rel;
+
+    const root = path.join(PUBLIC_ROOT, "uploads");
+    const full = path.resolve(path.join(PUBLIC_ROOT, rel));
+    const rootResolved = path.resolve(root);
+
+    // uploads 디렉토리 밖 접근 차단
+    if (!full.startsWith(rootResolved + path.sep)) {
+      return res.status(403).json({ error: "forbidden" });
+    }
+
+    if (!fs.existsSync(full) || !fs.statSync(full).isFile()) {
+      return res.status(404).json({ error: "not found" });
+    }
+
+    // 크로스 오리진 이미지 허용 + 강력 캐시
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+
+    return res.sendFile(full);
+  } catch (e) {
+    console.error("[/file2] error:", e);
+    return res.status(500).json({ error: "server error" });
+  }
+});
 
 // Upload (10MB)
 const UPLOAD_DIR = path.join(PUBLIC_ROOT, "uploads", "posts");
