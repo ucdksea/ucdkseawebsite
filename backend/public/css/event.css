@@ -22,6 +22,10 @@ body {
 
 .upcomingDesc, .popup-text { white-space: pre-wrap; }
 
+.upcomingDesc {
+  text-align: left;
+}
+
 .event {
     width: 80%;
     margin: auto;
