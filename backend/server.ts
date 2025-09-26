@@ -165,19 +165,32 @@ function trySuffixMatch(root: string, cand: string): string | null {
   const m = cand.match(/^uploads\/posts\/(.+)$/i);
   if (!m) return null;
 
-  const wantBase = path.basename(m[1]).toLowerCase(); // 1758868387752_geoyang.JPG
+  const want = m[1];                           // ex) 1758868387752_geoyang.JPG
+  const base = path.basename(want);
+  const lowerBase = base.toLowerCase();
+  const stripLeadingTs = lowerBase.replace(/^\d{10,}_/, ""); // ex) geoyang.jpg
+
   const dir = path.join(root, "uploads", "posts");
   try {
     if (!fs.existsSync(dir)) return null;
-    const list = fs.readdirSync(dir);
-    const hit = list.find(f => f.toLowerCase().endsWith("_" + wantBase));
+    const list = fs.readdirSync(dir).filter(f => {
+      try { return fs.statSync(path.join(dir, f)).isFile(); } catch { return false; }
+    });
+
+    // 우선순위: 완전일치 → *_원본요청 → 리딩TS제거일치 → *_리딩TS제거
+    const hit =
+      list.find(f => f.toLowerCase() === lowerBase) ||
+      list.find(f => f.toLowerCase().endsWith("_" + lowerBase)) ||
+      list.find(f => f.toLowerCase() === stripLeadingTs) ||
+      list.find(f => f.toLowerCase().endsWith("_" + stripLeadingTs));
+
     if (!hit) return null;
-    const full = path.join(dir, hit);
-    return fs.statSync(full).isFile() ? full : null;
+    return path.join(dir, hit);
   } catch {
     return null;
   }
 }
+
 
 
 // ── 디버그: 어떤 실제 경로를 확인하는지 보여줌 ──────────────────────
