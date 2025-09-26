@@ -36,22 +36,44 @@ app.set("trust proxy", 1);
 app.get("/__health", (_req, res) => res.status(200).send("ok"));
 app.get("/api/ping", (_req, res) => res.json({ ok: true }));
 
-// ── 이미지 라우트 전역 CORS (404/오류에도 항상 붙임) ─────────────────
-const IMAGE_ROUTES = [
-  /^\/uploads(\/|$)/,
-  /^\/file(\/|$)/,
-  /^\/file2(\/|$)/,
-];
+// ── 이미지 경로 정의
+const IMAGE_ROUTES = [/^\/uploads(\/|$)/, /^\/file(\/|$)/, /^\/file2(\/|$)/];
 
-// ── 이미지 라우트 최종 404 핸들러 (CORS 포함) ─────────────────────────
-app.use((req, res, next) => {
-  const hit = IMAGE_ROUTES.some(rx => rx.test(req.path));
-  if (!hit) return next();
-  // 여기까지 왔다는 건 위의 static/프록시에서 못 찾았다는 뜻
-  res.setHeader("Access-Control-Allow-Origin", "*");
+// ── 허용 오리진
+const ALLOW_ORIGINS = new Set([
+  "https://www.ucdksea.com",
+  "https://ucdksea.com",
+]);
+
+function setImageCORS(req: Request, res: Response) {
+  const origin = String(req.headers.origin || "");
+  if (origin && ALLOW_ORIGINS.has(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+  } else {
+    // 크리덴셜이 없을 땐 * 허용 가능 (fetch가 credentials: 'include'면 위 분기가 적용됨)
+    res.setHeader("Access-Control-Allow-Origin", "*");
+  }
+  res.setHeader("Vary", "Origin");
   res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-  return res.status(404).json({ error: "not found" });
+}
+
+// ── 이미지 라우트 전역 CORS + OPTIONS 처리 (static/프록시 **앞**)
+app.use((req, res, next) => {
+  if (IMAGE_ROUTES.some(rx => rx.test(req.path))) {
+    setImageCORS(req, res);
+    if (req.method === "OPTIONS") {
+      res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS");
+      res.setHeader(
+        "Access-Control-Allow-Headers",
+        req.header("Access-Control-Request-Headers") || "*"
+      );
+      return res.sendStatus(204);
+    }
+  }
+  next();
 });
+
 
 
 
@@ -102,13 +124,13 @@ for (const root of PUBLIC_ROOTS) {
       maxAge: "1y",
       etag: true,
       setHeaders(res) {
-        res.setHeader("Access-Control-Allow-Origin", "*");
-        res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+        // 여기서는 **캐시만** 세팅. CORS는 위에서 이미 설정됨.
         res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
       },
     })
   );
 }
+
 
 // ── 공개 프록시: /file/**, /file2/** → 여러 루트 + 레거시 경로 탐색 ─────────
 function findCandidatePaths(rel: string) {
@@ -160,36 +182,42 @@ app.get("/__probe", (req, res) => {
 });
 
 
-function sendFromAnyRoot(rel: string, res: Response) {
+function sendFromAnyRoot(rel: string, req: Request, res: Response) {
   const candidates = findCandidatePaths(rel);
-
   for (const root of PUBLIC_ROOTS) {
     for (const cand of candidates) {
       const rootUploads = path.join(root, "uploads");
-      const full = path.resolve(path.join(root, cand)); // root + cand 조합
-      const allowBase = cand.startsWith("uploads/") ? rootUploads : root; // 경로 탈출 방지 기준
-
+      const full = path.resolve(path.join(root, cand));
+      const allowBase = cand.startsWith("uploads/") ? rootUploads : root;
       if (!full.startsWith(path.resolve(allowBase) + path.sep)) continue;
       if (fs.existsSync(full) && fs.statSync(full).isFile()) {
-        res.setHeader("Access-Control-Allow-Origin", "*");
-        res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+        setImageCORS(req, res);
         res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
         return res.sendFile(full);
       }
     }
   }
+  setImageCORS(req, res);
   return res.status(404).json({ error: "not found" });
 }
 
-// ✅ /file, /file2 둘 다 지원 (과거/현재 URL 전부 커버)
 app.get(/^\/file\/(.*)$/, (req, res) => {
-  try { return sendFromAnyRoot(String(req.params[0] || ""), res); }
+  try { return sendFromAnyRoot(String(req.params[0] || ""), req, res); }
   catch (e) { console.error("[/file] error:", e); return res.status(500).json({ error: "server error" }); }
 });
-
 app.get(/^\/file2\/(.*)$/, (req, res) => {
-  try { return sendFromAnyRoot(String(req.params[0] || ""), res); }
+  try { return sendFromAnyRoot(String(req.params[0] || ""), req, res); }
   catch (e) { console.error("[/file2] error:", e); return res.status(500).json({ error: "server error" }); }
+});
+
+// HEAD도 동일 처리 (일부 환경에서 먼저 칩니다)
+app.head(/^\/file\/(.*)$/, (req, res) => {
+  try { return sendFromAnyRoot(String(req.params[0] || ""), req, res); }
+  catch (e) { console.error("[HEAD /file] error:", e); return res.status(500).json({ error: "server error" }); }
+});
+app.head(/^\/file2\/(.*)$/, (req, res) => {
+  try { return sendFromAnyRoot(String(req.params[0] || ""), req, res); }
+  catch (e) { console.error("[HEAD /file2] error:", e); return res.status(500).json({ error: "server error" }); }
 });
 
 // ── 최근 업로드: 첫 번째로 파일이 존재하는 루트에서 반환 ────────────────
@@ -831,6 +859,13 @@ app.post("/api/auth/login", async (req, res) => {
     console.error("[POST /api/auth/login] ERR", e);
     return res.status(500).json({ error: "Server error" });
   }
+});
+
+// ── 이미지 라우트 최종 404 (맨 아래쪽에 둔다)
+app.use((req, res, next) => {
+  if (!IMAGE_ROUTES.some(rx => rx.test(req.path))) return next();
+  setImageCORS(req, res);
+  return res.status(404).json({ error: "not found" });
 });
 
 // Listen
