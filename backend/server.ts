@@ -109,15 +109,17 @@ function pickRoots() {
   return unique;
 }
 
-+function ensureDir(p: string) {
-  try { fs.mkdirSync(p, { recursive: true }); } catch {}
-}
+// function ensureDir(p: string) {
+//   try { fs.mkdirSync(p, { recursive: true }); } catch {}
+// }
 
 
 const PUBLIC_ROOTS = pickRoots();
 const CANON_ROOT = PUBLIC_ROOTS[0];           // ← 새 업로드는 여기로 저장(통일 지점)
 console.log("[PUBLIC_ROOTS]", PUBLIC_ROOTS);
 console.log("[CANON_ROOT]", CANON_ROOT, "(uploads will be written here)");
+const UPLOAD_DIR = path.join(CANON_ROOT, "uploads", "posts");
+fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 // ── /uploads 정적 서빙: 여러 루트를 차례로 시도 (fallthrough) ────────────
 for (const root of PUBLIC_ROOTS) {
