@@ -90,6 +90,23 @@
 
     <!-- (필수) 팝업 동작 함수들 포함된 파일 -->
     <script src="./js/event.js"></script>
+    <script>
+      (function () {
+        // event.js의 expandImage를 감싸서 data-large를 /file2/로 보정
+        const prev = window.expandImage;
+        window.expandImage = function (el) {
+          try {
+            const imgEl = el.querySelector('img');
+            const large0 = imgEl?.getAttribute('data-large') || '';
+            if (large0) {
+              const large2 = (typeof toFile2 === 'function') ? toFile2(large0) : large0;
+              imgEl.setAttribute('data-large', large2);
+            }
+          } catch (e) { /* no-op */ }
+          return prev ? prev(el) : null;
+        };
+      })();
+    </script>
 
     <!-- Footer -->
     <section class="footer">
@@ -303,7 +320,7 @@
       
           // 목록 썸네일: file2 우선, 실패시 원본 폴백
           wrap.querySelectorAll('.polaroid img').forEach(img => {
-            const original = img.getAttribute('data-thumb-original') || "";
+            const original =img.getAttribute('data-thumb-original') ||img.getAttribute('data-large') || img.getAttribute('data-poster') || "";    
             if (!original) return;
             const srcFile2 = (typeof ensureFile2==="function") ? ensureFile2(original) : original;
             img.setAttribute("data-original", original);
