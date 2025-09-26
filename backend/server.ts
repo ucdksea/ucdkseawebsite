@@ -38,16 +38,70 @@ app.get("/api/ping", (_req, res) => res.json({ ok: true }));
 
 
 // Static
-const PUBLIC_ROOT = path.resolve(__dirname, "../public");
-app.use("/uploads", express.static(path.join(PUBLIC_ROOT, "uploads"), {
-    maxAge: "1y", etag: true,
+// 1) 실행 방식(ts-node / dist) 모두에서 backend/public을 찾아내도록 보강
+function pickPublicRoot() {
+  const cands = [
+    path.resolve(__dirname, "../public"), // dist 실행 시
+    path.resolve(__dirname, "./public"),  // ts-node로 server.ts 실행 시
+    path.resolve(process.cwd(), "backend/public"), // 혹시 cwd 기준
+    path.resolve(process.cwd(), "public"),         // 최후 보정
+  ];
+  for (const p of cands) {
+    try {
+      if (fs.existsSync(p)) return p;
+    } catch {}
+  }
+  return cands[0];
+}
+
+const PUBLIC_ROOT = pickPublicRoot();
+console.log("[PUBLIC_ROOT]", PUBLIC_ROOT);
+
+// 2) 정적 서빙 + 헤더
+app.use(
+  "/uploads",
+  express.static(path.join(PUBLIC_ROOT, "uploads"), {
+    maxAge: "1y",
+    etag: true,
     setHeaders(res) {
-    // 크로스 오리진 이미지 허용
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    },
+  })
+);
+
+// 3) 공개 프록시: /file2/**  →  /uploads/**
+app.get(/^\/file2\/(.*)$/, (req, res) => {
+  try {
+    const rel0 = String(req.params[0] || "");
+    let rel = rel0.replace(/^(\.\.\/|\/)+/g, "");
+
+    if (rel.startsWith("file/")) rel = rel.replace(/^file\//, "uploads/");
+    if (!rel.startsWith("uploads/")) rel = "uploads/" + rel;
+
+    const root = path.join(PUBLIC_ROOT, "uploads");
+    const full = path.resolve(path.join(PUBLIC_ROOT, rel));
+    const rootResolved = path.resolve(root);
+
+    if (!full.startsWith(rootResolved + path.sep)) {
+      return res.status(403).json({ error: "forbidden" });
+    }
+    if (!fs.existsSync(full) || !fs.statSync(full).isFile()) {
+      console.warn("[/file2] not found:", { rel0, rel, full });
+      return res.status(404).json({ error: "not found" });
+    }
+
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-    // (선택) 캐시 힌트
     res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-  },}));
+    return res.sendFile(full);
+  } catch (e) {
+    console.error("[/file2] error:", e);
+    return res.status(500).json({ error: "server error" });
+  }
+});
+
 // 공개 이미지 프록시: /file2/**  →  /uploads/**
 app.get(/^\/file2\/(.*)$/, (req, res) => {
   try {
