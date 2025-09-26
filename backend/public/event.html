@@ -348,7 +348,8 @@
       if (href === "#") a.addEventListener("click", (e) => e.preventDefault());
 
       // 이미지: poster(우선) → imageUrl, 그리고 /file2 강제
-      img.src = ensureFile2(p.meta?.posterUrl || p.imageUrl || "");
+      const original = p.meta?.posterUrl || p.imageUrl || "";
+      setImgWithFallback(img, original);
 
       // 설명: ko 우선 → en
       descEl.innerHTML = p.descKo || p.descEn || "";
