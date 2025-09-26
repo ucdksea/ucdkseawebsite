@@ -286,7 +286,7 @@
         if (!url) throw new Error("No URL returned from upload API");
         window.mainImageUrl = url;
         $("uploadStatus").textContent = "Uploaded ✓";
-        $("preview").src = mainImageUrl; $("preview").classList.remove("hidden");
+        $("preview").src = window.mainImageUrl;; $("preview").classList.remove("hidden");
       } catch (e) {
         $("uploadStatus").textContent = (e && e.message) ? e.message : "Upload error";
       }
@@ -551,7 +551,7 @@
           descKo: document.getElementById("descKo").value.trim() || undefined,
           descEn: document.getElementById("descEn").value.trim() || undefined,
         };
-        payload = { ...base, imageUrl: window.mainImageUrl || undefined };
+        payload = { ...base, imageUrl: (window.mainImageUrl || "").trim() || undefined };
 
         // 타입별 검증
         if (type === "POPUP") {
@@ -621,7 +621,7 @@
   window.mainImageUrl = window.mainImageUrl || "";
 
   function setMainImage(url) {
-    mainImageUrl = url;
+    window.mainImageUrl = url;
     const pv = document.getElementById("preview");
     pv.src = url;
     pv.classList.remove("hidden");
