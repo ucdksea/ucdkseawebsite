@@ -328,51 +328,8 @@ app.post("/api/upload", upload.single("file"), async (req: ReqWithFile, res: Res
 });
 
 // ✅ Express: POST /api/admin/posts
-app.post("/api/admin/posts", async (req, res) => {
-  try {
-    const ALLOWED = ["POPUP","EVENT_UPCOMING","EVENT_POLAROID","GM","OFFICER"] as const;
-    type PostType = typeof ALLOWED[number];
-    const body = req.body || {};
-
-    // 🔹 1) REORDER 먼저 처리
-    if (body.action === "REORDER") {
-      const type: PostType | undefined = ALLOWED.includes(body.type) ? body.type : undefined;
-      const idsRaw = Array.isArray(body.order) ? body.order : [];
-      const order = Array.from(new Set(idsRaw.filter((x: any) => typeof x === "string" && x.trim())));
-
-      if (!type) return res.status(400).json({ error: `type must be one of ${ALLOWED.join("|")}` });
-      if (order.length <= 1) return res.json({ ok: true, skipped: true, count: order.length });
-
-      // 해당 타입에 속한 id만 유효 처리
-      const valid = await prisma.post.findMany({
-        where: { id: { in: order }, type },
-        select: { id: true },
-      });
-      const validSet = new Set(valid.map(v => v.id));
-      const ids = order.filter(id => validSet.has(id));
-      if (ids.length === 0) return res.status(400).json({ error: "no valid ids for this type" });
-
-      await prisma.$transaction(
-        ids.map((id, idx) =>
-          prisma.post.update({ where: { id }, data: { sortOrder: idx } })
-        )
-      );
-
-      return res.json({ ok: true, type, count: ids.length });
-    }
-
-    // 🔹 2) (기존) 새 글 생성 로직
-    const type: PostType | undefined = ALLOWED.includes(body.type) ? body.type : undefined;
-    if (!type) return res.status(400).json({ error: `type must be one of ${ALLOWED.join("|")}` });
-
-    if (!body.imageUrl) return res.status(400).json({ error: "imageUrl required" });
-    if ((type === "POPUP" || type === "EVENT_UPCOMING") && !body.linkUrl) {
-      return res.status(400).json({ error: "linkUrl required for POPUP/EVENT_UPCOMING" });
-    }
-    if (type === "EVENT_POLAROID" && !body.title) {
-      return res.status(400).json({ error: "title required for EVENT_POLAROID" });
-    }
-
+// --- LIST posts (RESTORE this as its own route) ---
+app.get("/api/admin/posts", async (req, res) => {
   try {
     const ALLOWED = ["POPUP","EVENT_UPCOMING","EVENT_POLAROID","GM","OFFICER"] as const;
     const type = typeof req.query.type === "string" ? req.query.type : undefined;
@@ -393,25 +350,125 @@ app.post("/api/admin/posts", async (req, res) => {
       },
     });
 
-    // OFFICER는 프론트가 기대하는 형태로 매핑
     const posts = rows.map(p =>
       p.type === "OFFICER"
-        ? {
-            ...p,
-            enName:   p.title   ?? null,
-            koName:   p.descKo  ?? null,
-            role:     p.descEn  ?? null,
-            linkedin: p.linkUrl ?? null,
-          }
+        ? { ...p, enName: p.title ?? null, koName: p.descKo ?? null, role: p.descEn ?? null, linkedin: p.linkUrl ?? null }
         : p
     );
 
     res.json({ posts });
-  } catch (e: any) {
+  } catch (e:any) {
     console.error("[GET /api/admin/posts] ERR", e);
     res.status(500).json({ error: e?.message || "Server error" });
   }
 });
+
+// --- CREATE/REORDER posts (KEEP exactly one POST route) ---
+app.post("/api/admin/posts", async (req, res) => {
+  try {
+    const ALLOWED = ["POPUP","EVENT_UPCOMING","EVENT_POLAROID","GM","OFFICER"] as const;
+    type PostType = typeof ALLOWED[number];
+    const body = req.body || {};
+
+    // 1) REORDER first
+    if (body.action === "REORDER") {
+      const type: PostType | undefined = ALLOWED.includes(body.type) ? body.type : undefined;
+      const idsRaw = Array.isArray(body.order) ? body.order : [];
+      const order = Array.from(new Set(idsRaw.filter((x: any) => typeof x === "string" && x.trim())));
+
+      if (!type) return res.status(400).json({ error: `type must be one of ${ALLOWED.join("|")}` });
+      if (order.length <= 1) return res.json({ ok: true, skipped: true, count: order.length });
+
+      const valid = await prisma.post.findMany({ where: { id: { in: order }, type }, select: { id: true } });
+      const validSet = new Set(valid.map(v => v.id));
+      const ids = order.filter((id: string) => validSet.has(id));
+      if (!ids.length) return res.status(400).json({ error: "no valid ids for this type" });
+
+      await prisma.$transaction(ids.map((id, idx) =>
+        prisma.post.update({ where: { id }, data: { sortOrder: idx } })
+      ));
+      return res.json({ ok: true, type, count: ids.length });
+    }
+
+    // 2) CREATE
+    const type: PostType | undefined = ALLOWED.includes(body.type) ? body.type : undefined;
+    if (!type) return res.status(400).json({ error: `type must be one of ${ALLOWED.join("|")}` });
+    if (!body.imageUrl) return res.status(400).json({ error: "imageUrl required" });
+    if ((type === "POPUP" || type === "EVENT_UPCOMING") && !body.linkUrl) {
+      return res.status(400).json({ error: "linkUrl required for POPUP/EVENT_UPCOMING" });
+    }
+    if (type === "EVENT_POLAROID" && !body.title) {
+      return res.status(400).json({ error: "title required for EVENT_POLAROID" });
+    }
+
+    const seasonAliases: Record<string,string> = { fall:"Fall", f:"Fall", autumn:"Fall", "1":"Fall", q1:"Fall",
+      winter:"Winter", w:"Winter", "2":"Winter", q2:"Winter",
+      spring:"Spring", s:"Spring", "3":"Spring", q3:"Spring" };
+
+    const normYear = typeof body.year === "number" ? String(body.year)
+                   : typeof body.year === "string" ? body.year.trim() : "";
+    const qRaw = body.quarter ?? "";
+    const qStr = typeof qRaw === "number" ? String(qRaw)
+               : typeof qRaw === "string" ? qRaw.trim().replace(/^q/i,"") : "";
+    const qAlias = seasonAliases[qStr.toLowerCase().replace(/\s+/g,"")] ?? "";
+
+    if (type === "GM" || type === "EVENT_POLAROID") {
+      if (!normYear)  return res.status(400).json({ error: `Year required for ${type}` });
+      if (!qStr)      return res.status(400).json({ error: `Quarter required for ${type}` });
+      if (!qAlias)    return res.status(400).json({ error: "Quarter must be one of Fall / Winter / Spring" });
+    }
+
+    const meta: any = {};
+    const posterUrl = body.posterUrl ?? body?.meta?.posterUrl ?? body.imageUrl;
+    if (posterUrl) meta.posterUrl = posterUrl;
+    if (body.formUrl ?? body?.meta?.formUrl) meta.formUrl = body.formUrl ?? body?.meta?.formUrl;
+    if (body.instagramUrl ?? body?.meta?.instagramUrl) meta.instagramUrl = body.instagramUrl ?? body?.meta?.instagramUrl;
+
+    const data: any = { type, imageUrl: body.imageUrl, active: true, meta: Object.keys(meta).length ? meta : null };
+
+    if (type === "OFFICER") {
+      data.title   = (body.enName   ?? "").trim();
+      data.descKo  = (body.koName   ?? "").trim();
+      data.descEn  = (body.role     ?? "").trim();
+      data.linkUrl = (body.linkedin ?? "").trim() || null;
+      data.date    = null; data.year = null; data.quarter = null;
+      if (!data.title || !data.descKo || !data.descEn) {
+        return res.status(400).json({ error: "enName/koName/role required for OFFICER" });
+      }
+    } else if (type === "GM") {
+      data.title   = null;
+      data.descKo  = body.descKo ?? null;
+      data.descEn  = body.descEn ?? null;
+      data.linkUrl = body.linkUrl ?? null;
+      data.date    = null;
+      data.year    = normYear;
+      data.quarter = qAlias;
+    } else if (type === "EVENT_POLAROID") {
+      data.title   = body.title ?? null;
+      data.descKo  = body.descKo ?? null;
+      data.descEn  = body.descEn ?? null;
+      data.linkUrl = body.linkUrl ?? null;
+      data.date    = body.date ? new Date(body.date) : null;
+      data.year    = normYear;
+      data.quarter = qAlias;
+    } else {
+      data.title   = body.title ?? null;
+      data.descKo  = body.descKo ?? null;
+      data.descEn  = body.descEn ?? null;
+      data.linkUrl = body.linkUrl ?? null;
+      data.date    = body.date ? new Date(body.date) : null;
+      data.year    = null;
+      data.quarter = null;
+    }
+
+    const post = await prisma.post.create({ data });
+    return res.json({ ok: true, post });
+  } catch (e:any) {
+    console.error("[POST /api/admin/posts] ERR", e);
+    return res.status(500).json({ error: e?.message || "Server error" });
+  }
+});
+
 const getPrisma = async () => {
   const m = await import("@prisma/client");
   return new m.PrismaClient() as PrismaClient;
@@ -956,7 +1013,6 @@ app.use((req, res, next) => {
   if (!IMAGE_ROUTES.some(rx => rx.test(req.path))) return next();
   setImageCORS(req, res);
   res.setHeader("Cache-Control", "no-store, max-age=0");
-  return res.status(404).json({ error: "not found" });
 });
 
 // Listen
