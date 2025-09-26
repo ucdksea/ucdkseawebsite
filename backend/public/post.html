@@ -284,7 +284,7 @@
         if (!r.ok) throw new Error(`Upload failed (${r.status})`);
         const { url } = await r.json();
         if (!url) throw new Error("No URL returned from upload API");
-        mainImageUrl = url;
+        window.mainImageUrl = url;
         $("uploadStatus").textContent = "Uploaded ✓";
         $("preview").src = mainImageUrl; $("preview").classList.remove("hidden");
       } catch (e) {
@@ -527,7 +527,7 @@
         const pv = document.getElementById("preview");
         const previewSrc = (pv && pv.src) ? pv.src : "";
         const imageUrl =
-          mainImageUrl ||
+        window.mainImageUrl ||
           (previewSrc.startsWith("http://") || previewSrc.startsWith("https://") ? previewSrc : "");
         if (!imageUrl) throw new Error("Upload photo.");
 
@@ -551,7 +551,7 @@
           descKo: document.getElementById("descKo").value.trim() || undefined,
           descEn: document.getElementById("descEn").value.trim() || undefined,
         };
-        payload = { ...base, imageUrl: mainImageUrl || undefined };
+        payload = { ...base, imageUrl: window.mainImageUrl || undefined };
 
         // 타입별 검증
         if (type === "POPUP") {
@@ -618,7 +618,7 @@
 
 <script>
   // --- ONE SOURCE OF TRUTH ---
-  let mainImageUrl = "";
+  window.mainImageUrl = window.mainImageUrl || "";
 
   function setMainImage(url) {
     mainImageUrl = url;
