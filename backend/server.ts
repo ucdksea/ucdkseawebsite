@@ -155,16 +155,6 @@ function findCandidatePaths(rel: string) {
   return Array.from(new Set(paths));
 }
 
-// /file, /file2 : HEAD도 GET과 동일 처리
-app.head(/^\/file\/(.*)$/, (req, res) => {
-  try { return sendFromAnyRoot(String(req.params[0] || ""), res); }
-  catch (e) { console.error("[HEAD /file] error:", e); return res.status(500).json({ error: "server error" }); }
-});
-app.head(/^\/file2\/(.*)$/, (req, res) => {
-  try { return sendFromAnyRoot(String(req.params[0] || ""), res); }
-  catch (e) { console.error("[HEAD /file2] error:", e); return res.status(500).json({ error: "server error" }); }
-});
-
 // ── 디버그: 어떤 실제 경로를 확인하는지 보여줌 ──────────────────────
 app.get("/__probe", (req, res) => {
   const rel = String(req.query.rel || "");
