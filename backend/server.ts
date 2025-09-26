@@ -37,21 +37,38 @@ app.get("/__health", (_req, res) => res.status(200).send("ok"));
 app.get("/api/ping", (_req, res) => res.json({ ok: true }));
 
 
-// ── Static roots: 과거/현재 경로 모두 지원 ──────────────────────────────
+\// ── Static roots: 과거/현재/디스크 경로 모두 지원 ─────────────────────
 function pickRoots() {
-  const cand = [
-    process.env.PUBLIC_ROOT_DIR && path.resolve(process.env.PUBLIC_ROOT_DIR), // ✅ 환경변수 최우선(권장)
-    path.resolve(__dirname, "./public"),      // dist 실행 시 backend/public
-    path.resolve(__dirname, "../public"),     // dist 실행 시 repo-root/public
+  const candsRaw = [
+    process.env.PUBLIC_ROOT_DIR && path.resolve(process.env.PUBLIC_ROOT_DIR),   // ✅ 환경변수 최우선
+    // 빌드 산출물/레포 상대 경로
+    path.resolve(__dirname, "./public"),
+    path.resolve(__dirname, "../public"),
     path.resolve(process.cwd(), "backend/public"),
     path.resolve(process.cwd(), "public"),
-  ].filter(Boolean) as string[];
+    // 🔁 Render 등 흔한 퍼시스턴트 디스크 마운트 후보 (존재하면 자동 포함)
+    "/var/data/public",
+    "/var/data",
+    "/data/public",
+    "/data",
+    "/mnt/data/public",
+    "/mnt/data",
+  ];
 
-  // 존재하는 것만
-  const exists = cand.filter(p => { try { return fs.existsSync(p); } catch { return false; } });
+  const cands = candsRaw.filter(Boolean) as string[];
+  const exists = cands.filter(p => { try { return fs.existsSync(p); } catch { return false; } });
+
   if (!exists.length) throw new Error("No PUBLIC_ROOT found");
-  return Array.from(new Set(exists)); // dedupe
+  // 중복 제거 + 정렬(조금이라도 'public'이 들어간 경로를 앞쪽으로)
+  const unique = Array.from(new Set(exists)).sort((a,b) => {
+    const aw = /public/.test(a) ? -1 : 0;
+    const bw = /public/.test(b) ? -1 : 0;
+    return aw - bw;
+  });
+
+  return unique;
 }
+
 
 const PUBLIC_ROOTS = pickRoots();
 const CANON_ROOT = PUBLIC_ROOTS[0];           // ← 새 업로드는 여기로 저장(통일 지점)
@@ -77,28 +94,27 @@ for (const root of PUBLIC_ROOTS) {
 
 // ── 공개 프록시: /file/**, /file2/** → 여러 루트 + 레거시 경로 탐색 ─────────
 function findCandidatePaths(rel: string) {
-  // 안전화
   let clean = rel.replace(/^(\.\.\/|\/)+/g, "");
-
-  // /file/ 로 들어오면 /uploads/로 보정
   if (clean.startsWith("file/")) clean = clean.replace(/^file\//, "uploads/");
   if (!clean.startsWith("uploads/")) clean = "uploads/" + clean;
 
-  // 업로드 표준 경로
   const paths = [clean];
 
-  // 🔁 레거시 호환: uploads/posts/ → posts/ / uploads/ / 루트 직하
-  // 예: uploads/posts/123.jpg
   const m = clean.match(/^uploads\/(posts\/.+)$/);
   if (m) {
     const tail = m[1]; // posts/123.jpg
     paths.push("posts/" + tail.replace(/^posts\//, ""));     // posts/123.jpg
     paths.push("uploads/" + tail.replace(/^posts\//, ""));   // uploads/123.jpg
-    paths.push(tail.replace(/^posts\//, ""));                // 123.jpg
+    paths.push(tail.replace(/^posts\//, ""));                // 123.jpg (루트직하)
   }
+
+  // ✅ 혹시 clean이 uploads/xyz.jpg 형태면 루트직하 xyz.jpg도 시도
+  const basename = path.basename(clean);
+  if (basename) paths.push(basename);
 
   return Array.from(new Set(paths));
 }
+
 
 function sendFromAnyRoot(rel: string, res: Response) {
   const candidates = findCandidatePaths(rel);
@@ -191,22 +207,6 @@ app.post("/api/upload", upload.single("file"), async (req: ReqWithFile, res: Res
   } catch (e: any) {
     console.error("[ERR][UPLOAD]", e);
     res.status(500).json({ ok: false, error: e?.message || "Upload failed" });
-  }
-});
-
-
-app.get("/api/uploads/recent", (_req, res) => {
-  try {
-    const ROOT = path.resolve(__dirname, "../public/uploads/posts");
-    const files = fs.readdirSync(ROOT)
-      .filter(f => !f.startsWith("."))
-      .map(f => ({ f, t: fs.statSync(path.join(ROOT, f)).mtimeMs }))
-      .sort((a,b) => b.t - a.t)
-      .slice(0, 10)
-      .map(x => x.f);
-    res.json({ files });
-  } catch (e:any) {
-    res.status(500).json({ ok:false, error: e?.message || "list failed" });
   }
 });
 
