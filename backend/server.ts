@@ -113,45 +113,7 @@ function pickRoots() {
   try { fs.mkdirSync(p, { recursive: true }); } catch {}
 }
 
-function pickRoots() {
-  // ✅ 1순위: 퍼시스턴트 루트 (환경변수 있으면 그걸, 없으면 /var/data/public 시도)
-  const envRoot = process.env.PUBLIC_ROOT_DIR
-    ? path.resolve(process.env.PUBLIC_ROOT_DIR)
-    : "/var/data/public";
-  ensureDir(envRoot);
-  ensureDir(path.join(envRoot, "uploads", "posts"));
 
-  const candsRaw = [
-    envRoot,                                     // ← 무조건 최우선
-    // 빌드 산출물/레포 상대 경로 (휘발성 가능)
-    path.resolve(__dirname, "./public"),
-    path.resolve(__dirname, "../public"),
-    path.resolve(process.cwd(), "backend/public"),
-    path.resolve(process.cwd(), "public"),
-    // 그 외 흔한 경로들도 후보군에 둠(존재 시)
-    "/var/data/public",
-    "/var/data",
-    "/data/public",
-    "/data",
-    "/mnt/data/public",
-    "/mnt/data",
-  ].filter(Boolean) as string[];
-
-  // 존재하는 것만 남기되, envRoot는 방금 만들어뒀으니 항상 포함됨
-  const exists = candsRaw.filter(p => {
-    try { return fs.existsSync(p); } catch { return false; }
-  });
-
-  if (!exists.length) throw new Error("No PUBLIC_ROOT found (after ensure)");
-
-  // 중복 제거(앞쪽 우선순위 유지)
-  const seen = new Set<string>();
-  const unique: string[] = [];
-  for (const p of exists) {
-    if (!seen.has(p)) { seen.add(p); unique.push(p); }
-  }
-  return unique;
-}
 const PUBLIC_ROOTS = pickRoots();
 const CANON_ROOT = PUBLIC_ROOTS[0];           // ← 새 업로드는 여기로 저장(통일 지점)
 console.log("[PUBLIC_ROOTS]", PUBLIC_ROOTS);
