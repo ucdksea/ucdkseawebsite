@@ -37,7 +37,7 @@ app.get("/__health", (_req, res) => res.status(200).send("ok"));
 app.get("/api/ping", (_req, res) => res.json({ ok: true }));
 
 
-\// ── Static roots: 과거/현재/디스크 경로 모두 지원 ─────────────────────
+// ── Static roots: 과거/현재/디스크 경로 모두 지원 ─────────────────────
 function pickRoots() {
   const candsRaw = [
     process.env.PUBLIC_ROOT_DIR && path.resolve(process.env.PUBLIC_ROOT_DIR),   // ✅ 환경변수 최우선
