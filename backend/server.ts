@@ -193,6 +193,28 @@ function trySuffixMatch(root: string, cand: string): string | null {
   }
 }
 
+// ── /uploads 폴백: 정적에서 못 찾은 파일을 후보/접미사 매칭으로 재탐색
+app.get(/^\/uploads\/(.*)$/, (req, res) => {
+  try {
+    // sendFromAnyRoot는 'uploads/...' 형태를 기대하므로 prefix를 붙여줍니다.
+    const rel = 'uploads/' + String(req.params[0] || '');
+    return sendFromAnyRoot(rel, req, res);
+  } catch (e) {
+    console.error("[FALLBACK /uploads] error:", e);
+    return res.status(500).json({ error: "server error" });
+  }
+});
+app.head(/^\/uploads\/(.*)$/, (req, res) => {
+  try {
+    const rel = 'uploads/' + String(req.params[0] || '');
+    return sendFromAnyRoot(rel, req, res);
+  } catch (e) {
+    console.error("[HEAD FALLBACK /uploads] error:", e);
+    return res.status(500).json({ error: "server error" });
+  }
+});
+
+
 
 
 // ── 디버그: 어떤 실제 경로를 확인하는지 보여줌 ──────────────────────
