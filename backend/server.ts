@@ -24,9 +24,9 @@ const app = express();
 const corsOpts = { origin: ["https://www.ucdksea.com","https://ucdksea.com"], credentials: true };
 
 // Middlewares
-app.use(cors({ origin: true, credentials: true }));
-app.use((_, res, next) => { res.setHeader("Vary","Origin"); next(); });
+app.use(cors(corsOpts));                 // ✅ 통일
 app.options("*", cors(corsOpts));
+app.use((_, res, next) => { res.setHeader("Vary","Origin"); next(); });
 app.use(express.json());
 app.use(cookieParser());
 app.set("trust proxy", 1); 
