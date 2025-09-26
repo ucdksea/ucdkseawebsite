@@ -327,7 +327,52 @@ app.post("/api/upload", upload.single("file"), async (req: ReqWithFile, res: Res
   }
 });
 
-app.get("/api/admin/posts", async (req, res) => {
+// ✅ Express: POST /api/admin/posts
+app.post("/api/admin/posts", async (req, res) => {
+  try {
+    const ALLOWED = ["POPUP","EVENT_UPCOMING","EVENT_POLAROID","GM","OFFICER"] as const;
+    type PostType = typeof ALLOWED[number];
+    const body = req.body || {};
+
+    // 🔹 1) REORDER 먼저 처리
+    if (body.action === "REORDER") {
+      const type: PostType | undefined = ALLOWED.includes(body.type) ? body.type : undefined;
+      const idsRaw = Array.isArray(body.order) ? body.order : [];
+      const order = Array.from(new Set(idsRaw.filter((x: any) => typeof x === "string" && x.trim())));
+
+      if (!type) return res.status(400).json({ error: `type must be one of ${ALLOWED.join("|")}` });
+      if (order.length <= 1) return res.json({ ok: true, skipped: true, count: order.length });
+
+      // 해당 타입에 속한 id만 유효 처리
+      const valid = await prisma.post.findMany({
+        where: { id: { in: order }, type },
+        select: { id: true },
+      });
+      const validSet = new Set(valid.map(v => v.id));
+      const ids = order.filter(id => validSet.has(id));
+      if (ids.length === 0) return res.status(400).json({ error: "no valid ids for this type" });
+
+      await prisma.$transaction(
+        ids.map((id, idx) =>
+          prisma.post.update({ where: { id }, data: { sortOrder: idx } })
+        )
+      );
+
+      return res.json({ ok: true, type, count: ids.length });
+    }
+
+    // 🔹 2) (기존) 새 글 생성 로직
+    const type: PostType | undefined = ALLOWED.includes(body.type) ? body.type : undefined;
+    if (!type) return res.status(400).json({ error: `type must be one of ${ALLOWED.join("|")}` });
+
+    if (!body.imageUrl) return res.status(400).json({ error: "imageUrl required" });
+    if ((type === "POPUP" || type === "EVENT_UPCOMING") && !body.linkUrl) {
+      return res.status(400).json({ error: "linkUrl required for POPUP/EVENT_UPCOMING" });
+    }
+    if (type === "EVENT_POLAROID" && !body.title) {
+      return res.status(400).json({ error: "title required for EVENT_POLAROID" });
+    }
+
   try {
     const ALLOWED = ["POPUP","EVENT_UPCOMING","EVENT_POLAROID","GM","OFFICER"] as const;
     const type = typeof req.query.type === "string" ? req.query.type : undefined;
