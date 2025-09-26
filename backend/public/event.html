@@ -216,31 +216,64 @@
       fetch(`${API_BASE}/api/ping`, { credentials: "include" });
           </script>
           <script>
-            // 같은 호스트(= API)일 때만 공개 프록시(/file2/…)로 안전 리라이트
+            // 같은 호스트(= API)일 때만 공개 프록시(/file2/…)로 시도
             function toPublicImage(u){
               if (!u) return "";
               try {
                 const base = (typeof API !== "undefined" && API) ? API : location.origin;
                 const api  = new URL(base);
                 const url  = u.startsWith("http") ? new URL(u) : new URL(u, base);
-          
-                // 외부 호스트는 손대지 않음
-                if (url.host !== api.host) return url.toString();
-          
+                if (url.host !== api.host) return url.toString(); // 외부 호스트는 건드리지 않음
                 let p = url.pathname;
                 if (p.startsWith("/file2/")) return url.toString();
-                if (p.startsWith("/file/"))      p = p.replace("/file/", "/file2/");
+                if (p.startsWith("/file/"))       p = p.replace("/file/", "/file2/");
                 else if (p.startsWith("/uploads/")) p = "/file2" + p;
-                else if (p.includes("/uploads/"))   p = p.replace("/uploads/", "/file2/uploads/");
+                else if (p.includes("/uploads/"))  p = p.replace("/uploads/", "/file2/uploads/");
                 url.pathname = p;
-          
-                // 경로에 공백/한글 있을 수 있으니 전체를 1회만 인코딩
                 return encodeURI(url.toString());
-              } catch {
-                return u;
+              } catch { return u; }
+            }
+          
+            // 같은 호스트 + 비공개 경로(/uploads|/file)면, 쿠키 포함 fetch → blob URL로 세팅
+            async function loadImageWithAuth(imgEl, rawUrl){
+              if (!rawUrl) return;
+              const base = (typeof API !== "undefined" && API) ? API : location.origin;
+              let url;
+              try { url = rawUrl.startsWith("http") ? new URL(rawUrl) : new URL(rawUrl, base); }
+              catch { url = new URL(String(rawUrl), base); }
+          
+              const isSameHost = url.host === new URL(base).host;
+              const path = url.pathname || "";
+              const looksPrivate = /^\/(uploads|file)\b/.test(path);
+          
+              // 1) 인증 fetch → blob
+              if (isSameHost && looksPrivate) {
+                try {
+                  const r = await fetch(url.toString(), { credentials: "include" });
+                  if (!r.ok) throw new Error("HTTP "+r.status);
+                  const blob = await r.blob();
+                  const objUrl = URL.createObjectURL(blob);
+                  imgEl.src = objUrl;
+                  imgEl.dataset.objUrl = objUrl; // 필요하면 나중에 revoke 가능
+                  return;
+                } catch (_) {
+                  /* 실패 시 2) 프록시로 폴백 */
+                }
               }
+          
+              // 2) 공개 프록시(/file2) 시도
+              const viaProxy = toPublicImage(url.toString());
+              imgEl.src = viaProxy;
+          
+              // 3) 마지막 폴백: 원본 그대로
+              imgEl.onerror = function(){
+                if (imgEl.dataset.falled === "1") return;
+                imgEl.dataset.falled = "1";
+                imgEl.src = url.toString();
+              };
             }
           </script>
+          
 
     <!-- 1) Event Polaroid (Gallery) -->
     <script>
@@ -264,8 +297,6 @@
               (Array.isArray(p.images) && p.images[0]) ||
               (Array.isArray(m.images) && m.images[0]) || "";
       
-            const src = toPublicImage(src0);   // ✅ 여기만 교체
-      
             const title   = (p.title || "").trim();
             const quarter = (p.quarter || m.quarter || p.semester || m.semester || "").trim();
             const year    = (p.year || m.year || "").trim();
@@ -284,8 +315,8 @@
                 <div class="polaroid" onclick="expandImage(this)">
                   <img
                     alt="${esc(title)}"
-                    src="${src}"                   <!-- ✅ 공개 프록시 URL -->
-                    data-large="${src}"            <!-- ✅ 팝업도 동일 -->
+                    data-src="${esc(src0)}"        <!-- ✅ 원본만 저장 -->
+                    data-large="${esc(src0)}"
                     data-text-enc="${esc(dataTextEnc)}"
                     data-link="${esc(primaryLink)}"
                   />
@@ -300,12 +331,25 @@
       
           wrap.innerHTML = html;
       
+          // ✅ 여기서 실제 로딩 수행 (인증 fetch → /file2 → 원본 순으로)
+          const imgs = wrap.querySelectorAll('.polaroid img[data-src]');
+          imgs.forEach(img => {
+            const raw = img.getAttribute('data-src') || "";
+            // 팝업 큰이미지도 동일 변환
+            const largeRaw = img.getAttribute('data-large') || "";
+            loadImageWithAuth(img, raw);
+            // 팝업용 data-large는 프록시 우선 URL로 업데이트
+            const largeViaProxy = toPublicImage(largeRaw);
+            img.setAttribute('data-large', largeViaProxy);
+          });
+      
         } catch(e) {
           console.warn("EVENT_POLAROID fetch failed:", e);
           wrap.innerHTML = "";
         }
       })();
       </script>
+      
       
     
       
@@ -337,7 +381,7 @@
       if (href === "#") a.addEventListener("click", (e) => e.preventDefault());
   
       const original = p.meta?.posterUrl || p.imageUrl || "";
-      img.src = toPublicImage(original);   // ✅ 공개 프록시로 보정 (쿠키 불필요)
+      await loadImageWithAuth(img, original);  // ✅ 쿠키 포함 로딩
       descEl.innerHTML = p.descKo || p.descEn || "";
     } catch (e) {
       console.warn("EVENT_UPCOMING fetch failed:", e);
@@ -345,6 +389,7 @@
     }
   })();
   </script>
+  
   
 
   </body>
