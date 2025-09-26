@@ -371,26 +371,44 @@ app.post("/api/admin/posts", async (req, res) => {
     type PostType = typeof ALLOWED[number];
     const body = req.body || {};
 
-    // 1) REORDER first  ✅ 여기 강화
-    const action = String(body.action || "").toUpperCase();
+    // 1) REORDER first
+    const action = String(body.action ?? "").trim().toUpperCase();
     if (action === "REORDER") {
-      const type: PostType | undefined = ALLOWED.includes(body.type) ? body.type : undefined;
+      const ALLOWED = ["POPUP","EVENT_UPCOMING","EVENT_POLAROID","GM","OFFICER"] as const;
+      type PostType = typeof ALLOWED[number];
+
       const idsRaw = Array.isArray(body.order) ? body.order : [];
-      const order = Array.from(new Set(idsRaw.filter((x: any) => typeof x === "string" && x.trim())));
+      const order = Array.from(new Set(
+        idsRaw.map((x:any)=>typeof x === "string" ? x.trim() : "").filter(Boolean)
+      ));
+      if (!order.length) return res.status(400).json({ error: "order[] required" });
 
-      if (!type) return res.status(400).json({ error: `type must be one of ${ALLOWED.join("|")}` });
-      if (order.length <= 1) return res.json({ ok: true, skipped: true, count: order.length });
+      let type: PostType | undefined =
+        (typeof body.type === "string" && (ALLOWED as readonly string[]).includes(body.type))
+          ? body.type as PostType : undefined;
 
-      const valid = await prisma.post.findMany({ where: { id: { in: order }, type }, select: { id: true } });
-      const validSet = new Set(valid.map(v => v.id));
-      const ids = order.filter((id: string) => validSet.has(id));
+      const rows = await prisma.post.findMany({ where: { id: { in: order } }, select: { id:true, type:true } });
+      if (!rows.length) return res.status(400).json({ error: "no such ids" });
+
+      // type이 없으면 ids에서 추정
+      if (!type) {
+        const types = Array.from(new Set(rows.map(r => r.type)));
+        if (types.length !== 1 || !(ALLOWED as readonly string[]).includes(types[0] as any)) {
+          return res.status(400).json({ error: "type is required or ids must share one valid type" });
+        }
+        type = types[0] as PostType;
+      }
+
+      const validSet = new Set(rows.filter(r => r.type === type).map(r => r.id));
+      const ids = order.filter(id => validSet.has(id));
       if (!ids.length) return res.status(400).json({ error: "no valid ids for this type" });
 
-      await prisma.$transaction(ids.map((id, idx) =>
-        prisma.post.update({ where: { id }, data: { sortOrder: idx } })
-      ));
-      return res.json({ ok: true, type, count: ids.length });  // ✅ 여기서 끝
+      await prisma.$transaction(
+        ids.map((id, idx) => prisma.post.update({ where: { id }, data: { sortOrder: idx } }))
+      );
+      return res.json({ ok: true, type, count: ids.length });
     }
+
 
     // 2) CREATE
     const type: PostType | undefined = ALLOWED.includes(body.type) ? body.type : undefined;
