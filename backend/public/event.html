@@ -229,6 +229,32 @@
             }
           </script>
           
+          <script>
+            // 같은 호스트(= API)일 때만 공개 프록시(/file2/…)로 안전 리라이트
+            function toPublicImage(u){
+              if (!u) return "";
+              try {
+                const base = (typeof API !== "undefined" && API) ? API : location.origin;
+                const api  = new URL(base);
+                const url  = u.startsWith("http") ? new URL(u) : new URL(u, base);
+          
+                // 외부 호스트는 손대지 않음
+                if (url.host !== api.host) return url.toString();
+          
+                let p = url.pathname;
+                if (p.startsWith("/file2/")) return url.toString();
+                if (p.startsWith("/file/"))      p = p.replace("/file/", "/file2/");
+                else if (p.startsWith("/uploads/")) p = "/file2" + p;
+                else if (p.includes("/uploads/"))   p = p.replace("/uploads/", "/file2/uploads/");
+                url.pathname = p;
+          
+                // 경로에 공백/한글 있을 수 있으니 전체를 1회만 인코딩
+                return encodeURI(url.toString());
+              } catch {
+                return u;
+              }
+            }
+          </script>
           
             
           
@@ -242,18 +268,6 @@
       
         const esc = (s)=> (s||"").toString().replace(/"/g,"&quot;");
       
-        // 절대경로 + 안전 인코딩 (리라이트 금지)
-        function absUrl(u){
-          if(!u) return "";
-          try{
-            const base = (typeof API !== "undefined" && API) ? API : location.origin;
-            const url  = u.startsWith("http") ? new URL(u) : new URL(u, base);
-            return encodeURI(url.toString());
-          }catch{
-            return encodeURI(u);
-          }
-        }
-      
         try {
           const r = await fetch(`${API}/api/admin/posts?type=EVENT_POLAROID&active=1`, { credentials: "omit" });
           if (!r.ok) throw new Error(r.status);
@@ -262,15 +276,13 @@
       
           const html = posts.map((p) => {
             const m = p.meta || {};
-      
-            // 일반 이미지 → 포스터 → 배열 순으로 하나만 선택 (목록/팝업 동일)
             const src0 =
               p.imageUrl || m.imageUrl ||
               p.posterUrl || m.posterUrl ||
               (Array.isArray(p.images) && p.images[0]) ||
               (Array.isArray(m.images) && m.images[0]) || "";
       
-            const src = absUrl(src0);
+            const src = toPublicImage(src0);   // ✅ 여기만 교체
       
             const title   = (p.title || "").trim();
             const quarter = (p.quarter || m.quarter || p.semester || m.semester || "").trim();
@@ -278,9 +290,7 @@
             const captionRaw = (quarter && year) ? `${quarter} ${year}` : title;
             const dateStr    = p.date ? new Date(p.date).toISOString().slice(0,10) : "";
             const bottomCaption = [captionRaw, title].filter(Boolean).join(" ");
-      
-            const primaryLink =
-              (p.instagramUrl || p.formUrl || p.linkUrl || m.instagramUrl || m.formUrl || "").trim();
+            const primaryLink = (p.instagramUrl || p.formUrl || p.linkUrl || m.instagramUrl || m.formUrl || "").trim();
       
             const line1 = `${esc(title)}$<span style='color:gray;'>${esc(captionRaw)}${dateStr ? " | " + dateStr : ""}</span>$<span style='color:#ececec;'>_____________________</span>$`;
             const line2 = p.descKo ? `<br>${esc(p.descKo)}$` : "";
@@ -292,8 +302,8 @@
                 <div class="polaroid" onclick="expandImage(this)">
                   <img
                     alt="${esc(title)}"
-                    src="${src}"
-                    data-large="${src}"
+                    src="${src}"                   <!-- ✅ 공개 프록시 URL -->
+                    data-large="${src}"            <!-- ✅ 팝업도 동일 -->
                     data-text-enc="${esc(dataTextEnc)}"
                     data-link="${esc(primaryLink)}"
                   />
@@ -313,7 +323,9 @@
           wrap.innerHTML = "";
         }
       })();
-      </script>      
+      </script>
+      
+     
       
 
 <!-- 2) Upcoming Event (있을 때만 표시) -->
@@ -341,7 +353,7 @@
       if (href === "#") a.addEventListener("click", (e) => e.preventDefault());
   
       const original = p.meta?.posterUrl || p.imageUrl || "";
-      img.src = absUrl(original); // ✅ 리라이트 없이 절대경로+인코딩만
+      img.src = toPublicImage(original);   // ✅ 공개 프록시로 보정 (쿠키 불필요)
       descEl.innerHTML = p.descKo || p.descEn || "";
     } catch (e) {
       console.warn("EVENT_UPCOMING fetch failed:", e);
@@ -349,40 +361,6 @@
     }
   })();
   </script>
-  
-<script>
-  // file2 경로 추정
-  function toFile2(url) {
-    if (!url) return "";
-    try {
-      const base = (typeof API !== "undefined" && API) ? API : location.origin;
-      const u = url.startsWith("http") ? new URL(url) : new URL(url, base);
-      let p = u.pathname;
-      if (p.includes("/file2/")) return u.toString();
-      if (p.includes("/file/")) { u.pathname = p.replace("/file/", "/file2/"); return u.toString(); }
-      if (p.startsWith("/uploads/")) { u.pathname = "/file2" + p; return u.toString(); }
-      if (p.includes("/uploads/")) { u.pathname = p.replace("/uploads/", "/file2/uploads/"); return u.toString(); }
-      return u.toString();
-    } catch {
-      if (url.includes("/file/")) return url.replace("/file/", "/file2/");
-      if (url.includes("/uploads/")) return url.replace("/uploads/", "/file2/uploads/");
-      return url;
-    }
-  }
-
-  // <img>에 file2 우선 적용 + 실패 시 원본으로 자동 대체
-  function setImgWithFallback(imgEl, srcOriginal) {
-    const srcFile2 = toFile2(srcOriginal);
-    imgEl.setAttribute("data-original", srcOriginal);
-    imgEl.src = srcFile2;
-    imgEl.onerror = function () {
-      if (imgEl.getAttribute("data-tried-original") === "1") return;
-      imgEl.setAttribute("data-tried-original", "1");
-      imgEl.src = imgEl.getAttribute("data-original");
-    };
-  }
-</script>
-
 
   </body>
 </html>
