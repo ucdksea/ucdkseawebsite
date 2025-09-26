@@ -255,7 +255,31 @@
         const wrap = document.getElementById("polaroidGrid");
         if (!wrap) return;
       
-        const esc = (s)=> (s||"").toString().replace(/"/g,"&quot;");
+        // 안전 이스케이프
+        const esc = (s) => (s || "").toString().replace(/"/g, "&quot;");
+      
+        // /file2 보정: 우리 API 호스트일 때만 교체 (외부 호스트는 그대로)
+        function toFile2Safe(u) {
+          if (!u) return "";
+          try {
+            const base = (typeof API !== "undefined" && API) ? API : location.origin;
+            // 절대/상대 모두 허용 + 공백 등 인코딩
+            const url = u.startsWith("http") ? new URL(encodeURI(u)) : new URL(encodeURI(u), base);
+            const apiHost = new URL(base).host;
+            // 같은 호스트(+경로기반)일 때만 /file2 리라이트
+            if (url.host === apiHost) {
+              let p = url.pathname;
+              if (p.includes("/file2/")) return url.toString();
+              if (p.includes("/file/")) { url.pathname = p.replace("/file/", "/file2/"); return url.toString(); }
+              if (p.startsWith("/uploads/")) { url.pathname = "/file2" + p; return url.toString(); }
+              if (p.includes("/uploads/")) { url.pathname = p.replace("/uploads/", "/file2/uploads/"); return url.toString(); }
+            }
+            return url.toString();
+          } catch {
+            // 실패 시에도 최소한 인코딩만 적용
+            return encodeURI(u);
+          }
+        }
       
         try {
           const r = await fetch(`${API}/api/admin/posts?type=EVENT_POLAROID&active=1`, { credentials: "omit" });
@@ -265,46 +289,38 @@
       
           const html = posts.map((p) => {
             const m = p.meta || {};
-            const esc = (s)=> (s||"").toString().replace(/"/g,"&quot;");
+      
+            // 🔑 썸네일/팝업 소스 선정: 일반 이미지 우선 → 포스터 → 배열
+            const pickImage = () =>
+              (p.imageUrl || m.imageUrl || p.posterUrl || m.posterUrl ||
+               (Array.isArray(p.images) && p.images[0]) ||
+               (Array.isArray(m.images) && m.images[0]) || "");
+      
+            const src = pickImage();                 // 목록/팝업 동일 소스 사용 (불일치 방지)
+            const title   = (p.title || "").trim();
             const quarter = (p.quarter || m.quarter || p.semester || m.semester || "").trim();
             const year    = (p.year || m.year || "").trim();
-            const title   = (p.title || "").trim();
-
-            const pickImage = () =>
-            (m.posterUrl || p.posterUrl || m.imageUrl || p.imageUrl ||
-              (Array.isArray(m.images) && m.images[0]) ||
-              (Array.isArray(p.images) && p.images[0]) || "");
-      
             const captionRaw = (quarter && year) ? `${quarter} ${year}` : title;
             const dateStr    = p.date ? new Date(p.date).toISOString().slice(0,10) : "";
             const bottomCaption = [captionRaw, title].filter(Boolean).join(" ");
       
-            // 목록 썸네일 = 포스터 우선 → 일반
-            const posterUrl   = (p.posterUrl || m.posterUrl || "").trim();
-            const imageUrl    = (p.imageUrl || "").trim();
-            const primaryLink = (p.instagramUrl || p.formUrl || p.linkUrl || m.instagramUrl || m.formUrl || "").trim();
-            const thumbOriginal = pickImage();
-            // 팝업 큰 사진 = 일반 우선 → 포스터
-            const largeOriginal = (p.imageUrl || m.posterUrl || p.posterUrl || 
-                         (Array.isArray(p.images) && p.images[0]) ||
-                         thumbOriginal);
-
-            // 외부 링크
+            const primaryLink =
+              (p.instagramUrl || p.formUrl || p.linkUrl || m.instagramUrl || m.formUrl || "").trim();
       
-            // 설명(팝업용) + 포스터 토큰
+            // 팝업용 설명
             const line1 = `${esc(title)}$<span style='color:gray;'>${esc(captionRaw)}${dateStr ? " | " + dateStr : ""}</span>$<span style='color:#ececec;'>_____________________</span>$`;
             const line2 = p.descKo ? `<br>${esc(p.descKo)}$` : "";
             const line3 = p.descEn ? `<br>${esc(p.descEn)}<br>$` : "";
-            const dataTextEnc = encodeURIComponent([line1, line2, line3, "<img-poster/>"].join(""));      
+            const dataTextEnc = encodeURIComponent([line1, line2, line3, "<img-poster/>"].join(""));
+      
             return `
               <div class="event-item">
                 <div class="polaroid" onclick="expandImage(this)">
                   <img
                     alt="${esc(title)}"
-                    data-thumb-original="${esc(largeOriginal)}"
-                    data-large="${esc(largeOriginal)}"
+                    data-src-original="${esc(src)}"
+                    data-large="${esc(src)}"
                     data-text-enc="${esc(dataTextEnc)}"
-                    data-poster="${esc(m.posterUrl || p.posterUrl || "")}"
                     data-link="${esc(primaryLink)}"
                   />
                   <p>${esc(bottomCaption)}</p>
@@ -318,40 +334,35 @@
       
           wrap.innerHTML = html;
       
-          // 목록 썸네일: file2 우선, 실패시 원본 폴백
+          // 실제 로딩: /file2 보정 → 실패시 원본 재시도
           wrap.querySelectorAll('.polaroid img').forEach(img => {
-            const original =
-              img.getAttribute('data-thumb-original') ||
-              img.getAttribute('data-large') ||
-              img.getAttribute('data-poster') || "";
-          
+            const original = img.getAttribute('data-src-original') || "";
             if (!original) return;
-          
-            const srcFile2 = (typeof ensureFile2==="function") ? ensureFile2(original) : encodeURI(original);
-            img.setAttribute("data-original", original);
-            img.src = srcFile2;
-          
-            // ✅ 팝업용도 인코딩 + /file2 보정
+      
+            const src1 = toFile2Safe(original);
+            const src2 = encodeURI(original); // 폴백(원본)
+      
+            img.setAttribute("data-original", src2);
+            img.src = src1;
+      
+            // 팝업용도 동일하게 보정
             const large0 = img.getAttribute('data-large') || "";
-            if (large0) {
-              const large2 = (typeof ensureFile2==="function") ? ensureFile2(large0) : encodeURI(large0);
-              img.setAttribute('data-large', large2);
-            }
-          
-            img.onerror = function(){
-              if (img.getAttribute("data-tried-original")==="1") return;
-              img.setAttribute("data-tried-original","1");
-              img.src = img.getAttribute("data-original"); // 원본으로 1회 재시도
+            if (large0) img.setAttribute('data-large', toFile2Safe(large0));
+      
+            img.onerror = function () {
+              if (img.getAttribute("data-tried-original") === "1") return;
+              img.setAttribute("data-tried-original", "1");
+              img.src = img.getAttribute("data-original");
             };
           });
-          
       
-        } catch(e) {
+        } catch (e) {
           console.warn("EVENT_POLAROID fetch failed:", e);
           wrap.innerHTML = "";
         }
       })();
       </script>
+      
       
     
     
