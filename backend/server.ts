@@ -37,90 +37,94 @@ app.get("/__health", (_req, res) => res.status(200).send("ok"));
 app.get("/api/ping", (_req, res) => res.json({ ok: true }));
 
 
-// Static
-// --- 1) PUBLIC_ROOT: 환경변수로 강제 가능 ---
-function pickPublicRoot() {
-  const cands = [
-    path.resolve(__dirname, "../public"),
-    path.resolve(__dirname, "./public"),
+// ── Static roots: 과거/현재 경로 모두 지원 ──────────────────────────────
+function pickRoots() {
+  const cand = [
+    process.env.PUBLIC_ROOT_DIR && path.resolve(process.env.PUBLIC_ROOT_DIR), // ✅ 환경변수 최우선(권장)
+    path.resolve(__dirname, "./public"),      // dist 실행 시 backend/public
+    path.resolve(__dirname, "../public"),     // dist 실행 시 repo-root/public
     path.resolve(process.cwd(), "backend/public"),
     path.resolve(process.cwd(), "public"),
-  ];
-  for (const p of cands) try { if (fs.existsSync(p)) return p; } catch {}
-  return cands[0];
+  ].filter(Boolean) as string[];
+
+  // 존재하는 것만
+  const exists = cand.filter(p => { try { return fs.existsSync(p); } catch { return false; } });
+  if (!exists.length) throw new Error("No PUBLIC_ROOT found");
+  return Array.from(new Set(exists)); // dedupe
 }
 
-// 환경변수 우선 적용 (✔ 선언은 여기 딱 1번만!)
-const PUBLIC_ROOT = process.env.PUBLIC_ROOT_DIR
-  ? path.resolve(process.env.PUBLIC_ROOT_DIR)
-  : pickPublicRoot();
+const PUBLIC_ROOTS = pickRoots();
+const CANON_ROOT = PUBLIC_ROOTS[0];           // ← 새 업로드는 여기로 저장(통일 지점)
+console.log("[PUBLIC_ROOTS]", PUBLIC_ROOTS);
+console.log("[CANON_ROOT]", CANON_ROOT);
 
-console.log("[PUBLIC_ROOT]", PUBLIC_ROOT);
+// ── /uploads 정적 서빙: 여러 루트를 차례로 시도 (fallthrough) ────────────
+for (const root of PUBLIC_ROOTS) {
+  app.use(
+    "/uploads",
+    express.static(path.join(root, "uploads"), {
+      fallthrough: true,
+      maxAge: "1y",
+      etag: true,
+      setHeaders(res) {
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+      },
+    })
+  );
+}
 
-// --- 2) 정적 서빙 ---
-app.use(
-  "/uploads",
-  express.static(path.join(PUBLIC_ROOT, "uploads"), {
-    maxAge: "1y",
-    etag: true,
-    setHeaders(res) {
-      res.setHeader("Access-Control-Allow-Origin", "*");
-      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-    },
-  })
-);
-
-// --- 3) 공개 프록시: /file2/** → /uploads/** (✔ 이 라우트도 딱 1개만)
+// ── 공개 프록시: /file2/** → /uploads/** (모든 루트 탐색) ────────────────
 app.get(/^\/file2\/(.*)$/, (req, res) => {
   try {
     const rel0 = String(req.params[0] || "");
     let rel = rel0.replace(/^(\.\.\/|\/)+/g, "");
-
     if (rel.startsWith("file/")) rel = rel.replace(/^file\//, "uploads/");
     if (!rel.startsWith("uploads/")) rel = "uploads/" + rel;
 
-    const root = path.join(PUBLIC_ROOT, "uploads");
-    const full = path.resolve(path.join(PUBLIC_ROOT, rel));
-    const rootResolved = path.resolve(root);
-
-    if (!full.startsWith(rootResolved + path.sep)) {
-      return res.status(403).json({ error: "forbidden" });
+    for (const root of PUBLIC_ROOTS) {
+      const rootUploads = path.join(root, "uploads");
+      const full = path.resolve(path.join(root, rel));
+      const rootResolved = path.resolve(rootUploads);
+      if (!full.startsWith(rootResolved + path.sep)) continue;
+      if (fs.existsSync(full) && fs.statSync(full).isFile()) {
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        return res.sendFile(full);
+      }
     }
-    if (!fs.existsSync(full) || !fs.statSync(full).isFile()) {
-      console.warn("[/file2] not found:", { rel0, rel, full });
-      return res.status(404).json({ error: "not found" });
-    }
-
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-    return res.sendFile(full);
+    console.warn("[/file2] not found in any root:", rel0);
+    return res.status(404).json({ error: "not found" });
   } catch (e) {
     console.error("[/file2] error:", e);
     return res.status(500).json({ error: "server error" });
   }
 });
 
-// --- 4) 최근 업로드 (PUBLIC_ROOT 기준!) ---
+// ── 최근 업로드: 첫 번째로 파일이 존재하는 루트에서 반환 ────────────────
 app.get("/api/uploads/recent", (_req, res) => {
   try {
-    const ROOT = path.join(PUBLIC_ROOT, "uploads", "posts");
-    const files = fs.readdirSync(ROOT)
-      .filter(f => !f.startsWith("."))
-      .map(f => ({ f, t: fs.statSync(path.join(ROOT, f)).mtimeMs }))
-      .sort((a,b) => b.t - a.t)
-      .slice(0, 10)
-      .map(x => x.f);
-    res.json({ files });
+    for (const root of PUBLIC_ROOTS) {
+      const ROOT = path.join(root, "uploads", "posts");
+      if (!fs.existsSync(ROOT)) continue;
+      const files = fs.readdirSync(ROOT)
+        .filter(f => !f.startsWith("."))
+        .map(f => ({ f, t: fs.statSync(path.join(ROOT, f)).mtimeMs }))
+        .sort((a,b) => b.t - a.t)
+        .slice(0, 10)
+        .map(x => x.f);
+      if (files.length) return res.json({ files, root: ROOT });
+    }
+    return res.json({ files: [], note: "no uploads found in any root" });
   } catch (e:any) {
     res.status(500).json({ ok:false, error: e?.message || "list failed" });
   }
 });
 
-
-// Upload (10MB)
-const UPLOAD_DIR = path.join(PUBLIC_ROOT, "uploads", "posts");
+// ── Upload (10MB): 새 파일은 CANON_ROOT에만 기록 (통일) ────────────────
+const UPLOAD_DIR = path.join(CANON_ROOT, "uploads", "posts");
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const storage = multer.diskStorage({
@@ -150,7 +154,6 @@ app.post("/api/upload", upload.single("file"), async (req: ReqWithFile, res: Res
     const url = `${base}/uploads/posts/${file.filename}`;
     const payload = JSON.stringify({ url });
 
-    // 명시 종료로 curl (18) 회피
     res.status(201);
     res.setHeader("Content-Type", "application/json");
     res.setHeader("Content-Length", Buffer.byteLength(payload).toString());
@@ -161,6 +164,7 @@ app.post("/api/upload", upload.single("file"), async (req: ReqWithFile, res: Res
     res.status(500).json({ ok: false, error: e?.message || "Upload failed" });
   }
 });
+
 
 app.get("/api/uploads/recent", (_req, res) => {
   try {
