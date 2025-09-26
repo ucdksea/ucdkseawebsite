@@ -68,7 +68,7 @@ export async function POST(req: Request) {
   await writeFile(full, bytes);
 
   // 백엔드 풀 URL (프런트가 다른 오리진에서 보기에 절대 URL 필요)
-  const base = process.env.APP_BASE_URL ?? new URL(req.url).origin;
+  const base = new URL(req.url).origin;
   const url = `${base}/uploads/posts/${fname}`;
 
   return NextResponse.json({ url }, { status: 201, headers });

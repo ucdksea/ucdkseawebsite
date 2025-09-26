@@ -90,25 +90,41 @@
 
     <!-- (필수) 팝업 동작 함수들 포함된 파일 -->
     <script src="./js/event.js"></script>
-    <!-- <script>
+    <script>
+      // expandImage가 팝업을 띄운 다음, 본문(#popupText) 끝에 포스터 <a><img>를 삽입
       (function () {
-        // event.js의 expandImage를 감싸서 data-large를 /file2/로 보정
         const prev = window.expandImage;
         window.expandImage = function (el) {
+          const ret = prev ? prev(el) : null;
           try {
             const imgEl = el.querySelector('img');
-            const large0 = imgEl?.getAttribute('data-large') || '';
-            if (large0) {
-              const large2 = (typeof toFile2 === 'function') ? toFile2(large0) : encodeURI(large0);
-              imgEl.setAttribute('data-large', large2);
+            const posterRaw = imgEl?.getAttribute('data-poster') || '';
+            const linkHref  = imgEl?.getAttribute('data-link') || '';
+            const posterUrl = posterRaw ? bestPublicUrl(posterRaw) : '';
+      
+            const box = document.getElementById('popupText');
+            if (box && posterUrl) {
+              const a = document.createElement('a');
+              a.href = linkHref || '#';
+              if (linkHref) { a.target = '_blank'; a.rel = 'noopener'; }
+      
+              const pic = document.createElement('img');
+              pic.src = posterUrl;
+              pic.alt = 'event poster';
+              pic.style.maxWidth = '100%';
+              pic.style.height = 'auto';
+              pic.style.marginTop = '12px';
+      
+              a.appendChild(pic);
+              // 기존 텍스트 아래에 포스터 추가
+              box.appendChild(a);
             }
-          } catch (e) { /* no-op */ }
-          return prev ? prev(el) : null;
+          } catch (_) {}
+          return ret;
         };
       })();
-    </script>
- -->
-    <!-- Footer -->
+      </script>
+          <!-- Footer -->
     <section class="footer">
       <app-footer _ngcontent-xno-c271="" _nghost-xno-c31="">
         <footer _ngcontent-xno-c31="">
@@ -283,40 +299,54 @@
             function _dedupe(arr){ return [...new Set(arr.filter(Boolean))]; }
           
             // 원본 경로에서 가능한 모든 공개/프록시 케이스 생성
-            function buildImageCandidates(raw){
-              const url = _absUrl(raw);
-              const base = new URL((typeof API !== "undefined" && API) ? API : location.origin);
-              const sameHost = url.host === base.host;
-          
-              const p = url.pathname || "";
-              const afterUploads = p.includes("/uploads/") ? p.split("/uploads/")[1] : null;
-          
-              const cands = [];
-              // 0) 원본
-              cands.push(url.toString());
-          
-              if (sameHost){
-                // 1) /file2 (uploads 유지)
-                if (p.startsWith("/file2/")) cands.push(url.toString());
-                else if (p.startsWith("/file/")) cands.push(new URL(p.replace("/file/","/file2/"), url).toString());
-                else if (p.startsWith("/uploads/")) cands.push(new URL("/file2"+p, url).toString());
-                else if (p.includes("/uploads/")) cands.push(new URL(p.replace("/uploads/","/file2/uploads/"), url).toString());
-          
-                // 2) /file (uploads 유지)
-                if (p.startsWith("/file2/")) cands.push(new URL(p.replace("/file2/","/file/"), url).toString());
-                else if (p.startsWith("/file/")) cands.push(new URL(p, url).toString());
-                else if (p.startsWith("/uploads/")) cands.push(new URL("/file"+p, url).toString());
-                else if (p.includes("/uploads/")) cands.push(new URL(p.replace("/uploads/","/file/uploads/"), url).toString());
-          
-                // 3) uploads 세그먼트를 제거해야 하는 서버용
-                if (afterUploads){
-                  cands.push(new URL("/file2/"+afterUploads, url).toString());
-                  cands.push(new URL("/file/"+afterUploads, url).toString());
+              // ...기존 buildImageCandidates 위/아래 문맥 유지...
+              
+              function buildImageCandidates(raw){
+                const url  = _absUrl(raw);
+                const base = new URL((typeof API !== "undefined" && API) ? API : location.origin);
+                const sameHost = url.host === base.host;
+              
+                const HOST_API = "api.ucdksea.com";
+                const HOST_WWW = "www.ucdksea.com";
+              
+                const p = url.pathname || "";
+                const afterUploads = p.includes("/uploads/") ? p.split("/uploads/")[1] : null;
+              
+                const cands = [];
+                // 0) 원본
+                cands.push(url.toString());
+              
+                // 🔁 NEW: api<->www 호스트 스왑 후보 추가
+                try {
+                  const swapped = new URL(url.toString());
+                  if (swapped.host === HOST_API) swapped.host = HOST_WWW;
+                  else if (swapped.host === HOST_WWW) swapped.host = HOST_API;
+                  if (swapped.host !== url.host) cands.push(swapped.toString());
+                } catch {}
+              
+                if (sameHost){
+                  // 1) /file2 형태
+                  if (p.startsWith("/file2/")) cands.push(new URL(p, url).toString());
+                  else if (p.startsWith("/file/")) cands.push(new URL(p.replace("/file/","/file2/"), url).toString());
+                  else if (p.startsWith("/uploads/")) cands.push(new URL("/file2"+p, url).toString());
+                  else if (p.includes("/uploads/")) cands.push(new URL(p.replace("/uploads/","/file2/uploads/"), url).toString());
+              
+                  // 2) /file 형태
+                  if (p.startsWith("/file2/")) cands.push(new URL(p.replace("/file2/","/file/"), url).toString());
+                  else if (p.startsWith("/file/")) cands.push(new URL(p, url).toString());
+                  else if (p.startsWith("/uploads/")) cands.push(new URL("/file"+p, url).toString());
+                  else if (p.includes("/uploads/")) cands.push(new URL(p.replace("/uploads/","/file/uploads/"), url).toString());
+              
+                  // 3) uploads 제거 케이스
+                  if (afterUploads){
+                    cands.push(new URL("/file2/"+afterUploads, url).toString());
+                    cands.push(new URL("/file/"+afterUploads, url).toString());
+                  }
                 }
+              
+                return _dedupe(cands).map(s => encodeURI(s));
               }
-              return _dedupe(cands).map(s => encodeURI(s));
-            }
-          
+              
             // 이미지 로더: 후보들을 인증 fetch로 순차 조회 → 성공시 blob URL 세팅
             async function loadImageSmart(imgEl, raw){
               const cands = buildImageCandidates(raw);
@@ -372,7 +402,8 @@
               p.posterUrl || m.posterUrl ||
               (Array.isArray(p.images) && p.images[0]) ||
               (Array.isArray(m.images) && m.images[0]) || "";
-      
+            
+            const poster0 = m.posterUrl || p.posterUrl || src0;  
             const title   = (p.title || "").trim();
             const quarter = (p.quarter || m.quarter || p.semester || m.semester || "").trim();
             const year    = (p.year || m.year || "").trim();
@@ -395,6 +426,7 @@
                     data-large="${esc(src0)}"
                     data-text-enc="${esc(dataTextEnc)}"
                     data-link="${esc(primaryLink)}"
+                    data-poster="${esc(poster0)}" 
                   />
                   <p>${esc(bottomCaption)}</p>
                   ${primaryLink ? `<div style="margin-top:6px;">
