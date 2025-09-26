@@ -75,19 +75,41 @@ for (const root of PUBLIC_ROOTS) {
   );
 }
 
-// ── 공개 프록시: /file2/** → /uploads/** (모든 루트 탐색) ────────────────
-app.get(/^\/file2\/(.*)$/, (req, res) => {
-  try {
-    const rel0 = String(req.params[0] || "");
-    let rel = rel0.replace(/^(\.\.\/|\/)+/g, "");
-    if (rel.startsWith("file/")) rel = rel.replace(/^file\//, "uploads/");
-    if (!rel.startsWith("uploads/")) rel = "uploads/" + rel;
+// ── 공개 프록시: /file/**, /file2/** → 여러 루트 + 레거시 경로 탐색 ─────────
+function findCandidatePaths(rel: string) {
+  // 안전화
+  let clean = rel.replace(/^(\.\.\/|\/)+/g, "");
 
-    for (const root of PUBLIC_ROOTS) {
+  // /file/ 로 들어오면 /uploads/로 보정
+  if (clean.startsWith("file/")) clean = clean.replace(/^file\//, "uploads/");
+  if (!clean.startsWith("uploads/")) clean = "uploads/" + clean;
+
+  // 업로드 표준 경로
+  const paths = [clean];
+
+  // 🔁 레거시 호환: uploads/posts/ → posts/ / uploads/ / 루트 직하
+  // 예: uploads/posts/123.jpg
+  const m = clean.match(/^uploads\/(posts\/.+)$/);
+  if (m) {
+    const tail = m[1]; // posts/123.jpg
+    paths.push("posts/" + tail.replace(/^posts\//, ""));     // posts/123.jpg
+    paths.push("uploads/" + tail.replace(/^posts\//, ""));   // uploads/123.jpg
+    paths.push(tail.replace(/^posts\//, ""));                // 123.jpg
+  }
+
+  return Array.from(new Set(paths));
+}
+
+function sendFromAnyRoot(rel: string, res: Response) {
+  const candidates = findCandidatePaths(rel);
+
+  for (const root of PUBLIC_ROOTS) {
+    for (const cand of candidates) {
       const rootUploads = path.join(root, "uploads");
-      const full = path.resolve(path.join(root, rel));
-      const rootResolved = path.resolve(rootUploads);
-      if (!full.startsWith(rootResolved + path.sep)) continue;
+      const full = path.resolve(path.join(root, cand)); // root + cand 조합
+      const allowBase = cand.startsWith("uploads/") ? rootUploads : root; // 경로 탈출 방지 기준
+
+      if (!full.startsWith(path.resolve(allowBase) + path.sep)) continue;
       if (fs.existsSync(full) && fs.statSync(full).isFile()) {
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
@@ -95,12 +117,19 @@ app.get(/^\/file2\/(.*)$/, (req, res) => {
         return res.sendFile(full);
       }
     }
-    console.warn("[/file2] not found in any root:", rel0);
-    return res.status(404).json({ error: "not found" });
-  } catch (e) {
-    console.error("[/file2] error:", e);
-    return res.status(500).json({ error: "server error" });
   }
+  return res.status(404).json({ error: "not found" });
+}
+
+// ✅ /file, /file2 둘 다 지원 (과거/현재 URL 전부 커버)
+app.get(/^\/file\/(.*)$/, (req, res) => {
+  try { return sendFromAnyRoot(String(req.params[0] || ""), res); }
+  catch (e) { console.error("[/file] error:", e); return res.status(500).json({ error: "server error" }); }
+});
+
+app.get(/^\/file2\/(.*)$/, (req, res) => {
+  try { return sendFromAnyRoot(String(req.params[0] || ""), res); }
+  catch (e) { console.error("[/file2] error:", e); return res.status(500).json({ error: "server error" }); }
 });
 
 // ── 최근 업로드: 첫 번째로 파일이 존재하는 루트에서 반환 ────────────────
