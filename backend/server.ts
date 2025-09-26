@@ -50,7 +50,7 @@ function pickPublicRoot() {
   return cands[0];
 }
 
-// 환경변수 우선 적용
+// 환경변수 우선 적용 (✔ 선언은 여기 딱 1번만!)
 const PUBLIC_ROOT = process.env.PUBLIC_ROOT_DIR
   ? path.resolve(process.env.PUBLIC_ROOT_DIR)
   : pickPublicRoot();
@@ -71,41 +71,7 @@ app.use(
   })
 );
 
-// --- 3) recent API도 동일 루트 사용(현재 코드는 __dirname 고정이라 틀어질 수 있음) ---
-app.get("/api/uploads/recent", (_req, res) => {
-  try {
-    const ROOT = path.join(PUBLIC_ROOT, "uploads", "posts");
-    const files = fs.readdirSync(ROOT)
-      .filter(f => !f.startsWith("."))
-      .map(f => ({ f, t: fs.statSync(path.join(ROOT, f)).mtimeMs }))
-      .sort((a,b) => b.t - a.t)
-      .slice(0, 10)
-      .map(x => x.f);
-    res.json({ files });
-  } catch (e:any) {
-    res.status(500).json({ ok:false, error: e?.message || "list failed" });
-  }
-});
-
-
-const PUBLIC_ROOT = pickPublicRoot();
-console.log("[PUBLIC_ROOT]", PUBLIC_ROOT);
-
-// 2) 정적 서빙 + 헤더
-app.use(
-  "/uploads",
-  express.static(path.join(PUBLIC_ROOT, "uploads"), {
-    maxAge: "1y",
-    etag: true,
-    setHeaders(res) {
-      res.setHeader("Access-Control-Allow-Origin", "*");
-      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-    },
-  })
-);
-
-// 3) 공개 프록시: /file2/**  →  /uploads/**
+// --- 3) 공개 프록시: /file2/** → /uploads/** (✔ 이 라우트도 딱 1개만)
 app.get(/^\/file2\/(.*)$/, (req, res) => {
   try {
     const rel0 = String(req.params[0] || "");
@@ -136,41 +102,22 @@ app.get(/^\/file2\/(.*)$/, (req, res) => {
   }
 });
 
-// 공개 이미지 프록시: /file2/**  →  /uploads/**
-app.get(/^\/file2\/(.*)$/, (req, res) => {
+// --- 4) 최근 업로드 (PUBLIC_ROOT 기준!) ---
+app.get("/api/uploads/recent", (_req, res) => {
   try {
-    const rel0 = String(req.params[0] || "");
-    // 경로 정리 + 택시(../) 제거
-    let rel = rel0.replace(/^(\.\.\/|\/)+/g, "");
-
-    // /file/**, /uploads/**, 혹은 하위 경로 모두 흡수
-    if (rel.startsWith("file/")) rel = rel.replace(/^file\//, "uploads/");
-    if (!rel.startsWith("uploads/")) rel = "uploads/" + rel;
-
-    const root = path.join(PUBLIC_ROOT, "uploads");
-    const full = path.resolve(path.join(PUBLIC_ROOT, rel));
-    const rootResolved = path.resolve(root);
-
-    // uploads 디렉토리 밖 접근 차단
-    if (!full.startsWith(rootResolved + path.sep)) {
-      return res.status(403).json({ error: "forbidden" });
-    }
-
-    if (!fs.existsSync(full) || !fs.statSync(full).isFile()) {
-      return res.status(404).json({ error: "not found" });
-    }
-
-    // 크로스 오리진 이미지 허용 + 강력 캐시
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-
-    return res.sendFile(full);
-  } catch (e) {
-    console.error("[/file2] error:", e);
-    return res.status(500).json({ error: "server error" });
+    const ROOT = path.join(PUBLIC_ROOT, "uploads", "posts");
+    const files = fs.readdirSync(ROOT)
+      .filter(f => !f.startsWith("."))
+      .map(f => ({ f, t: fs.statSync(path.join(ROOT, f)).mtimeMs }))
+      .sort((a,b) => b.t - a.t)
+      .slice(0, 10)
+      .map(x => x.f);
+    res.json({ files });
+  } catch (e:any) {
+    res.status(500).json({ ok:false, error: e?.message || "list failed" });
   }
 });
+
 
 // Upload (10MB)
 const UPLOAD_DIR = path.join(PUBLIC_ROOT, "uploads", "posts");
