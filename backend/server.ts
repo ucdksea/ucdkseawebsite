@@ -235,6 +235,9 @@ function sendFromAnyRoot(rel: string, req: Request, res: Response) {
     }
   }
   setImageCORS(req, res);
+  res.setHeader("Cache-Control", "no-store, max-age=0"); 
+return res.status(404).json({ error: "not found" });
+
   return res.status(404).json({ error: "not found" });
 }
 
@@ -907,6 +910,7 @@ app.post("/api/auth/login", async (req, res) => {
 app.use((req, res, next) => {
   if (!IMAGE_ROUTES.some(rx => rx.test(req.path))) return next();
   setImageCORS(req, res);
+  res.setHeader("Cache-Control", "no-store, max-age=0");
   return res.status(404).json({ error: "not found" });
 });
 
