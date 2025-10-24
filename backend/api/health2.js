@@ -1,1 +1,1 @@
-module.exports = (req, res) => { res.status(200).json({ ok: true, tag: "health2-rootB" }); };
+module.exports = (req, res) => { res.status(200).json({ ok: true, tag: "health2-root" }); };
