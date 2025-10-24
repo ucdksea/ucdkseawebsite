@@ -1,8 +1,14 @@
-export default function handler(req, res) {
-    res.status(200).json({
-      hasSecret: !!process.env.ADMIN_ACTION_SECRET,
-      secretLen: process.env.ADMIN_ACTION_SECRET?.length ?? 0,
-      startsWithQ: process.env.ADMIN_ACTION_SECRET?.startsWith("Q") ?? false,
-    });
-  }
-  
+module.exports = (req, res) => {
+  const secret = process.env.ADMIN_ACTION_SECRET ?? "";
+  const headerRaw = req.headers["x-admin-token"];
+  const header = Array.isArray(headerRaw) ? headerRaw[0] : (headerRaw ?? "");
+
+  res.status(200).json({
+    hasSecret: secret.length > 0,
+    secretLen: secret.length,
+    headerLen: typeof header === "string" ? header.length : 0,
+    equalTrimmed:
+      typeof header === "string" && header.trim() === secret.trim(),
+    // 안전을 위해 실제 값은 절대 노출하지 않음
+  });
+};
