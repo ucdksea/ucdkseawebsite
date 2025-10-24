@@ -7,6 +7,6 @@ module.exports = (req, res) => {
     secretLen: secret.length,
     headerLen: typeof header === "string" ? header.length : 0,
     equalTrimmed:
-      typeof header === "string" && header.trim() === secret.trim(),
+      typeof header === "string" && header.trim() === secret.trim()
   });
 };
