@@ -29,3 +29,5 @@ yarn-error.log*
 backend/node_modules/
 backend/dist/
 backend/.env*
+.vercel
+.env*.local
