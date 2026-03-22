@@ -278,4 +278,9 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 });
 
 const PORT = Number(process.env.PORT || 4000);
-app.listen(PORT, "0.0.0.0", () => console.log(`🚀 API up on ${PORT}`));
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 API up on ${PORT}`);
+  // 💡 아래 로그를 추가해서 Render Logs에서 직접 확인하세요!
+  console.log(`[ENV_CHECK] R2_BUCKET is: "${process.env.R2_BUCKET}"`);
+  console.log(`[ENV_CHECK] R2_ENDPOINT is: "${process.env.R2_ENDPOINT}"`);
+});
