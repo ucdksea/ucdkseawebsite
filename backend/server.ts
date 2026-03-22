@@ -46,11 +46,19 @@ function isResendTestMode() {
 // 필요시 환경에서 오버라이드 가능 (기본 허용: ucdksea@gmail.com)
 const RESEND_TEST_RECIPIENT =
   (process.env.RESEND_TEST_RECIPIENT || "ucdksea@gmail.com").toLowerCase();
+  const envOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) 
+  : ["https://www.ucdksea.com", "https://ucdksea.com"];
 
-
+// 2. CORS 옵션 수정
+const corsOpts = { 
+  origin: envOrigins, 
+  credentials: true 
+};
 
 const app = express();
-const corsOpts = { origin: ["https://www.ucdksea.com","https://ucdksea.com"], credentials: true };
+app.use(cors(corsOpts));
+app.options("*", cors(corsOpts));
 
 // Middlewares
 app.use(cors(corsOpts));                 // ✅ 통일
@@ -75,10 +83,7 @@ app.get("/log", (_req, res) => {
 const IMAGE_ROUTES = [/^\/uploads(\/|$)/, /^\/file(\/|$)/, /^\/file2(\/|$)/];
 
 // ── 허용 오리진
-const ALLOW_ORIGINS = new Set([
-  "https://www.ucdksea.com",
-  "https://ucdksea.com",
-]);
+const ALLOW_ORIGINS = new Set(envOrigins);
 
 function setImageCORS(req: Request, res: Response) {
   const origin = String(req.headers.origin || "");
