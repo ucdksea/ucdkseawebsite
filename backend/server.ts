@@ -212,40 +212,41 @@ app.get('/uploads/*', async (req: Request, res: Response, next: NextFunction) =>
   try {
     const originalKey = decodeURIComponent(req.params[0]);
     
-    // 1. 후보군 리스트 생성 (기본 파일명)
-    let candidates = [originalKey];
-    
-    // 2. posts/ 경로 보정
+    // 1. 기본 후보군 (경로 보정)
+    let baseKeys = [originalKey];
     if (originalKey.startsWith("posts/")) {
-      candidates.push(originalKey.replace("posts/", ""));
+      baseKeys.push(originalKey.replace("posts/", ""));
     } else {
-      candidates.push(`posts/${originalKey}`);
+      baseKeys.push(`posts/${originalKey}`);
     }
 
-    // 3. ✨ 핵심: 확장자 대소문자 및 jpg/jpeg 완전 매칭
+    // 2. ✨ 확장자 믹스 (jpg <-> jpeg <-> png 모두 교차 체크)
     const finalKeys: string[] = [];
-    candidates.forEach(k => {
+    baseKeys.forEach(k => {
+      finalKeys.push(k); // 원본 추가
+      
       const lastDot = k.lastIndexOf('.');
       if (lastDot !== -1) {
         const base = k.substring(0, lastDot);
         const ext = k.substring(lastDot).toLowerCase();
 
-        // 이미지 확장자인 경우 모든 경우의 수 추가
-        if (['.jpg', '.jpeg', '.png', '.webp', 'HEIC'].includes(ext)) {
+        // 💡 모든 이미지 확장자 후보를 생성 (어떤 게 들어오든 다 뒤져봄)
+        if (['.jpg', '.jpeg', '.png', '.webp', '.heic'].includes(ext)) {
           finalKeys.push(`${base}.jpg`, `${base}.JPG`);
           finalKeys.push(`${base}.jpeg`, `${base}.JPEG`);
           finalKeys.push(`${base}.png`, `${base}.PNG`);
         }
       }
-      finalKeys.push(k); // 원래 이름도 포함
     });
 
     const uniqueKeys = Array.from(new Set(finalKeys));
 
     let head, obj;
-    // R2에서 하나라도 걸릴 때까지 반복문 실행
     for (const k of uniqueKeys) {
       try {
+        // 🔍 디버깅용: 서버 로그에서 어떤 키를 찾고 있는지 확인 가능
+        // console.log(`[R2_TRY] Checking: ${k}`); 
+        
         head = await r2.send(new HeadObjectCommand({ Bucket: process.env.R2_BUCKET!, Key: k }));
         obj = await r2.send(new GetObjectCommand({ Bucket: process.env.R2_BUCKET!, Key: k }));
         if (head && obj) break;
@@ -254,9 +255,8 @@ app.get('/uploads/*', async (req: Request, res: Response, next: NextFunction) =>
       }
     }
 
-    // R2에 없으면 로컬로 토스
     if (!obj) {
-      console.log(`[R2_404] Failed after trying variants: ${originalKey}`);
+      console.warn(`[R2_404] Could not find any variant for: ${originalKey}`);
       return next();
     }
 
