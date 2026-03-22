@@ -211,63 +211,41 @@ app.post('/api/upload', uploadMem.single('file'), async (req: any, res: any) => 
 app.get('/uploads/*', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const originalKey = decodeURIComponent(req.params[0]);
-    
-    // 1. 기본 후보군 (경로 보정)
-    let baseKeys = [originalKey];
-    if (originalKey.startsWith("posts/")) {
-      baseKeys.push(originalKey.replace("posts/", ""));
-    } else {
-      baseKeys.push(`posts/${originalKey}`);
-    }
+    // 💡 확장자를 뺀 순수 파일명(ID 부분)만 추출
+    const lastDot = originalKey.lastIndexOf('.');
+    const baseWithoutExt = lastDot !== -1 ? originalKey.substring(0, lastDot) : originalKey;
+    const cleanBase = baseWithoutExt.replace(/^posts\//, ""); // posts/ 제거
 
-    // 2. ✨ 확장자 믹스 (jpg <-> jpeg <-> png 모두 교차 체크)
-    const finalKeys: string[] = [];
-    baseKeys.forEach(k => {
-      finalKeys.push(k); // 원본 추가
-      
-      const lastDot = k.lastIndexOf('.');
-      if (lastDot !== -1) {
-        const base = k.substring(0, lastDot);
-        const ext = k.substring(lastDot).toLowerCase();
-
-        // 💡 모든 이미지 확장자 후보를 생성 (어떤 게 들어오든 다 뒤져봄)
-        if (['.jpg', '.jpeg', '.png', '.webp', '.heic'].includes(ext)) {
-          finalKeys.push(`${base}.jpg`, `${base}.JPG`);
-          finalKeys.push(`${base}.jpeg`, `${base}.JPEG`);
-          finalKeys.push(`${base}.png`, `${base}.PNG`);
-        }
-      }
-    });
-
-    const uniqueKeys = Array.from(new Set(finalKeys));
+    // 💡 시도해볼 후보군: 이름은 같고 확장자만 다른 모든 경우
+    const finalKeys = [
+      originalKey,
+      `posts/${cleanBase}.jpg`,
+      `posts/${cleanBase}.jpeg`,
+      `posts/${cleanBase}.JPG`,
+      `posts/${cleanBase}.JPEG`,
+      `${cleanBase}.jpg`,
+      `${cleanBase}.jpeg`
+    ];
 
     let head, obj;
-    for (const k of uniqueKeys) {
+    for (const k of Array.from(new Set(finalKeys))) {
       try {
-        // 🔍 디버깅용: 서버 로그에서 어떤 키를 찾고 있는지 확인 가능
-        // console.log(`[R2_TRY] Checking: ${k}`); 
-        
         head = await r2.send(new HeadObjectCommand({ Bucket: process.env.R2_BUCKET!, Key: k }));
         obj = await r2.send(new GetObjectCommand({ Bucket: process.env.R2_BUCKET!, Key: k }));
-        if (head && obj) break;
-      } catch (e) {
-        continue; 
-      }
+        if (head && obj) {
+          console.log(`[R2_FOUND] Matched Key: ${k}`); // 어떤 이름으로 찾았는지 로그 출력
+          break;
+        }
+      } catch (e) { continue; }
     }
 
-    if (!obj) {
-      console.warn(`[R2_404] Could not find any variant for: ${originalKey}`);
-      return next();
-    }
+    if (!obj) return next();
 
     setImageCORS(req, res);
     res.setHeader('Content-Type', head?.ContentType || 'image/jpeg');
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     (obj.Body as any).pipe(res);
-
-  } catch (e) {
-    return next();
-  }
+  } catch (e) { return next(); }
 });
 
 // Local File 서빙 (Static + Fallback)
