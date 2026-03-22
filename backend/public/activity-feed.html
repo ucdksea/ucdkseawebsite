@@ -373,7 +373,50 @@
     return { data: filtered, total, page, page_size: pageSize };
   }
   </script>
-
+  // 설정(CONFIG) 영역에 추가
+  const AUDIT_LOG_ENDPOINT = `${API_BASE}/api/activity`; 
+  
+  // 로그 전송 함수 추가
+  async function sendSecurityLog(email, attemptStatus, reason = "") {
+    try {
+      await fetch(AUDIT_LOG_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email,
+          status: attemptStatus, 
+          reason: reason
+        })
+      });
+    } catch (e) {
+      console.error("Audit log sending failed", e);
+    }
+  }
+  
+  // 기존 로그인 submit 이벤트 내부를 이렇게 수정
+  form?.addEventListener("submit", async (e) => {
+    // ... (기존 이메일/비밀번호 검증 로직) ...
+  
+    try {
+      const res = await fetch(LOGIN_ENDPOINT, /* ... */);
+    
+      if (!res.ok) {
+        // 에러 메시지 파싱 로직...
+        const errorMsg = info || `Login failed (${res.status}).`;
+        
+        // ❌ 인증 실패 시 로그 전송
+        sendSecurityLog(email, "FAILED", errorMsg);
+        throw new Error(errorMsg);
+      }
+    
+      // ✅ 인증 성공 시 로그 전송
+      sendSecurityLog(email, "SUCCESS");
+      window.location.replace(REDIRECT_AFTER);
+      
+    } catch (err) {
+      // ...
+    }
+  });
   <!--
   ==========================================
   ✅ 백엔드 연동 메모 (/api/activity)

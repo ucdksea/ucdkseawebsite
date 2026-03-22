@@ -120,3 +120,34 @@ export async function GET(req: Request) {
   }
 }
 
+// app/api/activity/route.ts (GET 함수 아래에 추가)
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const { email, status, reason } = body;
+
+    // 클라이언트 IP 추출 (보안 감사에서 IP 추적은 필수 요소)
+    const forwardedFor = req.headers.get("x-forwarded-for");
+    const ip = forwardedFor ? forwardedFor.split(",")[0] : "unknown";
+
+    // Prisma를 이용해 Audit DB에 기록 저장
+    const newLog = await prisma.auditEvent.create({
+      data: {
+        action: status === "SUCCESS" ? "LOGIN_SUCCESS" : "LOGIN_FAILED",
+        actorId: email || "unknown",
+        actorIp: ip,
+        targetType: "AUTH",
+        title: status === "SUCCESS" ? "System Access Granted" : "System Access Denied",
+        summary: reason || "Authentication attempt recorded",
+        severity: status === "SUCCESS" ? "INFO" : "WARNING", // 실패 시 경고 레벨 부여
+        ts: new Date(),
+      },
+    });
+
+    return NextResponse.json({ success: true, logId: newLog.id }, { status: 201 });
+  } catch (e) {
+    console.error("Audit log creation error:", e);
+    return NextResponse.json({ error: "Failed to create audit log" }, { status: 500 });
+  }
+}
