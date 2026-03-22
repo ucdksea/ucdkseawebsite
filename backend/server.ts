@@ -210,57 +210,56 @@ app.post('/api/upload', uploadMem.single('file'), async (req: any, res: any) => 
 // ── [서빙 1] R2 파일 프록시 (수정본) ───────────────────────────────────────
 app.get('/uploads/*', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const originalKey = decodeURIComponent(req.params[0]); // URL에서 파일명 추출
+    const originalKey = decodeURIComponent(req.params[0]);
     
-    // 💡 여러 가지 경우의 수를 다 찾아봅니다 (후보 리스트 만들기)
-    const tryKeys = [originalKey];
-
-    // 1. 경로 보정: posts/가 중복되거나 빠진 경우 대비
+    // 1. 후보군 리스트 생성 (기본 파일명)
+    let candidates = [originalKey];
+    
+    // 2. posts/ 경로 보정
     if (originalKey.startsWith("posts/")) {
-      tryKeys.push(originalKey.replace("posts/", "")); // 폴더 없이 파일명만으로도 찾아봄
+      candidates.push(originalKey.replace("posts/", ""));
     } else {
-      tryKeys.push(`posts/${originalKey}`); // 폴더가 빠졌을 경우 붙여서 찾아봄
+      candidates.push(`posts/${originalKey}`);
     }
 
-    // 2. 확장자 및 대소문자 대응 (JPEG, jpg, JPG 등)
-    const candidates: string[] = [];
-    tryKeys.forEach(k => {
-      candidates.push(k);
-      candidates.push(k.toLowerCase());
-      candidates.push(k.toUpperCase());
-      
-      // .jpg와 .jpeg 혼용 대응
-      if (k.toLowerCase().endsWith('.jpg')) {
-        candidates.push(k.replace(/\.jpg$/i, '.jpeg'));
-        candidates.push(k.replace(/\.jpg$/i, '.JPEG'));
-      } else if (k.toLowerCase().endsWith('.jpeg')) {
-        candidates.push(k.replace(/\.jpeg$/i, '.jpg'));
-        candidates.push(k.replace(/\.jpeg$/i, '.JPG'));
+    // 3. ✨ 핵심: 확장자 대소문자 및 jpg/jpeg 완전 매칭
+    const finalKeys: string[] = [];
+    candidates.forEach(k => {
+      const lastDot = k.lastIndexOf('.');
+      if (lastDot !== -1) {
+        const base = k.substring(0, lastDot);
+        const ext = k.substring(lastDot).toLowerCase();
+
+        // 이미지 확장자인 경우 모든 경우의 수 추가
+        if (['.jpg', '.jpeg', '.png', '.webp', 'HEIC'].includes(ext)) {
+          finalKeys.push(`${base}.jpg`, `${base}.JPG`);
+          finalKeys.push(`${base}.jpeg`, `${base}.JPEG`);
+          finalKeys.push(`${base}.png`, `${base}.PNG`);
+        }
       }
+      finalKeys.push(k); // 원래 이름도 포함
     });
 
-    // 중복 제거
-    const finalKeys = Array.from(new Set(candidates));
+    const uniqueKeys = Array.from(new Set(finalKeys));
 
     let head, obj;
-    // 후보군을 하나씩 R2에서 뒤져봅니다.
-    for (const k of finalKeys) {
+    // R2에서 하나라도 걸릴 때까지 반복문 실행
+    for (const k of uniqueKeys) {
       try {
         head = await r2.send(new HeadObjectCommand({ Bucket: process.env.R2_BUCKET!, Key: k }));
         obj = await r2.send(new GetObjectCommand({ Bucket: process.env.R2_BUCKET!, Key: k }));
-        if (head && obj) break; // 찾으면 루프 중단
+        if (head && obj) break;
       } catch (e) {
-        continue; // 못 찾으면 다음 후보 시도
+        continue; 
       }
     }
 
-    // 3. R2에 아예 없으면 로컬 디스크로 넘김
+    // R2에 없으면 로컬로 토스
     if (!obj) {
-      console.log(`[R2_NOT_FOUND] Tried ${finalKeys.length} variants for: ${originalKey}`);
-      return next(); 
+      console.log(`[R2_404] Failed after trying variants: ${originalKey}`);
+      return next();
     }
 
-    // 4. 성공 시 서빙
     setImageCORS(req, res);
     res.setHeader('Content-Type', head?.ContentType || 'image/jpeg');
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
