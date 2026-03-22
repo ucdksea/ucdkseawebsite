@@ -1,4 +1,44 @@
 {
-    "cleanUrls": true,
-    "trailingSlash": false
+    "rewrites": [
+      {
+        "source": "/officer",
+        "destination": "/officer.html"
+      },
+      {
+        "source": "/gm",
+        "destination": "/gm.html"
+      },
+      {
+        "source": "/activity-feed",
+        "destination": "/activity-feed.html"
+      },
+      {
+        "source": "/event",
+        "destination": "/event.html"
+      },
+      {
+        "source": "/faq",
+        "destination": "/faq.html"
+      },
+      {
+        "source": "/history",
+        "destination": "/history.html"
+      },
+      {
+        "source": "/join",
+        "destination": "/join.html"
+      },
+      {
+        "source": "/login",
+        "destination": "/login.html"
+      },
+      {
+        "source": "/post",
+        "destination": "/post.html"
+      },
+      {
+        "source": "/register",
+        "destination": "/register.html"
+      }
+    ]
   }
