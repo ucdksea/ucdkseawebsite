@@ -209,43 +209,52 @@ app.post('/api/upload', uploadMem.single('file'), async (req: any, res: any) => 
 
 // ── [서빙 1] R2 파일 프록시 (수정본) ───────────────────────────────────────
 app.get('/uploads/*', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const originalKey = decodeURIComponent(req.params[0]);
-    // 💡 확장자를 뺀 순수 파일명(ID 부분)만 추출
-    const lastDot = originalKey.lastIndexOf('.');
-    const baseWithoutExt = lastDot !== -1 ? originalKey.substring(0, lastDot) : originalKey;
-    const cleanBase = baseWithoutExt.replace(/^posts\//, ""); // posts/ 제거
+  // 1. 브라우저 차단 방지를 위해 CORS 허용부터 실행
+  setImageCORS(req, res);
 
-    // 💡 시도해볼 후보군: 이름은 같고 확장자만 다른 모든 경우
-    const finalKeys = [
-      originalKey,
-      `posts/${cleanBase}.jpg`,
-      `posts/${cleanBase}.jpeg`,
-      `posts/${cleanBase}.JPG`,
-      `posts/${cleanBase}.JPEG`,
-      `${cleanBase}.jpg`,
-      `${cleanBase}.jpeg`
+  try {
+    const requestedPath = decodeURIComponent(req.params[0]); // 예: posts/123.jpg
+    
+    // 확장자 떼고 순수 이름만 추출
+    const lastDot = requestedPath.lastIndexOf('.');
+    const baseName = lastDot !== -1 ? requestedPath.substring(0, lastDot) : requestedPath;
+
+    // 💡 무적의 후보군: 어떤 확장자로 물어보든 R2에 있는 걸 찾아냄
+    const candidates = [
+      requestedPath,           // 원본 (posts/123.jpg)
+      `${baseName}.jpeg`,      // .jpeg로 시도
+      `${baseName}.jpg`,       // .jpg로 시도
+      `${baseName}.JPEG`,      // 대문자 시도
+      `${baseName}.JPG`,       // 대문자 시도
+      requestedPath.replace("posts/", ""), // 폴더 없는 버전도 시도
     ];
 
     let head, obj;
-    for (const k of Array.from(new Set(finalKeys))) {
+    // R2 창고 뒤지기 시작
+    for (const key of Array.from(new Set(candidates))) {
       try {
-        head = await r2.send(new HeadObjectCommand({ Bucket: process.env.R2_BUCKET!, Key: k }));
-        obj = await r2.send(new GetObjectCommand({ Bucket: process.env.R2_BUCKET!, Key: k }));
+        head = await r2.send(new HeadObjectCommand({ Bucket: process.env.R2_BUCKET!, Key: key }));
+        obj = await r2.send(new GetObjectCommand({ Bucket: process.env.R2_BUCKET!, Key: key }));
         if (head && obj) {
-          console.log(`[R2_FOUND] Matched Key: ${k}`); // 어떤 이름으로 찾았는지 로그 출력
-          break;
+          console.log(`[R2_SUCCESS] Found: ${key}`); 
+          break; 
         }
       } catch (e) { continue; }
     }
 
-    if (!obj) return next();
+    if (!obj) {
+      console.warn(`[R2_404] No file exists in R2 for: ${requestedPath}`);
+      return next(); // 없으면 로컬 폴더로 넘김
+    }
 
-    setImageCORS(req, res);
+    // 2. 이미지 데이터 전송
     res.setHeader('Content-Type', head?.ContentType || 'image/jpeg');
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-    (obj.Body as any).pipe(res);
-  } catch (e) { return next(); }
+    if (obj.Body) (obj.Body as any).pipe(res);
+
+  } catch (e) {
+    return next();
+  }
 });
 
 // Local File 서빙 (Static + Fallback)
