@@ -210,34 +210,62 @@ app.post('/api/upload', uploadMem.single('file'), async (req: any, res: any) => 
 // ── [서빙 1] R2 파일 프록시 (수정본) ───────────────────────────────────────
 app.get('/uploads/*', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    let key = decodeURIComponent(req.params[0]); 
+    const originalKey = decodeURIComponent(req.params[0]); // URL에서 파일명 추출
     
-    // 💡 해결책: 만약 'posts/파일명'으로 찾았을 때 없으면, '파일명'만으로도 다시 찾아보게 함
-    const tryKeys = [key];
-    if (key.startsWith("posts/")) {
-      tryKeys.push(key.replace("posts/", "uploads/posts")); // posts/ 없이 이름만으로 시도
+    // 💡 여러 가지 경우의 수를 다 찾아봅니다 (후보 리스트 만들기)
+    const tryKeys = [originalKey];
+
+    // 1. 경로 보정: posts/가 중복되거나 빠진 경우 대비
+    if (originalKey.startsWith("posts/")) {
+      tryKeys.push(originalKey.replace("posts/", "")); // 폴더 없이 파일명만으로도 찾아봄
+    } else {
+      tryKeys.push(`posts/${originalKey}`); // 폴더가 빠졌을 경우 붙여서 찾아봄
     }
 
+    // 2. 확장자 및 대소문자 대응 (JPEG, jpg, JPG 등)
+    const candidates: string[] = [];
+    tryKeys.forEach(k => {
+      candidates.push(k);
+      candidates.push(k.toLowerCase());
+      candidates.push(k.toUpperCase());
+      
+      // .jpg와 .jpeg 혼용 대응
+      if (k.toLowerCase().endsWith('.jpg')) {
+        candidates.push(k.replace(/\.jpg$/i, '.jpeg'));
+        candidates.push(k.replace(/\.jpg$/i, '.JPEG'));
+      } else if (k.toLowerCase().endsWith('.jpeg')) {
+        candidates.push(k.replace(/\.jpeg$/i, '.jpg'));
+        candidates.push(k.replace(/\.jpeg$/i, '.JPG'));
+      }
+    });
+
+    // 중복 제거
+    const finalKeys = Array.from(new Set(candidates));
+
     let head, obj;
-    for (const k of tryKeys) {
+    // 후보군을 하나씩 R2에서 뒤져봅니다.
+    for (const k of finalKeys) {
       try {
         head = await r2.send(new HeadObjectCommand({ Bucket: process.env.R2_BUCKET!, Key: k }));
         obj = await r2.send(new GetObjectCommand({ Bucket: process.env.R2_BUCKET!, Key: k }));
-        if (head && obj) {
-          key = k; // 찾았으면 해당 키로 확정
-          break;
-        }
+        if (head && obj) break; // 찾으면 루프 중단
       } catch (e) {
-        continue; // 못 찾으면 다음 키로 시도
+        continue; // 못 찾으면 다음 후보 시도
       }
     }
 
-    if (!obj) return next(); // 둘 다 없으면 로컬로 토스
+    // 3. R2에 아예 없으면 로컬 디스크로 넘김
+    if (!obj) {
+      console.log(`[R2_NOT_FOUND] Tried ${finalKeys.length} variants for: ${originalKey}`);
+      return next(); 
+    }
 
+    // 4. 성공 시 서빙
     setImageCORS(req, res);
     res.setHeader('Content-Type', head?.ContentType || 'image/jpeg');
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     (obj.Body as any).pipe(res);
+
   } catch (e) {
     return next();
   }
