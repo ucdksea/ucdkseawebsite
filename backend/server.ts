@@ -207,19 +207,37 @@ app.post('/api/upload', uploadMem.single('file'), async (req: any, res: any) => 
   } catch (e) { res.status(500).json({ error: 'UPLOAD_FAILED' }); }
 });
 
-// R2 Proxy GET
+// ── [서빙 1] R2 파일 프록시 (수정본) ───────────────────────────────────────
 app.get('/uploads/*', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const key = req.params[0];
+    // 💡 핵심: URL에 섞인 %20 같은 특수문자를 원래 글자(공백 등)로 풀어줍니다.
+    const key = decodeURIComponent(req.params[0]); 
+    
     const head = await r2.send(new HeadObjectCommand({ Bucket: process.env.R2_BUCKET!, Key: key }));
     const obj = await r2.send(new GetObjectCommand({ Bucket: process.env.R2_BUCKET!, Key: key }));
+    
     setImageCORS(req, res);
-    if (head.ContentType) res.setHeader('Content-Type', head.ContentType);
+    
+    // Content-Type이 없으면 기본값 설정
+    res.setHeader('Content-Type', head.ContentType || 'image/jpeg');
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-    (obj.Body as any).pipe(res);
+    
+    // 스트림 파이핑
+    if (obj.Body) {
+      (obj.Body as any).pipe(res);
+    } else {
+      throw new Error("Empty body from R2");
+    }
   } catch (e: any) {
-    if (e?.$metadata?.httpStatusCode === 404) return next();
-    res.status(500).send('Server error');
+    // 파일이 R2에 정말 없는 경우(404)에만 로컬 폴더를 뒤집니다.
+    if (e?.$metadata?.httpStatusCode === 404) {
+      console.log(`[R2_PROXY] 404: ${req.params[0]} not found in R2, trying local...`);
+      return next();
+    }
+    
+    // 그 외의 에러(500)는 로그를 남기고 로컬로 넘겨봅니다.
+    console.error(`[R2_PROXY_ERROR] Key: ${req.params[0]}, Error: ${e.message}`);
+    return next(); // 500을 뱉는 대신 로컬 디스크라도 뒤져보게 합니다.
   }
 });
 
