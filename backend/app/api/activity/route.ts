@@ -122,12 +122,19 @@ export async function GET(req: Request) {
 
 // app/api/activity/route.ts (GET 함수 아래에 추가)
 
+// ─────────────────────────────────────────────────────────────
+// POST: 프론트엔드에서 날아오는 보안 로그 DB에 저장
+// ─────────────────────────────────────────────────────────────
 export async function POST(req: Request) {
+  // 1. CORS 헤더 준비
+  const origin = req.headers.get("origin");
+  const headers = corsHeaders(origin);
+
   try {
     const body = await req.json();
     const { email, status, reason } = body;
 
-    // 클라이언트 IP 추출 (보안 감사에서 IP 추적은 필수 요소)
+    // 클라이언트 IP 추출
     const forwardedFor = req.headers.get("x-forwarded-for");
     const ip = forwardedFor ? forwardedFor.split(",")[0] : "unknown";
 
@@ -140,14 +147,26 @@ export async function POST(req: Request) {
         targetType: "AUTH",
         title: status === "SUCCESS" ? "System Access Granted" : "System Access Denied",
         summary: reason || "Authentication attempt recorded",
-        severity: status === "SUCCESS" ? "INFO" : "WARNING", // 실패 시 경고 레벨 부여
+        severity: status === "SUCCESS" ? "INFO" : "WARNING", 
         ts: new Date(),
       },
     });
 
-    return NextResponse.json({ success: true, logId: newLog.id }, { status: 201 });
+    // 2. 응답에 headers 포함해서 보내기
+    return NextResponse.json({ success: true, logId: newLog.id }, { status: 201, headers });
   } catch (e) {
     console.error("Audit log creation error:", e);
-    return NextResponse.json({ error: "Failed to create audit log" }, { status: 500 });
+    // 에러가 날 때도 headers 포함해서 보내기
+    return NextResponse.json({ error: "Failed to create audit log" }, { status: 500, headers });
   }
+}
+
+// ─────────────────────────────────────────────────────────────
+// OPTIONS: 브라우저의 CORS 사전 요청(Preflight) 처리
+// ─────────────────────────────────────────────────────────────
+export async function OPTIONS(req: Request) {
+  const origin = req.headers.get("origin");
+  const headers = corsHeaders(origin);
+  
+  return new NextResponse(null, { status: 204, headers });
 }

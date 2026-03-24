@@ -206,6 +206,28 @@ General members should use the <a href="/join" class=" underline hover:text-[var
         setLoading(false); // replace가 되면 이 줄은 실행되지 않음
       }      
     });
+    // login.html 스크립트 영역
+
+const LOGIN_ENDPOINT = "https://api.ucdksea.com/api/auth/login";
+// ✅ 엔드포인트를 우리가 백엔드에 만들어둔 주소로 통일!
+const AUDIT_LOG_ENDPOINT = "https://api.ucdksea.com/api/activity"; 
+
+// 로그 전송 함수
+async function sendSecurityLog(email, attemptStatus, reason = "") {
+  try {
+    await fetch(AUDIT_LOG_ENDPOINT, {
+      method: "POST", // 백엔드의 POST 함수를 호출합니다
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: email,
+        status: attemptStatus, 
+        reason: reason
+      })
+    });
+  } catch (e) {
+    console.error("Audit log sending failed", e);
+  }
+}
   </script>  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js" defer></script>
 </body>

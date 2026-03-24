@@ -372,11 +372,8 @@
     const filtered = data.filter(x=>(!s.user || x.actor.includes(s.user)) && (!s.q || JSON.stringify(x).toLowerCase().includes(s.q.toLowerCase())));
     return { data: filtered, total, page, page_size: pageSize };
   }
-  // login.html 내 스크립트
-const LOGIN_ENDPOINT = "https://api.ucdksea.com/api/auth/login";
-const AUDIT_LOG_ENDPOINT = "https://api.ucdksea.com/log"; // ✅ 원하시는 정확한 주소로 고정
 
-// 로그 전송 함수
+  // 로그 전송 함수
 async function sendSecurityLog(email, attemptStatus, reason = "") {
   try {
     await fetch(AUDIT_LOG_ENDPOINT, {
