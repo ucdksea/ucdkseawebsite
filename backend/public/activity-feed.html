@@ -31,7 +31,7 @@
       <nav class="hidden md:flex gap-6 text-sm font-medium">
         <a href="/post" class="hover:text-blue-400 transition">Post</a>
         <a href="/history" class="hover:text-blue-400">History</a>
-        <a href="/activity" class="text-blue-400 transition">Activity</a>
+        <a href="/log" class="text-blue-400 transition">Log</a>
       </nav>
     </div>
   </header>
@@ -149,7 +149,7 @@
 
   <script>
     const API_BASE = "https://api.ucdksea.com";
-    const API = `${API_BASE}/api/activity`;  
+    const API = `${API_BASE}/log`;  
     fetch(`${API_BASE}/__health`, { credentials: "include" }); // 있으면 /healthz가 더 간단
   const PAGE_SIZE = 20;
   let state = { page:1, pages:1, total:0, action:'', target:'', start:'', end:'', user:'', q:'', auto:false };

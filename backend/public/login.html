@@ -219,7 +219,7 @@ form?.addEventListener("submit", async (e) => {
 
 const LOGIN_ENDPOINT = "https://api.ucdksea.com/api/auth/login";
 // ✅ 엔드포인트를 우리가 백엔드에 만들어둔 주소로 통일!
-const AUDIT_LOG_ENDPOINT = "https://api.ucdksea.com/api/activity"; 
+const AUDIT_LOG_ENDPOINT = "https://api.ucdksea.com/log"; 
 
 // 로그 전송 함수
 async function sendSecurityLog(email, attemptStatus, reason = "") {
