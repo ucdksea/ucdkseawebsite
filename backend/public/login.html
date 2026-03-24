@@ -133,13 +133,17 @@ General members should use the <a href="/join" class=" underline hover:text-[var
   </footer>
 
   <script>
-    // ---- CONFIG (단일 정의, 덮어쓰기 방지) ----
+    // ---- CONFIG ----
     const DEV = location.hostname === "127.0.0.1" || location.hostname === "localhost";
     const APP_BASE = location.origin;
-    const API_BASE = "https://api.ucdksea.com";  // 절대경로!
-    fetch(`${API_BASE}/api/ping`, { credentials: "include" });
-    const LOGIN_ENDPOINT = `https://api.ucdksea.com/api/auth/login`;
+    const API_BASE = "https://api.ucdksea.com"; 
+    
+    // ✅ 여기서 엔드포인트를 한 번만 선언합니다!
+    const LOGIN_ENDPOINT = `${API_BASE}/api/auth/login`;
+    const AUDIT_LOG_ENDPOINT = `${API_BASE}/log`; 
     const REDIRECT_AFTER = `${APP_BASE}/post`;
+    
+    fetch(`${API_BASE}/api/ping`, { credentials: "include" }).catch(()=>console.log("Ping failed"));
     console.log("[login] API_BASE:", API_BASE, "REDIRECT_AFTER:", REDIRECT_AFTER);
   
     // ---- ELEMENTS ----
@@ -162,82 +166,78 @@ General members should use the <a href="/join" class=" underline hover:text-[var
       togglePw.textContent = isPwd ? "Hide" : "Show";
       pwInput.focus();
     });
-  
-// ---- submit ----
-form?.addEventListener("submit", async (e) => {
-  e.preventDefault();               // 기본 폼 이동 완전 차단
-  hideError();
 
-  const email = document.getElementById("email").value.trim();
-  const password = pwInput.value;
-  if(!email || !password){
-    showError("Please enter both email and password.");
-    return;
-  }
-
-  setLoading(true);
-  try {
-    const res = await fetch(LOGIN_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-      credentials: "include"
-    });
-  
-    if (!res.ok) {
-      let info = "";
-      try { 
-        const data = await res.json(); 
-        info = data?.detail || data?.message || data?.error || ""; 
-      } catch {}
-      
-      const errorMsg = info || `Login failed (${res.status}).`;
-
-      // ❌ [추가된 부분] 로그인 실패 시 로그 전송!
-      sendSecurityLog(email, "FAILED", errorMsg);
-
-      if (res.status === 403) {
-        showError("Your account is pending approval. Please check your email or contact the admin.");
-        return;
+    // ─────────────────────────────────────────────────────────────
+    // ✅ 로그 전송 함수 (submit 이벤트 전에 정의되어야 합니다)
+    // ─────────────────────────────────────────────────────────────
+    async function sendSecurityLog(email, attemptStatus, reason = "") {
+      try {
+        await fetch(AUDIT_LOG_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email,
+            status: attemptStatus, 
+            reason: reason
+          })
+        });
+      } catch (e) {
+        console.error("Audit log sending failed", e);
       }
-      
-      throw new Error(errorMsg);
     }
   
-    // ✅ [추가된 부분] 로그인 성공 시 로그 전송!
-    sendSecurityLog(email, "SUCCESS");
+    // ---- submit ----
+    form?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideError();
 
-    // 성공 시, 히스토리 남기지 않고 /post로 강제 이동
-    window.location.replace(REDIRECT_AFTER);
-    return; 
-  } catch (err) {
-    showError(err.message || "Unable to sign in. Try again.");
-  } finally {
-    setLoading(false); 
-  }      
-});
+      const email = document.getElementById("email").value.trim();
+      const password = pwInput.value;
+      
+      if(!email || !password){
+        showError("Please enter both email and password.");
+        return;
+      }
 
-const LOGIN_ENDPOINT = "https://api.ucdksea.com/api/auth/login";
-// ✅ 엔드포인트를 우리가 백엔드에 만들어둔 주소로 통일!
-const AUDIT_LOG_ENDPOINT = "https://api.ucdksea.com/log"; 
+      setLoading(true);
+      try {
+        const res = await fetch(LOGIN_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+          credentials: "include"
+        });
+      
+        if (!res.ok) {
+          let info = "";
+          try { 
+            const data = await res.json(); 
+            info = data?.detail || data?.message || data?.error || ""; 
+          } catch {}
+          
+          const errorMsg = info || `Login failed (${res.status}).`;
 
-// 로그 전송 함수
-async function sendSecurityLog(email, attemptStatus, reason = "") {
-  try {
-    await fetch(AUDIT_LOG_ENDPOINT, {
-      method: "POST", // 백엔드의 POST 함수를 호출합니다
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: email,
-        status: attemptStatus, 
-        reason: reason
-      })
+          // ❌ 인증 실패 시 로그 전송
+          sendSecurityLog(email, "FAILED", errorMsg);
+
+          if (res.status === 403) {
+            showError("Your account is pending approval. Please check your email or contact the admin.");
+            return;
+          }
+          throw new Error(errorMsg);
+        }
+      
+        // ✅ 인증 성공 시 로그 전송
+        sendSecurityLog(email, "SUCCESS");
+
+        window.location.replace(REDIRECT_AFTER);
+        return; 
+      } catch (err) {
+        showError(err.message || "Unable to sign in. Try again.");
+      } finally {
+        setLoading(false); 
+      }      
     });
-  } catch (e) {
-    console.error("Audit log sending failed", e);
-  }
-}
-  </script>  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js" defer></script>
+  </script>
 </body>
 </html>
