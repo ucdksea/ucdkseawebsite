@@ -115,12 +115,12 @@ export async function GET(req: Request) {
     }));
     return NextResponse.json({ data, page, page_size: pageSize, total }, { headers });
   } catch (e) {
-    console.error("/api/activity error", e);
+    console.error("/api/log error", e);
     return NextResponse.json({ error: "Server error" }, { status: 500, headers });
   }
 }
 
-// app/api/activity/route.ts (GET 함수 아래에 추가)
+// app/api/log/route.ts (GET 함수 아래에 추가)
 
 // ─────────────────────────────────────────────────────────────
 // POST: 프론트엔드에서 날아오는 보안 로그 DB에 저장
