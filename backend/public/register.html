@@ -126,6 +126,22 @@
     const submitBtn = document.getElementById("submitBtn");
     const spinner = document.getElementById("spinner");
     const ALLOWED_DOMAINS = ['ucdavis.edu']; // 필요 없으면 비워도 됨
+    // ✅ 로그 전송 함수 (register.html 용)
+    async function sendAuditLog(email, isSuccess, reason = "") {
+      try {
+        await fetch(`${API_BASE}/log`, { // 백엔드의 POST /log 주소
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email,
+            status: isSuccess ? "SUCCESS" : "FAILED",
+            actionType: "CREATE",        // 회원 '가입' 이니까 CREATE 액션
+            targetType: "USER",          // 대상은 '유저(USER)'
+            reason: reason || (isSuccess ? "Registration request submitted" : "Registration failed")
+          })
+        });
+      } catch (e) { console.error("Log failed", e); }
+    }
   
     function showError(msg){ errorBanner.textContent = msg; errorBanner.classList.remove("hidden"); }
     function hideError(){ errorBanner.classList.add("hidden"); errorBanner.textContent = ""; }
@@ -171,9 +187,15 @@
             if (data?.message) msg = data.message;
             if (data?.detail) msg = data.detail;
           }catch{}
+
+          // ❌ [추가] 가입 실패 로그 전송
+          sendAuditLog(email, false, msg);
           throw new Error(msg);
         }
   
+        // ✅ [추가] 가입 성공 로그 전송
+        sendAuditLog(email, true);
+
         alert("Registration submitted. Await admin approval.");
         window.location.href = "/login";
       }catch(err){

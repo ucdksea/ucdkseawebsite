@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -140,6 +140,22 @@
   <script>window.API_BASE = "https://api.ucdksea.com";</script>
 
   <script>
+    // 로그 전송 함수 (post.html 용)
+  async function sendAuditLog(action, target, title, isSuccess) {
+    try {
+      await fetch("https://api.ucdksea.com/api/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: "Admin", // 임시로 Admin으로 기록
+          status: isSuccess ? "SUCCESS" : "FAILED",
+          actionType: action,          // 예: "CREATE" 또는 "DELETE"
+          targetType: target,          // 예: "POPUP", "OFFICER" 등
+          reason: `Post title: ${title}`
+        })
+      });
+    } catch (e) { console.error("Log failed", e); }
+  }
     // 공통 필드(Title/Date/설명) 토글 유틸
     function toggleLabelAndField(el, hide) {
       if (!el) return;
@@ -409,11 +425,18 @@
             const data = await r.json().catch(()=> ({}));
         
             if (r.status === 401 || r.status === 403) { alert("로그인이 필요합니다."); return; }
+            // (기존 코드)
             if (!r.ok || !data.ok) { alert(`삭제 실패: ${r.status}\n${JSON.stringify(data).slice(0,200)}`); return; }
-        
+      
             card?.remove();
+            
+            // ✅ [추가] 글 삭제 로그 전송!
+            const postTitle = card.querySelector('.font-semibold')?.innerText || "Unknown";
+            sendAuditLog(hard ? "DELETE" : "UPDATE", type, postTitle, true);
+
             const newList = await fetchList(type);
-            renderList(el, type, newList);
+            renderList(el, type, newList);        
+              card?.remove();
           } finally {
             btn.disabled = false;
           }
@@ -605,6 +628,16 @@
       const json = await res.json().catch(() => ({}));
       console.log("[POST /api/admin/posts] resp:", json);
       alert(res.ok ? "Saved" : `${json?.error || "Publish failed"} (status ${res.status})`);
+      
+      if (!res.ok || json?.error) {
+        throw new Error(json?.error || `Publish failed (${res.status})`);
+      }
+
+      // ✅ [추가] 글 작성 성공 로그 전송!
+      sendAuditLog("CREATE", type, payload.title || payload.koName || "Untitled", true);
+
+      document.getElementById("publishMsg").textContent = "Published ✓";
+      refreshAll();
       
 
       if (!res.ok || json?.error) {

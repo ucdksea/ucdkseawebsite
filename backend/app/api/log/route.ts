@@ -1,5 +1,5 @@
 // =============================================================
-// /app/api/activity/route.ts
+// /app/api/log/route.ts
 //  - 변화 이력 조회 API (캔버스 'activity-feed.html'과 호환)
 //  - CORS는 로그인 라우트와 동일 정책 사용
 // =============================================================
@@ -125,42 +125,41 @@ export async function GET(req: Request) {
 // ─────────────────────────────────────────────────────────────
 // POST: 프론트엔드에서 날아오는 보안 로그 DB에 저장
 // ─────────────────────────────────────────────────────────────
+// ────────────────── POST: 모든 보안/활동 로그 저장 ──────────────────
 export async function POST(req: Request) {
-  // 1. CORS 헤더 준비
   const origin = req.headers.get("origin");
   const headers = corsHeaders(origin);
 
   try {
     const body = await req.json();
-    const { email, status, reason } = body;
+    // ✅ 프론트엔드에서 action(CREATE, DELETE 등)과 targetType(POST, OFFICER 등)도 받도록 추가!
+    const { email, status, reason, actionType, targetType } = body;
 
-    // 클라이언트 IP 추출
     const forwardedFor = req.headers.get("x-forwarded-for");
     const ip = forwardedFor ? forwardedFor.split(",")[0] : "unknown";
 
-    // Prisma를 이용해 Audit DB에 기록 저장
+    // 프론트에서 actionType을 안 보냈으면 기본값으로 로그인 결과를 넣음
+    const finalAction = actionType || (status === "SUCCESS" ? "LOGIN_SUCCESS" : "LOGIN_FAILED");
+
     const newLog = await prisma.auditEvent.create({
       data: {
-        action: status === "SUCCESS" ? "LOGIN_SUCCESS" : "LOGIN_FAILED",
-        actorId: email || "unknown",
+        action: finalAction, // CREATE, DELETE, LOGIN_SUCCESS 등
+        actorId: email || "Admin", // 토큰이나 이메일
         actorIp: ip,
-        targetType: "AUTH",
-        title: status === "SUCCESS" ? "System Access Granted" : "System Access Denied",
-        summary: reason || "Authentication attempt recorded",
+        targetType: targetType || "AUTH",
+        title: status === "SUCCESS" ? "Action Successful" : "Action Failed",
+        summary: reason || "Activity recorded",
         severity: status === "SUCCESS" ? "INFO" : "WARNING", 
         ts: new Date(),
       },
     });
 
-    // 2. 응답에 headers 포함해서 보내기
     return NextResponse.json({ success: true, logId: newLog.id }, { status: 201, headers });
   } catch (e) {
-    console.error("Audit log creation error:", e);
-    // 에러가 날 때도 headers 포함해서 보내기
+    console.error("POST /log error:", e);
     return NextResponse.json({ error: "Failed to create audit log" }, { status: 500, headers });
   }
 }
-
 // ─────────────────────────────────────────────────────────────
 // OPTIONS: 브라우저의 CORS 사전 요청(Preflight) 처리
 // ─────────────────────────────────────────────────────────────
