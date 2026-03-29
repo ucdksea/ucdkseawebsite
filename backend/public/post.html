@@ -629,29 +629,25 @@
       console.log("[POST /api/admin/posts] resp:", json);
       alert(res.ok ? "Saved" : `${json?.error || "Publish failed"} (status ${res.status})`);
       
+      // 실패 시 에러 던지기
       if (!res.ok || json?.error) {
         throw new Error(json?.error || `Publish failed (${res.status})`);
       }
 
-      // ✅ [추가] 글 작성 성공 로그 전송!
+      // ✅ [성공 시] 글 작성 성공 로그 전송!
       sendAuditLog("CREATE", type, payload.title || payload.koName || "Untitled", true);
 
+      // UI 업데이트 및 목록 새로고침
       document.getElementById("publishMsg").textContent = "Published ✓";
-      refreshAll();
-      
+      refreshAll(); 
 
-      if (!res.ok || json?.error) {
-        throw new Error(json?.error || `Publish failed (${res.status})`);
-      }
-
-      document.getElementById("publishMsg").textContent = "Published ✓";
-      refreshAll(); // ← 목록 즉시 갱신
     } catch (e) {
       document.getElementById("publishMsg").textContent = e?.message || "Error";
     } finally {
       document.getElementById("btnPublish").disabled = false;
     }
   });
+
 </script>
 
 <script>

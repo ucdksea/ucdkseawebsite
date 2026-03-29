@@ -140,7 +140,7 @@ General members should use the <a href="/join" class=" underline hover:text-[var
     
     // ✅ 여기서 엔드포인트를 한 번만 선언합니다!
     const LOGIN_ENDPOINT = `${API_BASE}/api/auth/login`;
-    const AUDIT_LOG_ENDPOINT = `${API_BASE}/log`; 
+    const AUDIT_LOG_ENDPOINT = `${API_BASE}/api/log` 
     const REDIRECT_AFTER = `${APP_BASE}/post`;
     
     fetch(`${API_BASE}/api/ping`, { credentials: "include" }).catch(()=>console.log("Ping failed"));

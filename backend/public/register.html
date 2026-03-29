@@ -129,7 +129,7 @@
     // ✅ 로그 전송 함수 (register.html 용)
     async function sendAuditLog(email, isSuccess, reason = "") {
       try {
-        await fetch(`${API_BASE}/log`, { // 백엔드의 POST /log 주소
+        await fetch(`${API_BASE}/api/log`, { // 백엔드의 POST /log 주소
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
